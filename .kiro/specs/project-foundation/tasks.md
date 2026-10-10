@@ -1,6 +1,6 @@
 # Implementation Plan: Project Foundation & Scaffolding
 
-**Status:** Approved — Tasks 1–8 verified; stopped for developer review  
+**Status:** Approved — Tasks 1–9 complete; final review limits recorded in acceptance.md  
 **Design:** [design.md](design.md)  
 **Requirements:** [requirements.md](requirements.md)
 
@@ -79,7 +79,7 @@ FR-4 is satisfied by a real `V1__create_app_users.sql` migration, not a comment-
   - Dependencies: 4, 7.
   - Requirements: NFR-2–5, EC-1–5.
 
-- [ ] 9. Review foundation acceptance and stop for the next feature approval.
+- [x] 9. Review foundation acceptance and stop for the next feature approval.
   - Check every applicable requirements acceptance item against recorded build/test/health/migration/CI evidence, with approved clarifications visible.
   - Confirm consistent concise filenames/layout location, no credentials, no authentication/business implementation and no unexpected scope additions.
   - Report changed files, commands/results and remaining limitations. Do not begin authentication or other features automatically.
@@ -190,3 +190,12 @@ Added .github/workflows/ci.yml with independent Ubuntu 24.04 backend/frontend jo
 Developer approved the reference-only patch and publishing the foundation, then committed the scaffold (local commit b7647f9) and reported that the pipelines passed. Hosted success is developer-confirmed, not independently observed by this agent: GitHub page access failed and command-line remote access requires unavailable credentials. The local workflow/clean-copy verification evidence above remains valid.
 
 Applied the approved reference-only changes to structure.md and tech.md, replacing the absent review document with existing canonical foundation design, component diagram and current task evidence. No architectural rule or approved requirement changed; no historical sign-off was recreated. Task 8 is complete based on local verification plus the developer's hosted-CI confirmation. Task 9 has not started.
+
+## Task 9 final review — 2026-10-10
+
+Added acceptance.md covering every functional/nonfunctional criterion, approved clarifications and explicit residual negative-path/setup-timing limits. Updated README to point to the report. No application code, requirement or architectural change. Task 9 is a review/evidence task; its completion is not a silent waiver of unverified original criteria.
+
+- Reviewed current files against approved design/requirements and preceding actual validation evidence; no broad test rerun because executable code/configuration is unchanged since the successful Task 8 clean-copy checks.
+- Executed tracked-file/configuration/naming/layout/scope/runner/reference assertions: passed. An initial scanner used a multiline whitespace expression that misread the blank .env.example value; corrected line-by-line check passed. No secret values printed.
+- Executed actionlint on the current workflow: exit 0. Requirements diff against scaffold baseline is empty. Confirmed retained clean-copy evidence: Maven six tests passed, frontend twelve tests passed and production build passed. Hosted CI remains developer-confirmed, not independently inspected.
+- Remaining advisories, unmeasured first-time setup timing, unexercised negative paths and local documentation publication limits are explicitly recorded in acceptance.md. No next feature started. Stop for developer review/next-feature approval.
