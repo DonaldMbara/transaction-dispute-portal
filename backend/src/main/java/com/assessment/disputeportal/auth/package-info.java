@@ -1,4 +1,4 @@
 /**
- * Future authentication and current-user responsibilities; no authentication behavior yet.
+ * Authentication account feature, organized into controller, DTO, model, repository, service, validation and CLI responsibilities.
  */
 package com.assessment.disputeportal.auth;

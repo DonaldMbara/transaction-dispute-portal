@@ -1,10 +1,28 @@
 server:
   port: 8080
 spring:
+  mvc:
+    publish-request-handled-events: false
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      connection-timeout: 5000
+      validation-timeout: 2000
+      data-source-properties:
+        socketTimeout: 5
+        options: "-c statement_timeout=5000"
+  jdbc:
+    template:
+      query-timeout: 5s
+  session:
+    timeout: 1800s
+    jdbc:
+      flush-mode: immediate
+      save-mode: on-set-attribute
+      initialize-schema: never
+      cleanup-cron: ${SESSION_CLEANUP_CRON:0 * * * * *}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -29,3 +47,9 @@ management:
           include: readinessState,db
         liveness:
           include: livenessState
+
+portal:
+  auth:
+    cleanup-cron: ${AUTH_ACTIVITY_CLEANUP_CRON:0 * * * * *}
+  session:
+    cookie-secure: true

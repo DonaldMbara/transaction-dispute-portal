@@ -53,6 +53,20 @@ class FoundationIntegrationTest {
     @Autowired
     DataSource dataSource;
 
+    @Autowired
+    org.springframework.context.ApplicationContext context;
+
+    @Test
+    void operationalProvisioningIsInactiveAndUnreachableFromPortalHttp() {
+        assertThat(context.getBeansOfType(com.assessment.disputeportal.auth.service.AccountAdministrationService.class)).isEmpty();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM app_users", Integer.class)).isZero();
+        for (String path : new String[]{"/api/v1/auth/provision", "/provision"}) {
+            assertThat(http.getForEntity(path, String.class).getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+            assertThat(http.postForEntity(path, null, String.class).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        }
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM app_users", Integer.class)).isZero();
+    }
+
     @Test
     void readinessIncludesDatabaseAndLivenessExcludesIt() {
         assertThat(groups.get("readiness").isMember("db")).isTrue();
@@ -90,7 +104,7 @@ class FoundationIntegrationTest {
         for (String path : new String[]{"/api/v1/transactions", "/unrelated",
                 "/actuator/env", "/actuator/health/db", "/login"}) {
             ResponseEntity<String> response = http.getForEntity(path, String.class);
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
             assertThat(response.getHeaders().getLocation()).isNull();
         }
     }

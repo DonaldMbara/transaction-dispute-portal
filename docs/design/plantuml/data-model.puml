@@ -1,6 +1,6 @@
 @startuml
 !pragma layout smetana
-title Transaction Dispute Portal — Approved ER Model
+title Transaction Dispute Portal — Implemented Auth and Approved Business ER Model
 hide circle
 skinparam linetype ortho
 entity "app_users" as users {
@@ -10,6 +10,7 @@ entity "app_users" as users {
   * password_hash : VARCHAR(255)
   * role : CUSTOMER|AGENT
   * enabled : BOOLEAN
+  * auth_version : BIGINT
   * created_at : TIMESTAMPTZ
 }
 entity "accounts" as accounts {
@@ -92,9 +93,33 @@ end note
 note bottom of idem
 UNIQUE(user_id, operation, idempotency_key)
 end note
+entity "spring_session" as sessions {
+  * primary_id : CHAR(36) <<PK>>
+  * session_id : CHAR(36) <<UQ>>
+  * creation_time : BIGINT
+  * last_access_time : BIGINT
+  * max_inactive_interval : INTEGER
+  * expiry_time : BIGINT
+  principal_name : VARCHAR(100)
+}
+entity "spring_session_attributes" as attributes {
+  * session_primary_id : CHAR(36) <<PK,FK>>
+  * attribute_name : VARCHAR(200) <<PK>>
+  * attribute_bytes : BYTEA
+}
+entity "auth_session_activity" as activity {
+  * session_primary_id : CHAR(36) <<PK,FK>>
+  * account_id : UUID <<FK>>
+  * auth_version : BIGINT
+  * last_authenticated_activity_at : BIGINT
+}
+sessions ||--o{ attributes : cascade_delete
+sessions ||--o| activity : cascade_delete
+users ||--o{ activity : captured_version
 note as SessionScope
-Business tables shown only. Spring Session JDBC storage
-is approved; session schema/migration details are pending
-authentication design. Existing V1 is unchanged.
+Implemented authentication: V1 unchanged; V2 account extension,
+V3 framework schema, V4 authoritative activity metadata.
+Business tables/relationships remain approved future feature scope.
+Session timestamps are epoch milliseconds; cleanup never grants access.
 end note
 @enduml

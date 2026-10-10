@@ -2,3 +2,7 @@
 spring:
   jpa:
     show-sql: false
+
+portal:
+  session:
+    cookie-secure: false

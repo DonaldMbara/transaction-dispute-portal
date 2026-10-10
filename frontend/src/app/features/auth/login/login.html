@@ -1,3 +1,32 @@
-<main>
-  <h1>Sign in</h1>
+<main class="login-page">
+  <section class="login-card" aria-labelledby="login-heading">
+    <h1 id="login-heading">Sign in</h1>
+    <p class="login-card__intro">Sign in to continue to your dispute portal.</p>
+    @if (!confirmed()) {
+      <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="pending()" novalidate>
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" autocomplete="username" formControlName="email" [readOnly]="pending()"
+          [class.input--invalid]="fieldInvalid('email')" [attr.aria-invalid]="fieldInvalid('email')" [attr.aria-describedby]="fieldInvalid('email') ? 'email-error' : null" />
+        @if (fieldInvalid('email')) { <p id="email-error" class="field-error">Enter a valid email address.</p> }
+        <label for="login-password">Password</label>
+        <div class="password-control">
+          <input id="login-password" [type]="passwordVisible() ? 'text' : 'password'" autocomplete="current-password" formControlName="password" [readOnly]="pending()"
+            [class.input--invalid]="fieldInvalid('password')" [attr.aria-invalid]="fieldInvalid('password')" [attr.aria-describedby]="fieldInvalid('password') ? 'password-error' : null" />
+          <button type="button" class="password-control__toggle" (click)="togglePassword()" [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'">
+            {{ passwordVisible() ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+        @if (fieldInvalid('password')) { <p id="password-error" class="field-error">Enter your password.</p> }
+        <button appButton="primary" type="submit" [disabled]="pending()">{{ pending() ? 'Signing in…' : 'Sign in' }}</button>
+      </form>
+    }
+    @if (message()) {
+      <p class="message message--error" role="alert">{{ message() }}</p>
+    } @else if (auth.state.notice()) {
+      <p class="message" role="status" aria-live="polite">{{ auth.state.notice() }}</p>
+    }
+    @if (recoveryRequired()) {
+      <button appButton="secondary" type="button" [disabled]="pending()" (click)="retrySecurity()">Try again</button>
+    }
+  </section>
 </main>

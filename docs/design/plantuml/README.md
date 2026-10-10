@@ -1,18 +1,18 @@
 # PlantUML Diagram Catalogue
 
-**Status:** Session architecture alignment v0.5 — 2026-10-10. Diagrams describe the approved design baseline, not deployed or runtime-verified architecture.
+**Status:** Authentication implementation alignment v0.6 — 2026-10-10. Diagrams distinguish implemented authentication from approved future business design; no deployed/production-ready claim.
 
 ## Architecture and data
 
 - [System context](system-context.puml) — actors and application boundary.
 - [Component architecture](components.puml) — Angular + Spring Boot modular monolith.
 - [Local deployment](container-deployment.puml) — Docker Compose topology (reverse proxy proposed).
-- [Data model](data-model.puml) — six business tables and relationships; session schema is pending.
+- [Data model](data-model.puml) — approved business tables plus implemented V2–V4 account/session/activity schema.
 
 ## Domain and API workflows
 
 - [Dispute lifecycle](dispute-state.puml) — allowed transitions and terminal states.
-- [Login](login-auth.puml) — conceptual Spring Security / JDBC sessions; concrete authentication contracts pending.
+- [Login](login-auth.puml) — implemented login/identity/logout, masked CSRF, guarded activity and persistence boundaries.
 - [Submit dispute](submit-dispute.puml) — ownership, idempotency, uniqueness, atomic audit.
 - [Claim and release](claim-release.puml) — assignment, conflict handling, audit.
 - [Resolve dispute](resolve-dispute.puml) — agent ownership, required notes and decision.
@@ -35,6 +35,6 @@
 
 - Update diagrams when business rules, API contracts, DB schema or UI flows change.
 - Graph-layout diagrams select the built-in Smetana renderer, so Graphviz is not required. Sequence diagrams use participant-spanning notes. Validate with `java -Djava.awt.headless=true -jar <plantuml.jar> -tsvg -o <output-dir> "docs/design/plantuml/*.puml"`; compiler exit and artifacts must both be checked.
-- Round-two API envelopes, numeric errors, query semantics and 1-based paging are defined in [API contract](../api-contract.md); current session decisions and pending details in [session architecture decision](../session-architecture-decision.md).
+- Round-two API envelopes, numeric errors, query semantics and 1-based paging are defined in [API contract](../api-contract.md); current implemented session decisions and operating assumptions in [session architecture decision](../session-architecture-decision.md).
 - Use PlantUML sources as canonical; rendered PNG/SVG can be generated in CI later.
 - Do not use these diagrams to imply Capitec affiliation. The visual reference applies to styling only.

@@ -1,0 +1,17 @@
+.app-button {
+  min-height: 3rem;
+  padding: .75rem 1.5rem;
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.app-button--primary { background: var(--color-primary); color: var(--color-on-primary); }
+.app-button--primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+.app-button--secondary { background: var(--color-surface); color: var(--color-primary); }
+.app-button--secondary:hover:not(:disabled) { background: var(--color-primary-soft); }
+.app-button:disabled { opacity: .65; cursor: wait; }
+.app-button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }

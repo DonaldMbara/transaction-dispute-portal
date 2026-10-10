@@ -22,7 +22,7 @@ Build a customer-facing transaction dispute experience and an agent investigatio
 | BR-A04 | Agents can view permitted dispute queues/details but only the assigned agent can release or resolve an `UNDER_REVIEW` dispute. | Assigned vs other agent tests. |
 | BR-A05 | Agent internal notes and internal audit metadata are never returned in customer-facing responses. | DTO/serialization and API tests. |
 
-Admin-controlled account provisioning is required; no public registration. This does not add an ADMIN application role or a provisioning endpoint. The mechanism belongs to the upcoming authentication design.
+Admin-controlled account provisioning is required; no public registration. This does not add an ADMIN application role or a provisioning endpoint. The explicit non-web masked-console mechanism is documented in docs/operations/account-provisioning.md.
 
 ## 3. Transactions
 
@@ -149,7 +149,7 @@ Every feature spec should map applicable business rule IDs to acceptance criteri
 
 | Spec | Rules | Required test coverage |
 |---|---|---|
-| `authentication` | BR-A01–A05 | Role boundaries, JDBC server-side sessions, CSRF, cross-customer isolation |
+| `authentication-rbac` | BR-A01–A05 | Authentication role machinery/default denial, JDBC sessions and CSRF; ownership isolation belongs to the owning business features |
 | `customer-transactions` | BR-T01–T05 | Ownership, status filtering, read-only access |
 | `dispute-submission` | BR-S01–S07, BR-L01, BR-H01–H02 | Eligibility, uniqueness, idempotency, rollback |
 | `agent-workflow` | BR-L02–L10, BR-H01–H02 | Claim races, ownership, transitions, stale updates |
@@ -158,7 +158,7 @@ Every feature spec should map applicable business rule IDs to acceptance criteri
 
 ## 12. Open decisions and change control
 
-**Approved at final sign-off:** strong ETag/If-Match optimistic locking and terminal-assignee retention; Spring Security with PostgreSQL-backed Spring Session JDBC, opaque HttpOnly cookies (Secure/SameSite=Lax in production), 30-minute server-enforced idle timeout, CSRF including login/logout, current enabled-role validation and admin-controlled provisioning without public registration; one modular Spring Boot deployment with no MVP gateway or microservices. Authentication endpoint/contracts and provisioning mechanics remain pending feature design; implementation tasks and code require further approval. **Selected round-two design:** API text limits, custom envelopes/numeric codes, 1-based pagination, generic claim/release customer milestones, no transaction snapshot while seeded transactions remain read-only, and completed IN/OUT eligibility under current rules. Historical foundation specs retain their original approval context and are not rewritten; current session architecture supersedes their future JWT/stateless-auth assumptions. Existing Flyway migrations remain unchanged. No JWTs, refresh tokens, localStorage authentication tokens or bearer-token interceptors are part of the current architecture. Any change to incoming eligibility must be an explicit business-rule change.
+**Approved at final sign-off:** strong ETag/If-Match optimistic locking and terminal-assignee retention; Spring Security with PostgreSQL-backed Spring Session JDBC, opaque HttpOnly cookies (Secure/SameSite=Lax in production), 30-minute server-enforced idle timeout, CSRF including login/logout, current enabled-role validation and admin-controlled provisioning without public registration; one modular Spring Boot deployment with no MVP gateway or microservices. Authentication contracts/provisioning are implemented under the approved authentication-rbac feature; future business feature tasks still require approval. **Selected round-two design:** API text limits, custom envelopes/numeric codes, 1-based pagination, generic claim/release customer milestones, no transaction snapshot while seeded transactions remain read-only, and completed IN/OUT eligibility under current rules. Historical foundation specs retain their original approval context and are not rewritten; current session architecture supersedes their future JWT/stateless-auth assumptions. Existing Flyway migrations remain unchanged. No JWTs, refresh tokens, localStorage authentication tokens or bearer-token interceptors are part of the current architecture. Any change to incoming eligibility must be an explicit business-rule change.
 
 When a rule changes:
 1. Update this document and increment its version/date.

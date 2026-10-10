@@ -1,9 +1,9 @@
 @startuml
 !pragma layout smetana
-title Angular Routes and Responsive Application Shell
+title Angular Authentication Routes and Approved Future Navigation
 left to right direction
 rectangle "Login /login" as Login
-rectangle "Role-aware app shell" as Shell
+rectangle "layouts/dashboard-layout\nDashboardLayout" as Shell
 rectangle "Customer routes" {
   rectangle "Transactions list" as T
   rectangle "Transaction detail" as TD
@@ -16,9 +16,18 @@ rectangle "Agent routes" {
   rectangle "Agent case detail" as AD
   rectangle "Claim / Release / Resolve" as ACT
 }
-Login --> Shell : Valid server-side session
-Shell --> T : CUSTOMER
-Shell --> Q : AGENT
+rectangle "Customer landing /customer" as CL
+rectangle "Agent landing /agent" as AL
+rectangle "Access denied" as Denied
+rectangle "Session check retry" as Retry
+Login --> Shell : Verified server identity + refreshed CSRF
+Shell --> CL : CUSTOMER
+Shell --> AL : AGENT
+Shell --> Login : Confirmed logout / expiry
+Shell --> Denied : Wrong role
+Login --> Retry : Unavailable initialization
+CL ..> T : Future customer feature
+AL ..> Q : Future agent feature
 T --> TD : Select transaction
 TD --> F : Eligible transaction
 TD --> HD : Already disputed
@@ -33,6 +42,9 @@ Desktop: full navigation and dense tables.
 Mobile: collapsed navigation and stacked rows.
 Use Nunito Sans, #2F70EF buttons, own Lucide icons.
 Backend enforces authorization independently.
+Startup: bootstrap then identity; no protected content while unresolved.
+Return URLs allow only existing role landing routes.
+Ambiguous logout hides content and offers explicit retry.
 Collection controls: search + filters + sorting + 1-based pages.
 Envelope success status is distinct from domain status.
 end note

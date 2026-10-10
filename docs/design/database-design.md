@@ -16,10 +16,13 @@ See [PlantUML ER model](plantuml/data-model.puml), [state machine](plantuml/disp
 |---|---|---|
 | `id` | UUID | PK |
 | `email` | VARCHAR(254) | NOT NULL, UNIQUE; normalized lowercase |
-| `password_hash` | VARCHAR(255) | NOT NULL; BCrypt |
+| `password_hash` | VARCHAR(255) | NOT NULL; versioned PBKDF2-HMAC-SHA256 (`{pbkdf2-sha256-v1}`), per approved authentication design |
 | `role` | VARCHAR(16) | NOT NULL, CHECK `CUSTOMER` or `AGENT` |
+| `auth_version` | BIGINT | NOT NULL DEFAULT 0, nonnegative; increments atomically on accepted status/role/password changes |
 | `enabled` | BOOLEAN | NOT NULL DEFAULT TRUE |
 | `created_at` | TIMESTAMPTZ | NOT NULL |
+
+Password policy: random 16-byte salt, 600,000 iterations and a 256-bit derived key, benchmarked at approximately 0.57-second encode/verify median on the assessment hardware; rerun for deployment hardware. Provisioning/replacement accepts 8–128 Unicode code points and login verification accepts non-empty well-formed input up to 128; both preserve exact input without trimming or truncation. No plaintext fallback; parameter changes require a new identifier. See [authentication design §3.2](../../.kiro/specs/authentication-rbac/design.md#32-accepted-versioned-password-encoder--benchmark-required). Historical V1 remains unchanged; additive V2–V4 implement the approved account/session changes.
 
 ### `accounts`
 | Column | Type | Constraints |
@@ -147,8 +150,12 @@ Case-insensitive literal substring search uses parameterized escaped LIKE over a
 ## 6. Migration and seed plan
 
 - Applied foundation `V1__create_app_users.sql` is immutable. Remaining business tables belong to later owning feature migrations; do not recreate app_users or renumber the applied V1.
-- Spring Session JDBC session schema, indexes, migration ownership/numbering, serialization and cleanup mechanics are pending authentication design. No session DDL/table names are finalized here.
-- Account provisioning is admin-controlled; no public registration. Provisioning mechanism and development-only account setup are pending authentication design. Preserve synthetic read-only banking data; no plaintext credentials or demo accounts in production configuration.
+- Flyway V2 adds auth_version and canonical-email constraints/preflight; V3 creates the pinned Session 3.5.7 PostgreSQL schema; V4 creates auth_session_activity. No seeded account or applied-migration rewrite.
+- spring_session: CHAR(36) primary_id and unique session_id; epoch-ms creation_time/last_access_time/expiry_time, max_inactive_interval seconds, nullable principal_name; expiry/principal indexes. spring_session_attributes: primary(session_primary_id,attribute_name), BYTEA serialized values, parent FK ON DELETE CASCADE.
+- auth_session_activity: primary session_primary_id FK to session parent and account_id UUID FK to app_users, both cascading; nonnegative auth_version and last_authenticated_activity_at BIGINT; account/time indexes. Account/version/deadline checks are authoritative even before cleanup; activity touches never insert or modify framework-managed session columns.
+- Minimal serializable SessionPrincipal contains UUID with fixed serialVersionUID; compatible application releases share schema/serialization/cookie configuration. Controlled DB access is required for Java serialized session attributes.
+- Framework cleanup SESSION_CLEANUP_CRON and activity cleanup AUTH_ACTIVITY_CLEANUP_CRON default to `0 * * * * *`. Activity cleanup deletes expired authenticated parent sessions, preserving unexpired anonymous CSRF sessions; cascades remove attributes/metadata. Request-time expiry never waits for cleanup.
+- Account provisioning is admin-controlled; no public registration. Provisioning is explicitly invoked non-web masked-console maintenance; never automatic development startup accounts. Preserve synthetic read-only banking data; no plaintext credentials or demo accounts in production configuration.
 - Avoid destructive Flyway changes; new migration choices require test database verification.
 
 ## 7. Business-rule traceability

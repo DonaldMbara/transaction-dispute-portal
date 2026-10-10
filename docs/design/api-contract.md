@@ -1,8 +1,8 @@
 # API Contract — Transaction Dispute Portal
 
-**Status:** Current architecture alignment v0.4 · **Date:** 2026-10-10 · **Base:** `/api/v1` · **Auth:** opaque HttpOnly cookie / PostgreSQL-backed server-side session
+**Status:** Authentication implementation alignment v0.5 · **Date:** 2026-10-10 · **Base:** `/api/v1` · **Auth:** opaque HttpOnly cookie / PostgreSQL-backed server-side session
 
-Round-two contract decisions: custom JSON envelope, numeric error codes, 1-based pagination and PostgreSQL-backed collection queries. These are design commitments, not implemented behavior. ETag/If-Match optimistic locking and retained terminal assignment remain approved; the current session authentication architecture supersedes the former token policy. See [session architecture decision](session-architecture-decision.md) for approved policy and pending contracts. Implementation remains separately gated. Domain rules remain in [business rules](../business-rules.md).
+Round-two contract decisions: custom JSON envelope, numeric error codes, 1-based pagination and PostgreSQL-backed collection queries. Business operations remain design commitments; only foundation and approved authentication endpoints are implemented. ETag/If-Match optimistic locking and retained terminal assignment remain approved; the current session authentication architecture supersedes the former token policy. See [session architecture decision](session-architecture-decision.md) for implemented policy and lifecycle contracts. Implementation remains separately gated. Domain rules remain in [business rules](../business-rules.md).
 
 ## 1. Responses and headers
 
@@ -19,10 +19,10 @@ Use `Content-Type: application/json` for both success and error envelopes. This 
 | Cache-Control | no-store for authentication and customer/agent responses |
 | Location | `/api/v1/disputes/{uuid}` on creation and replay; derive from stored successful payload |
 | ETag | Required on agent detail and successful mutation responses only; see section 6 |
-| Set-Cookie | Opaque HttpOnly session identifier; Secure and SameSite=Lax in production; exact cookie settings/name pending authentication design |
+| Set-Cookie | Opaque HttpOnly session identifier; Secure and SameSite=Lax in production; SESSION, host-only /api/v1, browser-session lifetime; Secure=false only with explicit local profile |
 | Retry-After | Seconds on 429 and bounded submission-coordination timeout 503 |
 
-No `X-OpenAPI-Amount`. Use same-origin /api/v1 requests through the Angular development proxy and future reverse proxy; no cross-origin browser API or CORS configuration is required. Unsafe requests, including login/logout, require CSRF validation. CSRF transport/header names and related error mapping are pending authentication design.
+No `X-OpenAPI-Amount`. Use same-origin /api/v1 requests through the Angular development proxy and future reverse proxy; no cross-origin browser API or CORS configuration is required. Unsafe requests, including login/logout, require CSRF validation. Bootstrap returns masked material for X-CSRF-TOKEN; missing/invalid/stale material returns 403/1010 before unsafe mutation.
 
 IDs remain UUIDs; `DSP-001` is an illustrative display reference, not a change to persistence identifiers. Amounts serialize as positive decimal strings with exactly two fractional digits; direction supplies display sign. Instants serialize in UTC ISO 8601 with `Z`.
 
@@ -61,7 +61,20 @@ Authentication uses Spring Security with Spring Session JDBC and PostgreSQL. An 
 
 No JWT, refresh-token or Bearer response/header contract applies. Reload may restore a still-valid session; it does not itself require reauthentication. Angular clears private cached state when the session expires or the user signs out. No localStorage authentication tokens or bearer-token interceptors.
 
-**Pending authentication design:** login/logout/current-user/session-restoration endpoint names, request/response JSON, HTTP success/error details for those operations, cookie name/scope/lifetime/local settings, CSRF bootstrap/transport/error code and handler precedence, provisioning mechanism, fixation/logout/role-change invalidation mechanics and JDBC session schema/cleanup. Former token endpoint examples are superseded, not new session contracts. Existing domain envelopes, numeric codes, headers and business endpoint contracts are unchanged.
+The implemented authentication contracts are:
+
+| Method and full path | Access / request | 200 data |
+| --- | --- | --- |
+| GET /api/v1/auth/csrf | Public; never an activity keepalive | {csrfToken,headerName:"X-CSRF-TOKEN"} |
+| POST /api/v1/auth/login | Public with valid CSRF; JSON email/password only | {id,email,role} |
+| GET /api/v1/auth/me | Current valid CUSTOMER or AGENT; no polling | {id,email,role} |
+| POST /api/v1/auth/logout | Public with valid CSRF; no body | null |
+
+Each returns the standard status/data/error_code envelope and no-store/correlation headers. Identity never exposes hash, enabled status, auth_version or session identifier. Login preserves exact non-empty, well-formed passwords up to 128 Unicode code points; it does not enforce the provisioning/replacement minimum. Email is ASCII-edge-whitespace trimmed and Locale.ROOT lowercased. Unknown fields, non-string/null/empty/malformed/oversized fields and malformed JSON return 400/1004. Bounded incorrect, unknown and disabled credentials share generic 401/1001; store failures return 503/3002. Missing/invalid/foreign/stale CSRF returns 403/1010 before credential/authorization handling. Wrong role/default denial returns 403/1002; safe/CSRF-valid protected anonymous reads return 401/1001. No HTML redirect, registration, ADMIN role or provisioning HTTP endpoint.
+
+Login rotates the public session ID, invalidates old CSRF material, persists a credential-free context and activates account-version metadata under a current-account lock before success. Angular bootstraps fresh CSRF after transitions. Logout synchronously deletes the current session and expires SESSION with original scope; fresh anonymous-bootstrap repeated logout succeeds. Other sessions remain valid unless an account change increments auth_version. All old sessions fail after disable/delete/role/password changes; re-enable never restores them.
+
+Strict idle activity is renewed at eligible-handler admission after CSRF/authorization, including later validation/handler errors. Only /auth/me currently opts in. Health, bootstrap, logout, unmatched/rejected/background requests never renew it. Equality at 30 minutes expires regardless of cleanup. Default denial applies to all unimplemented business paths; future features add narrow role/ownership matchers with their behavior/tests. Pre-commit store faults return generic 503; faults after commitment are safely logged and may terminate the transport, which is an unconfirmed client outcome. See [operations](../operations/authentication.md).
 
 Transaction list/detail data: `{id,reference,merchant,amount,currency,direction,status,occurredAt,account:{id,maskedNumber},dispute:{id,eligible,ineligibilityReason}}`. `dispute.id` nullable; eligibility false for non-completed/already-disputed, with stable reason NOT_COMPLETED or ALREADY_DISPUTED. Both completed IN and OUT remain eligible under current business rules.
 
@@ -94,7 +107,7 @@ Do not reuse numeric codes. Names are documentation labels; wire `error_code` is
 | Code | Name | HTTP | UI action |
 |---|---|---|---|
 | 0 | SUCCESS | 200/201 | Render data |
-| 1001 | UNAUTHENTICATED | 401 | Clear private UI state; login when unauthenticated; login contract pending design |
+| 1001 | UNAUTHENTICATED | 401 | Clear private UI state; generic credential failure or authentication required |
 | 1002 | FORBIDDEN | 403 | Access denied |
 | 1003 | RESOURCE_NOT_FOUND | 404 | Not found; no ownership/existence disclosure |
 | 1004 | VALIDATION_FAILED | 400 | Inline field/query/header errors |
@@ -103,12 +116,14 @@ Do not reuse numeric codes. Names are documentation labels; wire `error_code` is
 | 1007 | UNSUPPORTED_MEDIA_TYPE | 415 | Client content-type correction |
 | 1008 | METHOD_NOT_ALLOWED | 405 | Client correction; retain Allow header |
 | 1009 | NOT_ACCEPTABLE | 406 | Request application/json |
+| 1010 | CSRF_REJECTED | 403 | Explicit security-token refresh; no automatic unsafe replay |
 | 2002 | TRANSACTION_NOT_ELIGIBLE | 422 | Explain pending/failed transaction |
 | 2003 | DISPUTE_ALREADY_EXISTS | 409 | Reload owned transaction and link existing dispute |
 | 2004 | IDEMPOTENCY_KEY_REUSED | 409 | A changed submission needs a new key; retry unchanged requests with original key |
 | 2005 | DISPUTE_STATE_CONFLICT | 409 | Refresh; preserve unsent notes |
 | 2006 | VERSION_STALE | 412 | Refresh; preserve unsent notes |
 | 2007 | PRECONDITION_REQUIRED | 428 | Refetch case/version |
+| 2008 | ACCOUNT_STATE_CONFLICT | 409 | Inspect the account's current version/state before retrying |
 | 3001 | INTERNAL_ERROR | 500 | Generic message and correlation ID |
 | 3002 | TEMPORARILY_UNAVAILABLE | 503 | Bounded retry; same creation key |
 
@@ -139,4 +154,4 @@ No full account numbers, raw rejected values or internal notes in errors. Proble
 
 ## 9. Sign-off and required implementation verification
 
-Agent ETag/If-Match, retained terminal assignment and the authentication/architecture decisions are approved. The session architecture is approved; its pending authentication contracts must be finalized through the next feature design. This sign-off does not authorize tasks or code. Completed incoming transactions remain eligible unless an explicit business-rule change is approved. API/UI collection scope, envelope and pagination are selected by the round-two request; feature specs must verify them, including security-handler errors, empty pages, all filter combinations, authorization-scoped counts, deterministic ordering and concurrent creation replay. Authentication endpoint/payload/CSRF/provisioning details remain pending feature design. Deployment thresholds and production operational controls remain hardening work.
+Agent ETag/If-Match, retained terminal assignment and the authentication/architecture decisions are approved. The session architecture and authentication feature contracts are approved and implemented; acceptance evidence is recorded in the feature specification. This sign-off does not authorize tasks or code. Completed incoming transactions remain eligible unless an explicit business-rule change is approved. API/UI collection scope, envelope and pagination are selected by the round-two request; feature specs must verify them, including security-handler errors, empty pages, all filter combinations, authorization-scoped counts, deterministic ordering and concurrent creation replay. Authentication endpoint/payload/CSRF/provisioning details follow section 4 and the operational runbooks. Deployment thresholds and production operational controls remain hardening work.
