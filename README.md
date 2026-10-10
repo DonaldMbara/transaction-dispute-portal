@@ -1,6 +1,6 @@
 # Transaction Dispute Portal
 
-Foundation for a Java 21 / Spring Boot 3.5 modular monolith, Angular 20 standalone frontend and PostgreSQL 17. Tasks 1–8 are complete, with hosted CI success confirmed by the developer; final acceptance follows in Task 9. No authentication or business functionality is implemented.
+Foundation for a Java 21 / Spring Boot 3.5 modular monolith, Angular 20 standalone frontend and PostgreSQL 17. Tasks 1–9 are complete, with hosted CI success confirmed by the developer. The final acceptance review and its unverified criteria/remaining issues are recorded in .kiro/specs/project-foundation/acceptance.md. No authentication or business functionality is implemented.
 
 ## Prerequisites
 
