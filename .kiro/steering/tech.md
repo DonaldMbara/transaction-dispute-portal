@@ -11,4 +11,4 @@ inclusion: always
 - Prefer framework-native solutions. Avoid Kafka, Redis, NgRx, distributed services, generic workflow engines and extra libraries without a documented need.
 - Pin and verify compatible dependency versions during scaffolding; do not assume newest means compatible.
 
-- Production controls/scaling rationale and designed-versus-verified gaps are in docs/design/review-round-2.md. Docker Compose is local; illustrative AWS deployment is outside MVP and requires approval. Keep one backend and no API Gateway.
+- Foundation scope and deployment deferrals are in .kiro/specs/project-foundation/design.md; actual verification and remaining limitations are in .kiro/specs/project-foundation/tasks.md. Docker Compose is local; illustrative AWS deployment is outside MVP and requires approval. Keep one backend and no API Gateway.

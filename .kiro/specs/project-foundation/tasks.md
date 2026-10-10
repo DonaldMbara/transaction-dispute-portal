@@ -1,6 +1,6 @@
 # Implementation Plan: Project Foundation & Scaffolding
 
-**Status:** Approved — Tasks 1–7 verified; Task 8 local checks passed, approval/hosted CI pending  
+**Status:** Approved — Tasks 1–8 verified; stopped for developer review  
 **Design:** [design.md](design.md)  
 **Requirements:** [requirements.md](requirements.md)
 
@@ -70,7 +70,7 @@ FR-4 is satisfied by a real `V1__create_app_users.sql` migration, not a comment-
   - Dependencies: 4, 6.
   - Requirements: FR-9–10 (recorded clarification), FR-11.
 
-- [ ] 8. Add foundation CI and reproducible setup documentation.
+- [x] 8. Add foundation CI and reproducible setup documentation.
   - Add separate backend/frontend GitHub Actions jobs with Java 21, compatible Node, dependency caches, Docker for Testcontainers and ChromeHeadless for Angular tests.
   - Run backend `mvn --batch-mode clean verify`; frontend `npm ci`, `npm run build`, `npm run test:ci`. No extra PostgreSQL service, secrets, image build or undefined lint command.
   - Document trusted local `.env` export, Compose/native startup, tests, health URLs, prerequisite versions, port/configuration errors and existing-volume credential behavior. Defer application Dockerfiles/reverse-proxy deployment explicitly.
@@ -184,3 +184,9 @@ Added .github/workflows/ci.yml with independent Ubuntu 24.04 backend/frontend jo
 - Hosted GitHub CI has NOT run. The repository has an origin but no local commits yet; no commit/push was authorized by this step, and gh CLI is unavailable. Local validation is not substituted for the required hosted execution.
 - Missing docs/design/review-round-2.md was not found in checkout or named attachments. Prepared /tmp/foundation-task8-reference-proposal.patch for review: point structure steering to existing foundation design/component diagram and tech steering to design/current verification evidence. It changes references only, not architectural rules, and does not recreate historical sign-off. Steering remains unchanged pending the explicit approval required by this task.
 - Task 8 remains unchecked until reference reconciliation approval and hosted CI verification succeed. Task 9 has not started. Required next approval: reference-only patch and a commit/push of the reviewed foundation to trigger CI, followed by actual run results.
+
+### Task 8 completion update — 2026-10-10
+
+Developer approved the reference-only patch and publishing the foundation, then committed the scaffold (local commit b7647f9) and reported that the pipelines passed. Hosted success is developer-confirmed, not independently observed by this agent: GitHub page access failed and command-line remote access requires unavailable credentials. The local workflow/clean-copy verification evidence above remains valid.
+
+Applied the approved reference-only changes to structure.md and tech.md, replacing the absent review document with existing canonical foundation design, component diagram and current task evidence. No architectural rule or approved requirement changed; no historical sign-off was recreated. Task 8 is complete based on local verification plus the developer's hosted-CI confirmation. Task 9 has not started.

@@ -1,6 +1,6 @@
 # Transaction Dispute Portal
 
-Foundation for a Java 21 / Spring Boot 3.5 modular monolith, Angular 20 standalone frontend and PostgreSQL 17. Tasks 1–7 are verified; Task 8 adds CI and clean setup documentation, with hosted CI execution pending. No authentication or business functionality is implemented.
+Foundation for a Java 21 / Spring Boot 3.5 modular monolith, Angular 20 standalone frontend and PostgreSQL 17. Tasks 1–8 are complete, with hosted CI success confirmed by the developer; final acceptance follows in Task 9. No authentication or business functionality is implemented.
 
 ## Prerequisites
 
@@ -95,6 +95,6 @@ Flyway owns schema; Hibernate validates mappings (none exist yet). V1 creates on
 
 .github/workflows/ci.yml runs on push and pull_request with separate Ubuntu 24.04 backend/frontend jobs, read-only repository permission and pinned official action commits. Java 21 and Node from frontend/.nvmrc are configured; caches use backend/pom.xml and frontend/package-lock.json. Backend uses runner Docker for Testcontainers, with no extra DB service or environment secrets. Frontend discovers Chrome and runs npm ci, build and test:ci. Failed prerequisites/tests fail the job. No undefined lint or Docker-image build is included; application Dockerfiles/reverse proxy and later delivery gates belong to integration-hardening/deployment work.
 
-Local actionlint and clean-copy command verification do not establish a successful hosted GitHub run. Task 8 remains incomplete until the permitted remote CI run and outstanding architecture-reference reconciliation are resolved. The working tree currently has no commits; publishing it requires explicit authorization.
+Local actionlint and clean-copy command verification do not establish a successful hosted GitHub run. The developer committed the scaffold and confirmed that hosted pipelines passed. The agent could not independently inspect the private/credential-protected run; no run URL or ID was supplied. Approved architecture references now point to existing canonical documents. Final acceptance remains Task 9.
 
 Full npm audit reports six high-severity development-tooling entries through Karma/braces (GHSA-vfj7-8cjw-p6xm); npm proposes incompatible downgrades. Production-only audit reports zero advisories. No force fix or runner migration has been applied. See the task evidence for actual commands/results; neither production readiness nor a clean full audit is claimed.
