@@ -14,3 +14,5 @@ description: Designing REST endpoints, request and response DTOs, pagination, HT
 - Emit X-Correlation-ID, no-store, Location on creation/replay and required strong ETag on agent detail/successful mutations and If-Match on claim/release/resolve. Align every response example and Angular client with the contract.
 - Customer DTOs show customer-facing outcome only; never internal agent notes or private audit data.
 - OpenAPI spec and example requests should reflect actual code; no undocumented endpoints or speculative fields.
+
+- Browser authentication uses opaque HttpOnly session cookies with same-origin /api/v1 requests; no Authorization Bearer contract. CSRF is required for unsafe requests including login/logout. Authentication endpoint names, JSON payloads, cookie/CSRF names and error mappings are pending authentication design; do not infer them from superseded token examples.

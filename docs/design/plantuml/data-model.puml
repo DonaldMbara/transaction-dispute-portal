@@ -92,4 +92,9 @@ end note
 note bottom of idem
 UNIQUE(user_id, operation, idempotency_key)
 end note
+note as SessionScope
+Business tables shown only. Spring Session JDBC storage
+is approved; session schema/migration details are pending
+authentication design. Existing V1 is unchanged.
+end note
 @enduml

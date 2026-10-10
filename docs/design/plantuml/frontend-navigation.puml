@@ -16,7 +16,7 @@ rectangle "Agent routes" {
   rectangle "Agent case detail" as AD
   rectangle "Claim / Release / Resolve" as ACT
 }
-Login --> Shell : Authenticated JWT
+Login --> Shell : Valid server-side session
 Shell --> T : CUSTOMER
 Shell --> Q : AGENT
 T --> TD : Select transaction

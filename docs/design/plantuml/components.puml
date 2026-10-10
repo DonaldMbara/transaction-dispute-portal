@@ -9,6 +9,7 @@ package "Angular SPA" {
 }
 package "Spring Boot" {
   [Auth / Security] as sec
+  [Spring Session JDBC] as sessions
   [Account & Transaction] as trans
   [Dispute API / Application] as app
   [Dispute Domain] as domain
@@ -27,7 +28,9 @@ app --> domain
 app --> audit : synchronous append interface
 
 app --> idem
-sec --> PostgreSQL
+sec --> sessions : server-side sessions
+sessions --> PostgreSQL : shared session state
+sec --> PostgreSQL : current account state
 trans --> PostgreSQL
 app --> PostgreSQL
 audit --> PostgreSQL

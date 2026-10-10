@@ -6,7 +6,7 @@ participant "AgentDisputeController" as C
 participant "DisputeService" as S
 database "PostgreSQL" as DB
 Agent -> UI : Accept or Reject + internal notes + customer message
-UI -> C : POST /agent/disputes/{id}/resolve + If-Match
+UI -> C : Session cookie + CSRF; POST /agent/disputes/{id}/resolve + If-Match
 C -> S : Resolve authenticated agent request
 S -> DB : Load dispute + version
 alt Malformed precondition

@@ -9,7 +9,7 @@ A technical-assessment, production-minded modular monolith for customers to view
 - AGENT: access agent queue and case details; claim unassigned disputes, release own claims, resolve own claims.
 
 ## Scope
-- Seeded synthetic banking data; development-only demo users.
+- Seeded synthetic banking data; admin-controlled account provisioning with no public registration. Development-only account setup/provisioning mechanism remains pending authentication design.
 - Customer submission form requires a reason and explanation.
 - Agent resolution requires internal investigation notes and a separate customer-safe outcome message.
 - ACCEPTED means the dispute was upheld, **not** that funds were refunded or reversed.

@@ -1,12 +1,12 @@
 # API Contract — Transaction Dispute Portal
 
-**Status:** Approved design v0.3 · **Date:** 2026-10-10 · **Base:** `/api/v1` · **Auth:** `Authorization: Bearer <JWT>`
+**Status:** Current architecture alignment v0.4 · **Date:** 2026-10-10 · **Base:** `/api/v1` · **Auth:** opaque HttpOnly cookie / PostgreSQL-backed server-side session
 
-Round-two contract decisions: custom JSON envelope, numeric error codes, 1-based pagination and PostgreSQL-backed collection queries. These are design commitments, not implemented behavior. ETag/If-Match optimistic locking, retained terminal assignment and the MVP authentication policy are approved at final design sign-off. Implementation remains separately gated. Domain rules remain in [business rules](../business-rules.md).
+Round-two contract decisions: custom JSON envelope, numeric error codes, 1-based pagination and PostgreSQL-backed collection queries. These are design commitments, not implemented behavior. ETag/If-Match optimistic locking and retained terminal assignment remain approved; the current session authentication architecture supersedes the former token policy. See [session architecture decision](session-architecture-decision.md) for approved policy and pending contracts. Implementation remains separately gated. Domain rules remain in [business rules](../business-rules.md).
 
 ## 1. Responses and headers
 
-All documented application REST operations return JSON envelopes: GET/login/agent mutations use 200; dispute creation and successful replay use 201. No application endpoint uses 204. CORS OPTIONS and operational health/metrics endpoints are outside this application envelope contract. Never send a JSON body with 204. Framework/security errors must be adapted to the same custom envelope; infrastructure-generated failures may have a different body and Angular must handle them safely.
+All documented application REST operations return JSON envelopes: documented domain GET/agent mutations use 200; dispute creation and successful replay use 201. No application endpoint uses 204. CORS OPTIONS and operational health/metrics endpoints are outside this application envelope contract. Never send a JSON body with 204. Framework/security errors must be adapted to the same custom envelope; infrastructure-generated failures may have a different body and Angular must handle them safely.
 
 Successful envelope: `{ "status": true, "data": <payload>, "error_code": 0 }`. Error envelope: `{ "status": false, "data": null, "error_code": <nonzero integer>, "error": { "type": <problem URI>, "title": <summary>, "detail": <safe actionable message>, "fieldErrors": <optional array> } }`. Success omits `error`; error fields never echo passwords, tokens, raw input or private notes. The envelope's boolean `status` is distinct from `data.status`, a domain enum.
 
@@ -19,10 +19,10 @@ Use `Content-Type: application/json` for both success and error envelopes. This 
 | Cache-Control | no-store for authentication and customer/agent responses |
 | Location | `/api/v1/disputes/{uuid}` on creation and replay; derive from stored successful payload |
 | ETag | Required on agent detail and successful mutation responses only; see section 6 |
-| WWW-Authenticate | Bearer challenge for protected-resource 401 |
+| Set-Cookie | Opaque HttpOnly session identifier; Secure and SameSite=Lax in production; exact cookie settings/name pending authentication design |
 | Retry-After | Seconds on 429 and bounded submission-coordination timeout 503 |
 
-No `X-OpenAPI-Amount`. Same-origin reverse proxy preferred; if local separate origins are used, allowlist origins/methods/request headers including Authorization, Idempotency-Key and If-Match, and expose ETag, Location, X-Correlation-ID and Retry-After. Never use wildcard credentialed CORS.
+No `X-OpenAPI-Amount`. Use same-origin /api/v1 requests through the Angular development proxy and future reverse proxy; no cross-origin browser API or CORS configuration is required. Unsafe requests, including login/logout, require CSRF validation. CSRF transport/header names and related error mapping are pending authentication design.
 
 IDs remain UUIDs; `DSP-001` is an illustrative display reference, not a change to persistence identifiers. Amounts serialize as positive decimal strings with exactly two fractional digits; direction supplies display sign. Instants serialize in UTC ISO 8601 with `Z`.
 
@@ -40,8 +40,6 @@ The listed collection capabilities are in the round-two API/UI design scope; spe
 
 | Method and path | Access | Search | Filters | sortBy (default first) | Pagination / success |
 |---|---|---|---|---|---|
-| POST /auth/login | Public | — | — | — | — / 200 |
-| GET /auth/me | Authenticated | — | — | — | — / 200 |
 | GET /transactions | CUSTOMER, owned accounts | merchant, reference | direction=ALL/IN/OUT; status=ALL/PENDING/COMPLETED/FAILED; fromDate,toDate,minAmount,maxAmount | occurredAt, amount, merchant, reference | page,size / 200 |
 | GET /transactions/{id} | CUSTOMER, owned | — | — | — | — / 200 |
 | POST /disputes | CUSTOMER, owned eligible transaction | — | — | — | — / 201 |
@@ -59,9 +57,11 @@ Supported reasons: UNRECOGNIZED_TRANSACTION, DUPLICATE_CHARGE, INCORRECT_AMOUNT,
 
 ## 4. Authentication and DTOs
 
-POST /auth/login request `{ "email": "customer@example.test", "password": "<password>" }`; success data `{ "accessToken": "<jwt>", "tokenType": "Bearer", "expiresIn": 900, "user": { "id": "<uuid>", "email": "customer@example.test", "role": "CUSTOMER" } }`. Missing user, bad password and disabled user share generic 401/1001. GET /auth/me data is `{id,email,role}`. No hashes.
+Authentication uses Spring Security with Spring Session JDBC and PostgreSQL. An opaque session identifier is carried by an HttpOnly cookie; production cookies are Secure and SameSite=Lax. Idle sessions expire after 30 minutes, enforced server-side. Login/logout and all unsafe API requests require CSRF protection. Backend CUSTOMER/AGENT authorization, enabled-state validation and ownership checks remain mandatory. Accounts are provisioned under admin control; no public registration.
 
-Approved policy: RS256 JWT with 15-minute (900-second) expiry, no refresh token, no server session. Each protected request validates signature/algorithm, issuer, audience, expiry and loads current enabled-user/role state from PostgreSQL; disabled users receive generic 401. Current role must match the claimed role; mismatch invalidates authentication. Keys and accepted verification keys must be consistent across replicas and support a controlled rollover. No per-instance random startup key. Angular stores token in memory; reload, expiry and sign-out require login. It may retain only a validated role-appropriate return route, never credentials or tokens, and clears sensitive cached data on sign-out.
+No JWT, refresh-token or Bearer response/header contract applies. Reload may restore a still-valid session; it does not itself require reauthentication. Angular clears private cached state when the session expires or the user signs out. No localStorage authentication tokens or bearer-token interceptors.
+
+**Pending authentication design:** login/logout/current-user/session-restoration endpoint names, request/response JSON, HTTP success/error details for those operations, cookie name/scope/lifetime/local settings, CSRF bootstrap/transport/error code and handler precedence, provisioning mechanism, fixation/logout/role-change invalidation mechanics and JDBC session schema/cleanup. Former token endpoint examples are superseded, not new session contracts. Existing domain envelopes, numeric codes, headers and business endpoint contracts are unchanged.
 
 Transaction list/detail data: `{id,reference,merchant,amount,currency,direction,status,occurredAt,account:{id,maskedNumber},dispute:{id,eligible,ineligibilityReason}}`. `dispute.id` nullable; eligibility false for non-completed/already-disputed, with stable reason NOT_COMPLETED or ALREADY_DISPUTED. Both completed IN and OUT remain eligible under current business rules.
 
@@ -94,7 +94,7 @@ Do not reuse numeric codes. Names are documentation labels; wire `error_code` is
 | Code | Name | HTTP | UI action |
 |---|---|---|---|
 | 0 | SUCCESS | 200/201 | Render data |
-| 1001 | UNAUTHENTICATED | 401 | Clear session; login; generic credentials message for login |
+| 1001 | UNAUTHENTICATED | 401 | Clear private UI state; login when unauthenticated; login contract pending design |
 | 1002 | FORBIDDEN | 403 | Access denied |
 | 1003 | RESOURCE_NOT_FOUND | 404 | Not found; no ownership/existence disclosure |
 | 1004 | VALIDATION_FAILED | 400 | Inline field/query/header errors |
@@ -139,4 +139,4 @@ No full account numbers, raw rejected values or internal notes in errors. Proble
 
 ## 9. Sign-off and required implementation verification
 
-Agent ETag/If-Match, retained terminal assignment and the authentication/architecture decisions are approved. No blocking design decision remains before Kiro feature requirements. This sign-off does not authorize tasks or code. Completed incoming transactions remain eligible unless an explicit business-rule change is approved. API/UI collection scope, envelope and pagination are selected by the round-two request; feature specs must verify them, including security-handler errors, empty pages, all filter combinations, authorization-scoped counts, deterministic ordering and concurrent creation replay. Deployment thresholds/key provisioning and production controls remain in the architecture assessment in the review document.
+Agent ETag/If-Match, retained terminal assignment and the authentication/architecture decisions are approved. The session architecture is approved; its pending authentication contracts must be finalized through the next feature design. This sign-off does not authorize tasks or code. Completed incoming transactions remain eligible unless an explicit business-rule change is approved. API/UI collection scope, envelope and pagination are selected by the round-two request; feature specs must verify them, including security-handler errors, empty pages, all filter combinations, authorization-scoped counts, deterministic ordering and concurrent creation replay. Authentication endpoint/payload/CSRF/provisioning details remain pending feature design. Deployment thresholds and production operational controls remain hardening work.

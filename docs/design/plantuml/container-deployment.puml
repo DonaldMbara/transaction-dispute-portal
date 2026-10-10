@@ -20,13 +20,17 @@ API --> DB : JDBC internal network / pool
 note right of API
 Flyway runs at backend startup.
 Database readiness gates backend; backend readiness checked.
-External dev-only JWT key configuration, not baked into image.
+Spring Session JDBC shares server-side sessions in PostgreSQL.
+Production session cookies: HttpOnly, Secure, SameSite=Lax.
+Server-enforced idle timeout: 30 minutes.
+CSRF protects unsafe requests, including login/logout.
 No external banking dependencies.
 end note
 note bottom
 Production hosting is outside MVP scope.
 Ports and proxy choice finalized in Compose spec.
 Reverse proxy routes /api/v1; it is not an API Gateway.
-Future: stateless replicas behind HTTPS load balancer; not local MVP.
+Future: backend instances behind HTTPS load balancer share JDBC sessions.
+This diagram is eventual container topology; foundation uses native apps + Compose DB.
 end note
 @enduml

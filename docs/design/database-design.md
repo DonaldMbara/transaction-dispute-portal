@@ -1,11 +1,11 @@
 # Database Design — Transaction Dispute Portal
 
-**Status:** Approved design v0.3 · **Date:** 2026-10-10  
+**Status:** Current architecture alignment v0.4 · **Date:** 2026-10-10
 **Source:** `docs/business-rules.md` v0.3. The approved design baseline precedes separately approved feature specifications and Flyway implementation.
 
 ## 1. Goals and boundaries
 
-PostgreSQL is the single source of truth for authenticated users, customer accounts, seeded read-only transactions, disputes, immutable lifecycle events, and request idempotency. The application is a Spring Boot modular monolith; no banking ledger, payment reversal, or settlement tables are in scope.
+PostgreSQL also persists Spring Session JDBC server-side sessions and is the single source of truth for authenticated users, customer accounts, seeded read-only transactions, disputes, immutable lifecycle events, and request idempotency. The application is a Spring Boot modular monolith; no banking ledger, payment reversal, or settlement tables are in scope.
 
 See [PlantUML ER model](plantuml/data-model.puml), [state machine](plantuml/dispute-state.puml), and [API contract](api-contract.md).
 
@@ -146,10 +146,10 @@ Case-insensitive literal substring search uses parameterized escaped LIKE over a
 
 ## 6. Migration and seed plan
 
-- `V1__create_core_tables.sql`: six tables, FKs, CHECKs, uniqueness and indexes.
-- `V2__seed_demo_data.sql` **or** profile-specific startup seeding: deterministic development-only customers, agents, accounts, transactions and example disputes.
-- No plaintext credentials or demo accounts in production configuration.
-- Avoid destructive Flyway changes; migration changes require test database verification.
+- Applied foundation `V1__create_app_users.sql` is immutable. Remaining business tables belong to later owning feature migrations; do not recreate app_users or renumber the applied V1.
+- Spring Session JDBC session schema, indexes, migration ownership/numbering, serialization and cleanup mechanics are pending authentication design. No session DDL/table names are finalized here.
+- Account provisioning is admin-controlled; no public registration. Provisioning mechanism and development-only account setup are pending authentication design. Preserve synthetic read-only banking data; no plaintext credentials or demo accounts in production configuration.
+- Avoid destructive Flyway changes; new migration choices require test database verification.
 
 ## 7. Business-rule traceability
 

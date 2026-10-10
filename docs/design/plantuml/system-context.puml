@@ -10,7 +10,7 @@ rectangle "Transaction Dispute Portal" {
 }
 Customer --> ui : View transactions / submit disputes
 Agent --> ui : Claim / investigate / resolve
-ui --> api : HTTPS JSON envelopes + JWT
+ui --> api : HTTPS JSON envelopes + session cookie\nCSRF on unsafe requests
 
 api --> db : JPA / SQL
 note bottom of api

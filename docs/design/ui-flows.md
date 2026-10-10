@@ -67,7 +67,7 @@ Primary button: blue background, blue border, white text. Outline button: white 
 
 Meet WCAG AA contrast, keyboard access, visible focus, readable error text, and touch target sizing. Status uses text + icon, never colour alone. Use a simple project identity, not official logos.
 
-Session policy: tokens in memory, no refresh token. Reload/expiry/sign-out leads to login; clear private cached state and preserve only validated role-appropriate navigation. Unsent text is preserved only within the authenticated session where safe.
+Session policy: PostgreSQL-backed server-side sessions with opaque HttpOnly cookies, Secure and SameSite=Lax in production, and 30-minute server-enforced idle timeout. Reload may restore a valid session; expiry/sign-out leads to login. Clear private cached state and preserve only validated role-appropriate navigation. Login/logout and unsafe requests require CSRF; session restoration and CSRF transport remain pending authentication design. No public registration or bearer-token interceptor; provisioning is admin-controlled. Unsent text is preserved only within the authenticated session where safe.
 
 ## 3. Information architecture
 
