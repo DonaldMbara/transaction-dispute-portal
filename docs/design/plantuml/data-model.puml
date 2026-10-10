@@ -1,0 +1,95 @@
+@startuml
+!pragma layout smetana
+title Transaction Dispute Portal — Approved ER Model
+hide circle
+skinparam linetype ortho
+entity "app_users" as users {
+  * id : UUID <<PK>>
+  --
+  * email : VARCHAR(254) <<UQ>>
+  * password_hash : VARCHAR(255)
+  * role : CUSTOMER|AGENT
+  * enabled : BOOLEAN
+  * created_at : TIMESTAMPTZ
+}
+entity "accounts" as accounts {
+  * id : UUID <<PK>>
+  --
+  * customer_id : UUID <<FK>>
+  * account_number : VARCHAR(32) <<UQ>>
+  * account_type : VARCHAR(32)
+  * created_at : TIMESTAMPTZ
+}
+entity "bank_transactions" as tx {
+  * id : UUID <<PK>>
+  --
+  * account_id : UUID <<FK>>
+  * reference : VARCHAR(80) <<UQ>>
+  * merchant : VARCHAR(160)
+  * amount : NUMERIC(19,2)
+  * direction : IN|OUT
+  * currency : CHAR(3)
+  * status : PENDING|COMPLETED|FAILED
+  * occurred_at : TIMESTAMPTZ
+}
+entity "disputes" as d {
+  * id : UUID <<PK>>
+  --
+  * transaction_id : UUID <<FK,UQ>>
+  * reason : VARCHAR(64)
+  * description : VARCHAR(2000)
+  * status : OPEN|UNDER_REVIEW|ACCEPTED|REJECTED
+  assigned_agent_id : UUID <<FK,nullable>>
+  assigned_at : TIMESTAMPTZ
+  internal_resolution_notes : VARCHAR(4000)
+  customer_resolution_message : VARCHAR(2000)
+  * created_at : TIMESTAMPTZ
+  * updated_at : TIMESTAMPTZ
+  resolved_at : TIMESTAMPTZ
+  * version : BIGINT
+}
+entity "dispute_events" as ev {
+  * id : UUID <<PK>>
+  --
+  * dispute_id : UUID <<FK>>
+  * actor_id : UUID <<FK>>
+  * dispute_version : BIGINT <<UQ with dispute_id>>
+  * event_type : VARCHAR(32)
+  from_status : VARCHAR(16)
+  * to_status : VARCHAR(16)
+  previous_agent_id : UUID <<FK>>
+  new_agent_id : UUID <<FK>>
+  internal_notes : TEXT
+  customer_message : TEXT
+  * created_at : TIMESTAMPTZ
+}
+entity "idempotency_records" as idem {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * operation : VARCHAR(64)
+  * idempotency_key : VARCHAR(128)
+  * request_hash : CHAR(64)
+  * response_status : INTEGER
+  * response_body : JSONB
+  * created_at : TIMESTAMPTZ
+}
+users ||--o{ accounts : customer
+accounts ||--o{ tx : contains
+tx ||--o| d : disputed_once
+d ||--o{ ev : audit
+users |o--o{ d : assigned_agent
+users ||--o{ ev : actor
+users |o--o{ ev : previous_agent
+users |o--o{ ev : new_agent
+users ||--o{ idem : requests
+note right of d
+OPEN has no assignment.
+Terminal retains resolving agent + assigned_at.
+Version increments once per committed agent mutation.
+Customer DTOs omit agent identity.
+end note
+note bottom of idem
+UNIQUE(user_id, operation, idempotency_key)
+end note
+@enduml

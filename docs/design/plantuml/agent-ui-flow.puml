@@ -1,0 +1,36 @@
+@startuml
+title Agent UI Flow
+start
+:Login as agent;
+:Choose Unassigned / My Cases / All;
+:Search; filter status/reason/date; sort; paginate from page 1;
+:Open dispute details; retain strong ETag;
+if (OPEN and unassigned?) then (yes)
+  :Claim with If-Match;
+  if (Claim successful?) then (yes)
+    :UNDER_REVIEW assigned to me;
+  else (no)
+    :Refresh; another agent may have claimed;
+    stop
+  endif
+endif
+if (Assigned to me and UNDER_REVIEW?) then (yes)
+  if (Release?) then (yes)
+    :Enter mandatory release reason;
+    :Confirm release; submit with If-Match;
+    :Return to OPEN queue;
+  else (Resolve)
+    :Select ACCEPT or REJECT;
+    :Enter internal notes and customer message;
+    :Confirm decision; submit with If-Match;
+    if (Version conflict?) then (yes)
+      :Refresh; preserve unsent notes;
+    else (no)
+      :Display terminal status and audit;
+    endif
+  endif
+else (no)
+  :Read-only details; terminal retains resolving agent;
+endif
+stop
+@enduml

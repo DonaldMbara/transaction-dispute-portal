@@ -1,0 +1,41 @@
+@startuml
+!pragma layout smetana
+title Application Components — Modular Monolith
+package "Angular SPA" {
+  [Auth & Shell] as authui
+  [Customer Transactions] as txui
+  [Customer Disputes] as dui
+  [Agent Workspace] as aui
+}
+package "Spring Boot" {
+  [Auth / Security] as sec
+  [Account & Transaction] as trans
+  [Dispute API / Application] as app
+  [Dispute Domain] as domain
+  [Dispute Audit submodule] as audit
+  [Idempotency] as idem
+  [Technical Infrastructure] as infra
+}
+database PostgreSQL
+authui --> sec
+txui --> trans
+dui --> app
+aui --> app
+app --> sec : authenticated principal
+app --> trans : owned transaction lookup / lock interface
+app --> domain
+app --> audit : synchronous append interface
+
+app --> idem
+sec --> PostgreSQL
+trans --> PostgreSQL
+app --> PostgreSQL
+audit --> PostgreSQL
+idem --> PostgreSQL
+note bottom
+One Spring Boot deployment; no cross-module repository access.
+Dispute, audit and idempotency writes share one PostgreSQL transaction.
+Infrastructure: envelopes, correlation IDs, validation and exception mapping.
+No microservices or API Gateway in MVP.
+end note
+@enduml

@@ -1,0 +1,4 @@
+# Credentials are supplied by external environment variables.
+spring:
+  jpa:
+    show-sql: false

@@ -1,0 +1,43 @@
+@startuml
+title Agent Claim / Release — Approved Preconditions and Atomic Audit
+actor Agent
+participant "Agent workspace" as UI
+participant "AgentDisputeController" as C
+participant "DisputeService" as S
+database PostgreSQL as DB
+Agent -> UI : Claim case / release with reason
+UI -> C : POST claim or release + If-Match + JWT
+C -> S : Authenticated agent; validate command
+S -> DB : Load dispute in mutation transaction
+alt Missing If-Match
+  S --> C : 428 / 2007
+else Malformed If-Match
+  S --> C : 400 / 1004
+else Stale version
+  S --> C : 412 / 2006
+else Invalid state / assignment with current version
+  S --> C : 409 / 2005
+else Valid command
+  group One transaction: guarded state change and event
+    alt Claim OPEN / unassigned
+      S -> DB : Conditional UNDER_REVIEW, agent, assigned_at, version + 1
+    else Release UNDER_REVIEW assigned to caller
+      S -> DB : Conditional OPEN, clear agent + assigned_at, version + 1
+    end
+    alt Guarded write succeeded
+      S -> DB : Append CLAIMED / RELEASED event with resulting disputeVersion
+      S -> DB : Commit
+      S --> C : 200 refreshed agent detail + new strong ETag
+    else Lost write race
+      S -> DB : Rollback; no event committed
+      S --> C : 412 / 2006
+    end
+  end
+end
+C --> UI : HTTP status + JSON envelope + X-Correlation-ID
+note over UI, DB
+Approved: action preconditions use the parent agent-detail ETag.
+Release requires nonblank internal reason; no customer disclosure.
+Responses include boolean request status and numeric error_code.
+end note
+@enduml

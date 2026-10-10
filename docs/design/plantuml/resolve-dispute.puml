@@ -1,0 +1,39 @@
+@startuml
+title Agent Resolve — Approved Version Preconditions, Atomic Update
+actor Agent
+participant "Angular Agent Detail" as UI
+participant "AgentDisputeController" as C
+participant "DisputeService" as S
+database "PostgreSQL" as DB
+Agent -> UI : Accept or Reject + internal notes + customer message
+UI -> C : POST /agent/disputes/{id}/resolve + If-Match
+C -> S : Resolve authenticated agent request
+S -> DB : Load dispute + version
+alt Malformed precondition
+  S --> C : Error 1004 (400)
+else Missing/stale precondition
+  S --> C : Error 2007 / 2006 (428 / 412)
+else Not assigned or invalid status
+  S --> C : Error 2005 (409)
+else Valid assigned agent + UNDER_REVIEW
+  group One database transaction
+    S -> DB : Resolve with version/state/assignee guard; retain agent + assigned_at
+    alt Guarded write succeeded
+      S -> DB : Append resolution event with resulting disputeVersion
+      S -> DB : Commit
+      S --> C : 200 agent detail + new strong ETag
+    else Lost guarded write race
+      S -> DB : Rollback; no event committed
+      S --> C : Error 2006 (412)
+    end
+  end
+end
+C --> UI : HTTP status + JSON envelope + X-Correlation-ID
+UI --> Agent : Confirmation / refresh-on-conflict
+note over UI, DB
+Strong ETag/If-Match is approved for all agent mutations.
+Terminal assignment and assigned_at retained; customer identity redacted.
+Acceptance records a decision only.
+No payment reversal or refund is initiated.
+end note
+@enduml

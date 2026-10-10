@@ -1,0 +1,31 @@
+@startuml
+title Login and Role-Based Access
+actor User
+participant "Angular login" as UI
+participant "AuthController" as C
+participant "AuthenticationService" as A
+participant "UserRepository" as R
+participant "JWT signer" as J
+User -> UI : Enter credentials
+UI -> C : POST /api/v1/auth/login
+C -> A : Authenticate
+A -> R : Find user by normalized email
+R --> A : User and BCrypt hash
+alt User not found, invalid password or disabled
+  A --> C : Generic authentication failure
+  C --> UI : 401 error envelope (1001)
+else Valid credentials
+  A -> J : Issue RS256 JWT; expires in 900 seconds
+  J --> A : JWT with subject and role
+  A --> C : Token + safe user profile
+  C --> UI : 200 envelope (error_code 0)
+  UI -> UI : Keep token in memory
+  UI --> User : Route by role
+end
+note over UI, J
+Every protected API validates JWT, current enabled/role state and ownership.
+Replicas share issuer/audience and compatible key configuration.
+Reload / expiry / sign-out requires login; no refresh token.
+Frontend route guards are not authorization.
+end note
+@enduml

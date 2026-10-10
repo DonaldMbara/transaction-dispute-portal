@@ -1,0 +1,5 @@
+# Testcontainers supplies datasource properties dynamically in Task 4.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate

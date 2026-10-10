@@ -1,0 +1,33 @@
+@startuml
+title Customer UI Flow
+start
+:Login;
+:Transactions;
+:Search merchant/reference; filter direction/status/date/amount;
+:Choose sort and 1-based page;
+:Open transaction details;
+if (Completed and not disputed?) then (yes)
+  :Choose Dispute this transaction;
+  :Select reason and enter description;
+  :Review and confirm;
+  :Submit with idempotency key;
+  if (Created?) then (yes)
+    :Show OPEN confirmation;
+    :Navigate to dispute details;
+  else (no)
+    :Explain error; preserve input;
+  endif
+else (no)
+  if (Already disputed?) then (yes)
+    :Link to existing dispute;
+  else (no)
+    :Explain ineligibility;
+  endif
+endif
+:My Disputes;
+:View customer-safe timeline;
+if (Resolved?) then (yes)
+  :Show decision and customer message;
+endif
+stop
+@enduml

@@ -1,0 +1,45 @@
+@startuml
+title Submit Dispute — Coordinated Idempotency, Custom Envelope
+actor Customer
+participant "Angular Form" as UI
+participant "DisputeController" as C
+participant "DisputeService" as S
+database "PostgreSQL primary" as DB
+Customer -> UI : Reason and description
+UI -> C : POST /api/v1/disputes + JWT + Idempotency-Key
+C -> S : Authenticated customer; validate + canonical fingerprint
+S -> DB : Read completed record by user + operation + key
+alt Existing key
+  S -> S : Compare fingerprint
+  S --> C : Same: replay 201 envelope; different: 409 / 2004
+else New key
+  group One database transaction
+    S -> DB : Lock owned transaction row FOR UPDATE
+    S -> DB : Re-read completed idempotency record after lock
+    alt Record appeared while waiting
+      S --> C : Same hash replay / different hash 409
+    else Still new and eligible
+      S -> DB : Verify COMPLETED, ownership, no dispute
+      S -> DB : Insert OPEN version 0; UNIQUE transaction_id
+      S -> DB : Insert CREATED event disputeVersion 0
+      S -> DB : Insert completed 201 envelope + request hash
+      S -> DB : Commit all three writes
+      S --> C : 201 + Location derived from data.id
+    else Missing / not eligible / already disputed
+      S --> C : 404 / 1003; 422 / 2002; 409 / 2003
+    end
+  end
+end
+opt Named uniqueness collision or bounded lock timeout
+  S -> DB : Roll back failed transaction
+  S -> DB : Fresh transaction: read committed winner key
+  S --> C : Replay / key mismatch / duplicate; timeout 503 / 3002
+end
+C --> UI : HTTP status + JSON envelope + Location if 201 + fresh correlation ID
+UI --> Customer : Confirm / actionable error; retain unchanged retry key
+note over UI, DB
+No instance-local locks; shared PostgreSQL coordinates replicas.
+No success before commit. At most one post-rollback lookup.
+Retry-After on temporary coordination timeout; no orphan dispute/event.
+end note
+@enduml

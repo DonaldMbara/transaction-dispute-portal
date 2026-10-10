@@ -1,0 +1,22 @@
+@startuml
+!pragma layout smetana
+title Dispute State Machine
+[*] --> OPEN : Submit [owned COMPLETED transaction; no existing dispute]
+OPEN --> UNDER_REVIEW : Claim [unassigned; one agent wins]
+UNDER_REVIEW --> OPEN : Release [assigned agent; reason required]
+UNDER_REVIEW --> ACCEPTED : Accept [assigned agent; both messages required]
+UNDER_REVIEW --> REJECTED : Reject [assigned agent; both messages required]
+ACCEPTED --> [*]
+REJECTED --> [*]
+note right of OPEN
+No assigned agent
+end note
+note right of UNDER_REVIEW
+Assigned to one agent
+end note
+note bottom of ACCEPTED
+Terminal; resolving agent + assigned_at retained
+Immutable; no automatic refund
+Assignment never appears in customer responses
+end note
+@enduml

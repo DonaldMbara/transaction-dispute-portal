@@ -1,0 +1,22 @@
+@startuml
+!pragma layout smetana
+title System Context — Assessment Application
+actor Customer
+actor Agent
+rectangle "Transaction Dispute Portal" {
+  component "Angular SPA" as ui
+  component "Spring Boot REST API" as api
+  database "PostgreSQL" as db
+}
+Customer --> ui : View transactions / submit disputes
+Agent --> ui : Claim / investigate / resolve
+ui --> api : HTTPS JSON envelopes + JWT
+
+api --> db : JPA / SQL
+note bottom of api
+Mock seeded banking transactions
+No external bank or payment integration
+One modular backend; no MVP API Gateway
+TLS reverse proxy / load balancer is a deployment concern
+end note
+@enduml

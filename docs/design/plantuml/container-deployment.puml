@@ -1,0 +1,32 @@
+@startuml
+!pragma layout smetana
+title Local Deployment — Docker Compose
+node "Developer machine" {
+  node "Docker Compose network" {
+    node "frontend container" {
+      artifact "Static server + proposed reverse proxy" as SPA
+    }
+    node "backend container" {
+      artifact "Spring Boot executable JAR" as API
+    }
+    database "PostgreSQL container" as DB
+  }
+  actor "Browser" as B
+}
+B --> SPA : HTTP localhost frontend port
+SPA --> API : /api/v1 via reverse proxy
+API --> DB : JDBC internal network / pool
+
+note right of API
+Flyway runs at backend startup.
+Database readiness gates backend; backend readiness checked.
+External dev-only JWT key configuration, not baked into image.
+No external banking dependencies.
+end note
+note bottom
+Production hosting is outside MVP scope.
+Ports and proxy choice finalized in Compose spec.
+Reverse proxy routes /api/v1; it is not an API Gateway.
+Future: stateless replicas behind HTTPS load balancer; not local MVP.
+end note
+@enduml

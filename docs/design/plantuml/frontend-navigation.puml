@@ -1,0 +1,39 @@
+@startuml
+!pragma layout smetana
+title Angular Routes and Responsive Application Shell
+left to right direction
+rectangle "Login /login" as Login
+rectangle "Role-aware app shell" as Shell
+rectangle "Customer routes" {
+  rectangle "Transactions list" as T
+  rectangle "Transaction detail" as TD
+  rectangle "Submit dispute" as F
+  rectangle "Dispute history" as H
+  rectangle "Customer dispute detail" as HD
+}
+rectangle "Agent routes" {
+  rectangle "Unassigned / Mine / All" as Q
+  rectangle "Agent case detail" as AD
+  rectangle "Claim / Release / Resolve" as ACT
+}
+Login --> Shell : Authenticated JWT
+Shell --> T : CUSTOMER
+Shell --> Q : AGENT
+T --> TD : Select transaction
+TD --> F : Eligible transaction
+TD --> HD : Already disputed
+F --> HD : Created successfully
+T --> H : My Disputes
+H --> HD : Open case
+Q --> AD : Select case
+AD --> ACT : Authorized action
+ACT --> AD : Refresh status
+note bottom
+Desktop: full navigation and dense tables.
+Mobile: collapsed navigation and stacked rows.
+Use Nunito Sans, #2F70EF buttons, own Lucide icons.
+Backend enforces authorization independently.
+Collection controls: search + filters + sorting + 1-based pages.
+Envelope success status is distinct from domain status.
+end note
+@enduml

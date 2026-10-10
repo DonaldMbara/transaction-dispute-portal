@@ -1,0 +1,63 @@
+
+# --------------------------------------------------
+# Local secrets and environment configuration
+# --------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+
+# --------------------------------------------------
+# Java / Spring Boot / Maven
+# --------------------------------------------------
+backend/target/
+*.class
+*.log
+hs_err_pid*
+
+# --------------------------------------------------
+# Angular / Node.js
+# --------------------------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+frontend/.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --------------------------------------------------
+# IDE and editor settings
+# --------------------------------------------------
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# --------------------------------------------------
+# Operating system files
+# --------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# --------------------------------------------------
+# Local temporary files
+# --------------------------------------------------
+tmp/
+temp/
+*.tmp
+
+# --------------------------------------------------
+# Keep project specifications and documentation
+# --------------------------------------------------
+# .kiro/steering/   - version controlled
+# .kiro/specs/      - version controlled
+# docs/             - version controlled

@@ -1,0 +1,33 @@
+@startuml
+title Customer Dispute History — Ownership and Safe Projection
+actor Customer
+participant "Angular history" as UI
+participant "CustomerDisputeController" as C
+participant "DisputeQueryService" as S
+database PostgreSQL as DB
+Customer -> UI : Open My Disputes
+UI -> C : GET /disputes?page=1&size=20 + JWT + filters/search/sort
+C -> S : List for JWT subject
+S -> DB : Query disputes through transaction -> account -> customer
+DB --> S : Owned disputes only
+S --> C : Authorized {total,page,size,items} in data
+C --> UI : 200 envelope (error_code 0)
+Customer -> UI : Open a dispute
+UI -> C : GET /disputes/{id}
+C -> S : Load owned dispute and public timeline
+S -> DB : Query by dispute ID AND customer ownership
+alt Not found or not owned
+  S --> C : Not found
+  C --> UI : 404 error envelope (1003)
+else Owned
+  DB --> S : Dispute + events
+  S -> S : Order by disputeVersion; map safe milestones including returned-to-queue
+  note right of S
+  Never return internal notes,
+  release reasons, agent IDs,
+  or raw audit events.
+  end note
+  S --> C : Customer-safe detail
+  C --> UI : 200 envelope (error_code 0)
+end
+@enduml
