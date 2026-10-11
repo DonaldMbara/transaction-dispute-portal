@@ -60,11 +60,12 @@ class AuthenticationMigrationTest {
 
     @Test
     void freshInstallationUsesThePinnedSessionSchemaAndCreatesNoAccounts() throws Exception {
-        assertThat(flyway("latest").migrate().migrationsExecuted).isEqualTo(4);
+        assertThat(flyway("latest").migrate().migrationsExecuted).isEqualTo(5);
         assertThat(flyway("latest").validateWithResult().validationSuccessful).isTrue();
         assertThat(count("SELECT count(*) FROM app_users")).isZero();
         assertThat(count("SELECT count(*) FROM spring_session")).isZero();
         assertThat(count("SELECT count(*) FROM auth_session_activity")).isZero();
+        assertThat(count("SELECT count(*) FROM accounts")).isZero();
         try (var shipped = new ClassPathResource("org/springframework/session/jdbc/schema-postgresql.sql").getInputStream();
              var migration = new ClassPathResource("db/migration/V3__create_jdbc_sessions.sql").getInputStream()) {
             assertThat(migration.readAllBytes()).isEqualTo(shipped.readAllBytes());
@@ -97,7 +98,7 @@ class AuthenticationMigrationTest {
         try (var connection = connection(); var statement = connection.createStatement()) {
             statement.execute(user("00000000-0000-0000-0000-000000000001", "canonical@example.test"));
         }
-        assertThat(flyway("latest").migrate().migrationsExecuted).isEqualTo(3);
+        assertThat(flyway("latest").migrate().migrationsExecuted).isEqualTo(4);
         try (var connection = connection(); var statement = connection.createStatement()) {
             statement.execute(session("00000000-0000-0000-0000-000000000002"));
         }

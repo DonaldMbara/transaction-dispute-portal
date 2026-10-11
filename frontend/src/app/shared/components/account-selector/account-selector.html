@@ -1,0 +1,16 @@
+<section class="selector" aria-label="Choose an account">
+  @if (selected; as account) {
+    <div class="current-account" aria-live="polite">
+      <span class="current-label">Current account</span>
+      <strong>{{ account.displayName }}</strong>
+      @if (account.accountNumber !== null) { <span class="full-number">{{ account.accountNumber }}</span> }
+      <span class="current-balance">{{ formatBalance(account.balance) }}</span>
+    </div>
+  }
+  <label for="account-choice">Select account</label>
+  <select id="account-choice" [value]="selectedAccountId() ?? ''" (change)="select($any($event.target).value)">
+    @for (account of accounts(); track account.id) {
+      <option [value]="account.id">{{ account.displayName }} · {{ account.maskedNumber }}</option>
+    }
+  </select>
+</section>

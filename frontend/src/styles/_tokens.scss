@@ -1,4 +1,12 @@
-// Approved app mappings. Font assets are not installed by this declaration.
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('/fonts/NunitoSans[YTLC,opsz,wdth,wght].ttf') format('truetype');
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+}
+
+// Font asset and SIL OFL license are bundled under frontend/public/fonts.
 :root {
   --font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
   --color-primary: #2F70EF;

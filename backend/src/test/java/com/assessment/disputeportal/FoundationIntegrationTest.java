@@ -22,6 +22,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
@@ -115,6 +116,34 @@ class FoundationIntegrationTest {
                 .isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(http.postForEntity("/api/v1/disputes", null, String.class).getStatusCode())
                 .isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void accountsMigrationRejectsMalformedNumbersAndDuplicatePrimaryAccounts() {
+        var customerId = java.util.UUID.randomUUID();
+        var firstId = java.util.UUID.randomUUID();
+        var secondId = java.util.UUID.randomUUID();
+        jdbc.update("INSERT INTO app_users(id,email,password_hash,role,enabled,created_at) VALUES(?,?,?,?,?,?)",
+                customerId, "account-schema@example.test", "test-hash", "CUSTOMER", true,
+                java.sql.Timestamp.from(java.time.Instant.parse("2026-01-01T00:00:00Z")));
+        try {
+            assertThatThrownBy(() -> jdbc.update("INSERT INTO accounts(id,customer_id,account_number,account_type,balance,is_primary,created_at) VALUES(?,?,?,?,?,?,?)",
+                    firstId, customerId, "123456789", "MAIN", new java.math.BigDecimal("12.00"), true,
+                    java.sql.Timestamp.from(java.time.Instant.parse("2025-01-01T00:00:00Z"))))
+                    .isInstanceOf(org.springframework.dao.DataAccessException.class);
+            jdbc.update("INSERT INTO accounts(id,customer_id,account_number,account_type,balance,is_primary,created_at) VALUES(?,?,?,?,?,?,?)",
+                    firstId, customerId, "0123456789", "MAIN", new java.math.BigDecimal("12.00"), true,
+                    java.sql.Timestamp.from(java.time.Instant.parse("2025-01-01T00:00:00Z")));
+            assertThatThrownBy(() -> jdbc.update("INSERT INTO accounts(id,customer_id,account_number,account_type,balance,is_primary,created_at) VALUES(?,?,?,?,?,?,?)",
+                    secondId, customerId, "9876543210", "SAVINGS", new java.math.BigDecimal("34.00"), true,
+                    java.sql.Timestamp.from(java.time.Instant.parse("2025-01-02T00:00:00Z"))))
+                    .isInstanceOf(org.springframework.dao.DataAccessException.class);
+            assertThat(jdbc.queryForObject("SELECT count(*) FROM accounts WHERE customer_id = ?", Integer.class, customerId))
+                    .isEqualTo(1);
+        } finally {
+            jdbc.update("DELETE FROM accounts WHERE customer_id = ?", customerId);
+            jdbc.update("DELETE FROM app_users WHERE id = ?", customerId);
+        }
     }
 
     @Test
