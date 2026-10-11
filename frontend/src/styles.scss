@@ -19,7 +19,7 @@ a.account-row app-account-card .account-title { min-height: auto; gap: .5rem; fo
 a.account-row app-account-card .primary-badge { padding: .15rem .5rem; font-size: .6875rem; }
 a.account-row app-account-card .full-number { font-size: .8125rem; }
 a.account-row app-account-card .account-balance { gap: .25rem; }
-a.account-row app-account-card .balance-label { margin: 0; color: var(--color-text); font-size: .75rem; }
+a.account-row app-account-card .balance-label { margin: 0; color: var(--color-text-muted); font-size: .75rem; }
 a.account-row app-account-card .balance { font-size: 1.25rem; line-height: 1.45; }
 a.account-row app-account-card .chevron { color: var(--color-primary); }
 .account-selector-wrap app-account-selector .account-card {

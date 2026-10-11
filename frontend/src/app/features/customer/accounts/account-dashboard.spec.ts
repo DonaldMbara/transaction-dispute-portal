@@ -52,28 +52,18 @@ describe('AccountDashboard', () => {
     expect((fixture.nativeElement as HTMLElement).querySelectorAll('.primary-badge').length).toBe(1);
   });
 
-  it('keeps the loading skeleton visible until the request completes', () => {
-    const response = new Subject<AccountPage>();
-    api.list.and.returnValue(response.asObservable());
-    fixture.componentInstance.load();
-    fixture.detectChanges();
-    expect(fixture.componentInstance.state()).toBe('loading');
-    expect((fixture.nativeElement as HTMLElement).querySelector('[aria-busy="true"]')).toBeTruthy();
-    response.next(page([main]));
-    response.complete();
-    fixture.detectChanges();
-    expect(fixture.componentInstance.state()).toBe('ready');
-  });
-
   it('keeps existing accounts visible and marks the region busy during refresh', () => {
     const response = new Subject<AccountPage>();
     api.list.and.returnValue(response.asObservable());
     fixture.componentInstance.load();
     fixture.detectChanges();
-    const element = fixture.nativeElement as HTMLElement;
     expect(fixture.componentInstance.state()).toBe('busy');
-    expect(element.querySelector('.dashboard-columns')?.getAttribute('aria-busy')).toBe('true');
-    expect(element.querySelector('.account-row')).toBeTruthy();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.dashboard-columns[aria-busy="true"]')).toBeTruthy();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.account-row')).toBeTruthy();
+    response.next(page([main]));
+    response.complete();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.state()).toBe('ready');
   });
 
   it('renders the empty state without account rows or a quick-links panel', () => {

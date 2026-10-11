@@ -20,10 +20,10 @@
 .account-icon { display: grid; width: 2.35rem; height: 2.35rem; place-items: center; border-radius: .5rem; background: var(--color-primary-soft); color: var(--color-primary); }
 .account-icon svg { width: 1.35rem; height: 1.35rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .account-info { display: grid; min-width: 0; gap: .2rem; }
-.account-title { display: flex; min-width: 0; min-height: 1.35rem; align-items: center; gap: .5rem; color: var(--color-text); }
+.account-title { display: flex; min-width: 0; min-height: 1.35rem; align-items: center; gap: .5rem; color: var(--color-text-strong); }
 .account-title strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.primary-badge { flex: 0 0 auto; border-radius: 999px; padding: .12rem .45rem; background: var(--color-primary-soft); color: var(--color-primary); font-size: .75rem; font-weight: 700; }
-.full-number { color: var(--color-text); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.primary-badge { flex: 0 0 auto; border-radius: 999px; padding: .12rem .45rem; background: var(--color-primary-soft); color: var(--color-primary-dark); font-size: .75rem; font-weight: 700; }
+.full-number { color: var(--color-text-strong); font-size: .9rem; font-variant-numeric: tabular-nums; }
 .account-balance { display: grid; grid-template-rows: auto auto; gap: .2rem; justify-items: end; align-content: center; min-width: 0; text-align: right; }
 .balance-label { display: block; margin-bottom: .1rem; color: var(--color-text-muted); font-size: .75rem; line-height: 1.3; white-space: nowrap; }
 .balance { display: block; color: var(--color-text); font-size: 1rem; font-variant-numeric: tabular-nums; line-height: 1.3; white-space: nowrap; }

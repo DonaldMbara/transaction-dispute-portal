@@ -1,3 +1,4 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router, RouterOutlet } from '@angular/router';
@@ -5,11 +6,15 @@ import { DashboardLayout } from './dashboard-layout';
 import { AuthService } from '../../core/auth/auth-service';
 import { SessionState } from '../../core/auth/session-state';
 import { AuthFailure } from '../../core/auth/auth-contracts';
+
+@Component({ standalone: true, template: '' })
+class StubCustomerPage {}
+
 describe('DashboardLayout', () => {
   let state: SessionState, logout: jasmine.Spy;
   beforeEach(() => {
     logout = jasmine.createSpy('logout');
-    TestBed.configureTestingModule({ imports: [DashboardLayout], providers: [provideRouter([{ path: 'customer', children: [{ path: 'transactions' }, { path: 'transactions/:id' }] }, { path: 'agent', children: [] }]), { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState), logout }) }] });
+    TestBed.configureTestingModule({ imports: [DashboardLayout], providers: [provideRouter([{ path: 'customer', children: [{ path: 'transactions', component: StubCustomerPage }, { path: 'transactions/:id', component: StubCustomerPage }] }, { path: 'agent', children: [] }]), { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState), logout }) }] });
     state = TestBed.inject(SessionState);state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'CUSTOMER' });
   });
   it('hosts its child outlet and renders the customer navigation item beside the brand', async () => {

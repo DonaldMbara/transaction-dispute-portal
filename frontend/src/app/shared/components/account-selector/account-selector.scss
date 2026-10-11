@@ -1,6 +1,7 @@
 :host { display: block; width: 100%; }
 .selector { position: relative; width: 100%; }
 .selector-trigger, .account-option { display: block; width: 100%; padding: 0; border: 0; border-radius: .65rem; background: transparent; color: var(--color-text); text-align: left; font: inherit; cursor: pointer; }
+.selector-trigger { min-height: 72px; }
 .account-options { position: absolute; z-index: 5; top: calc(100% + .35rem); right: 0; left: 0; display: grid; gap: .35rem; padding: .4rem; border: 1px solid var(--color-border); border-radius: .75rem; background: var(--color-surface); box-shadow: 0 .5rem 1.4rem rgb(20 40 60 / 16%); }
 .account-option { border-radius: .65rem; }
 .selector-trigger:focus-visible, .account-option:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }

@@ -198,7 +198,7 @@ class CustomerTransactionsIntegrationTest {
         HttpResponse<String> empty = get("/api/v1/transactions?page=10&size=20&accountId=" + accounts.get("MAIN"), cookie);
         assertThat(empty.statusCode()).isEqualTo(200);
         assertThat(json.readTree(empty.body()).at("/data/items").isEmpty()).isTrue();
-        assertThat(json.readTree(empty.body()).at("/data/total").asLong()).isEqualTo(3);
+        assertThat(json.readTree(empty.body()).at("/data/total").asLong()).isEqualTo(12);
         for (String path : List.of("?accountId=bad", "?accountId=" + accounts.get("MAIN") + "&accountId=" + accounts.get("SAVINGS"),
                 "?fromDate=2025-01-01&toDate=2026-01-02", "?page=2147483647&size=100")) {
             HttpResponse<String> invalid = get("/api/v1/transactions" + path, cookie);

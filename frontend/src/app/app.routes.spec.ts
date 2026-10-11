@@ -15,7 +15,7 @@ describe('Foundation routing', () => {
   ] }));
 
   for (const [url, heading, inDashboard] of [
-    ['/login', 'Sign in', false],
+    ['/login', 'Welcome back', false],
     ['/customer', 'Accounts', true],
     ['/agent', 'Agent', true]
   ] as const) {
@@ -45,7 +45,7 @@ describe('Foundation routing', () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/');
     expect(TestBed.inject(Router).url).toBe('/login');
-    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('Sign in');
+    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('Welcome back');
   });
 
   it('routes an unavailable initial session check to its retry page', async () => {
@@ -58,7 +58,7 @@ describe('Foundation routing', () => {
 
   it('navigates between sibling features without the auth route consuming them', async () => {
     const harness = await RouterTestingHarness.create('/login');
-    for (const [url, heading] of [['/customer', 'Accounts'], ['/agent', 'Agent'], ['/login', 'Sign in']]) {
+    for (const [url, heading] of [['/customer', 'Accounts'], ['/agent', 'Agent'], ['/login', 'Welcome back']]) {
       TestBed.inject(SessionState).authenticated({ id: 'fixture', email: 'fixture@example.test', role: url === '/agent' ? 'AGENT' : 'CUSTOMER' });
       await harness.navigateByUrl(url);
       expect(TestBed.inject(Router).url).toBe(url);

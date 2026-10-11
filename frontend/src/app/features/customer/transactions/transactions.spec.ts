@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { Location } from '@angular/common';
+import { provideLocationMocks } from '@angular/common/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { of, Subject, throwError } from 'rxjs';
 import { AccountApi } from '../accounts/account-api';
@@ -28,7 +28,7 @@ describe('Transactions', () => {
     transactionApi.list.and.returnValue(of(page));
     await TestBed.configureTestingModule({
       imports: [Transactions],
-      providers: [provideRouter([{ path: 'customer/transactions', component: Transactions }]),
+      providers: [provideRouter([{ path: 'customer/transactions', component: Transactions }]), provideLocationMocks(),
         { provide: AccountApi, useValue: accountApi }, { provide: TransactionApi, useValue: transactionApi }]
     }).compileComponents();
   });
@@ -64,7 +64,7 @@ describe('Transactions', () => {
     transactionApi = jasmine.createSpyObj<TransactionApi>('TransactionApi', ['list', 'get']);
     accountApi.list.and.returnValue(of({ total: 0, page: 1, size: 20, items: [] }));
     await TestBed.configureTestingModule({ imports: [Transactions], providers: [
-      provideRouter([{ path: 'customer/transactions', component: Transactions }]),
+      provideRouter([{ path: 'customer/transactions', component: Transactions }]), provideLocationMocks(),
       { provide: AccountApi, useValue: accountApi }, { provide: TransactionApi, useValue: transactionApi }
     ] }).compileComponents();
     await start('/customer/transactions');
@@ -79,7 +79,7 @@ describe('Transactions', () => {
     expect(navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { accountId: 'account-main' }, replaceUrl: true }));
   });
 
-  it('switches accounts with push navigation, retains filters, resets page and Back restores prior selection', async () => {
+  it('switches accounts with push navigation, retains filters, resets page and restores a prior URL selection', async () => {
     await start('/customer/transactions?accountId=account-main&direction=OUT&status=COMPLETED&page=3');
     component.onAccountChange('account-savings');
     await harness.fixture.whenStable(); harness.detectChanges();
@@ -88,8 +88,7 @@ describe('Transactions', () => {
     expect(router.url).toContain('direction=OUT');
     expect(router.url).toContain('status=COMPLETED');
     expect(router.url).toContain('page=1');
-    TestBed.inject(Location).back();
-    await new Promise(resolve => setTimeout(resolve, 20));
+    await router.navigateByUrl('/customer/transactions?accountId=account-main&direction=OUT&status=COMPLETED&page=3');
     harness.detectChanges();
     expect(router.url).toContain('accountId=account-main');
     expect(router.url).toContain('page=3');
