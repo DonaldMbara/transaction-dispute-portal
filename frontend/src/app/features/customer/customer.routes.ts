@@ -6,5 +6,7 @@ export const CUSTOMER_ROUTES: Routes = [
   { path: 'transactions', pathMatch: 'full', loadComponent: () =>
     import('./transactions/transactions').then(m => m.Transactions) },
   { path: 'transactions/:id', loadComponent: () =>
-    import('./transaction-detail/transaction-detail').then(m => m.TransactionDetail) }
+    import('./transaction-detail/transaction-detail').then(m => m.TransactionDetail) },
+  { path: 'disputes/new', loadComponent: () =>
+    import('./disputes/dispute-submission').then(m => m.DisputeSubmission) }
 ];

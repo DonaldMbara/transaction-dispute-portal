@@ -96,9 +96,9 @@ The later customer Disputes page reuses the shared account selector and defaults
 ```text
 Login → Account Dashboard (stacked account rows) → Select account row → Transactions list (accountId in URL)
       → All | Money In | Money Out
-      → Select transaction → Transaction details (no dispute action in Customer Transactions)
+      → Select transaction → Transaction details → Dispute this transaction (eligible completed transactions only)
 
-The later dispute-submission feature extends this journey with eligibility, submission and history.
+The submission flow lives at `/customer/disputes/new?transactionId=<uuid>`. It reloads transaction details from the API and shows only the merchant, amount, reference and masked account context. The customer chooses a supported reason, enters a required description (maximum 2000 characters), reviews it, then submits with an idempotency key. Loading, validation, safe manual retry, duplicate, unavailable and received/open states are accessible. The form does not promise a refund and does not expose a My Disputes link; history/detail remain deferred.
 ```
 
 ### Screen: Account Dashboard
@@ -137,17 +137,17 @@ The later dispute-submission feature extends this journey with eligibility, subm
 
 - Back link: returns to `/customer/transactions?accountId=<id>` preserving `accountId` and other allowlisted query parameters (direction, status, fromDate, toDate, page, size, sortBy, sortDirection, search). Further back from there leads to the account dashboard (`/customer`).
 - Merchant, amount, direction, date/time (Africa/Johannesburg locale), reference, masked account, transaction status.
-- Show the transaction's status and date/time in Africa/Johannesburg and its masked account context. There is no dispute CTA, statement, receipt or download action in the Customer Transactions phase.
-- Dispute eligibility and the submission action belong to the later dispute-submission feature; do not imply all outgoing payments are necessarily fraudulent.
+- Show the transaction's status and date/time in Africa/Johannesburg and its masked account context. Eligible completed outgoing transactions without a dispute show **Raise dispute**. Incoming credits explain that only payments leaving the account can be disputed. Do not imply all outgoing payments are necessarily fraudulent.
 
 ### Screen: Submit dispute
 
-This screen belongs to the later dispute-submission feature and is outside Customer Transactions.
-- Transaction summary remains visible.
+Route: `/customer/disputes/new?transactionId=<uuid>`. Reload transaction details and retain the safe transaction summary including masked account.
 - Required reason dropdown (five values from BR-S04).
-- Required description textarea; character counter and inline errors.
-- Review/confirmation before submit (lightweight; may be one-step confirmation modal).
-- Disable submit while pending; maintain same idempotency key on network retry.
+- Required description textarea, 2000-character counter and inline validation.
+- Show the transaction summary beside the form on desktop and above it on mobile. Submit directly from the validated form using the shared primary/secondary buttons; there is no intermediate review screen.
+- Disable submit while pending; maintain the same idempotency key for an unchanged retry.
+- Show receipt/open confirmation; do not promise a refund. Customer history/detail remain deferred.
+- The user supplied desktop and mobile screenshot references for the list expansion and dispute form. The form follows the third screenshot; the transaction list reveals the eligible “Raise dispute” action inline with a rotating chevron and an animated expansion. Merchant links continue to open transaction details. Masked account numbers remain in the summary.
 - Success shows dispute reference/status and navigation to details.
 - `409` duplicate: show existing dispute when safely accessible; `422` ineligible: explain; network failure: preserve form text.
 

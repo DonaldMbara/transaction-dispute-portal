@@ -10,15 +10,34 @@
   } @else if (transaction(); as item) {
     <article class="detail-card">
       <p class="merchant">{{ item.merchant }}</p>
-      <p class="amount">{{ item.direction === 'OUT' ? '−' : '+' }}{{ formatZar(item.amount) }}</p>
+      <p class="amount" [class.amount-failed]="item.status === 'FAILED'" [class.amount-pending]="item.status === 'PENDING'">
+        @if (item.status === 'FAILED') {
+          <span aria-hidden="true">{{ formatZar(item.amount) }}</span>
+          <span class="visually-hidden">{{ formatZar(item.amount) }}, failed, no money moved</span>
+        } @else {
+          <span aria-hidden="true">{{ item.direction === 'OUT' ? '−' : '+' }}{{ formatZar(item.amount) }}</span>
+          <span class="visually-hidden">{{ item.direction === 'OUT' ? 'minus ' : 'plus ' }}{{ formatZar(item.amount) }}{{ item.status === 'PENDING' ? ', pending' : '' }}</span>
+        }
+      </p>
+      @if (item.status === 'FAILED') {
+        <p class="status-note status-note--failed">This payment didn't go through. No money was taken.</p>
+      } @else if (item.status === 'PENDING') {
+        <p class="status-note status-note--pending">This payment has not completed yet and may still be processed.</p>
+      }
       <dl>
         <div><dt>Status</dt><dd>{{ item.status }}</dd></div>
         <div><dt>Date and time</dt><dd>{{ formatDate(item.occurredAt) }}</dd></div>
         <div><dt>Reference</dt><dd>{{ item.reference }}</dd></div>
         <div><dt>Account</dt><dd>{{ item.account.maskedNumber }}</dd></div>
-        <div><dt>Dispute eligibility</dt><dd>{{ item.dispute.eligible ? 'Eligible for future dispute review' : 'Not completed' }}</dd></div>
+        <div><dt>Dispute eligibility</dt><dd>{{ item.dispute.eligible ? 'Eligible for dispute review' : item.dispute.ineligibilityReason === 'NOT_OUTGOING' ? 'Only payments leaving your account can be disputed' : item.dispute.ineligibilityReason === 'ALREADY_DISPUTED' ? 'A dispute has already been submitted' : 'Not completed' }}</dd></div>
       </dl>
-      <p class="advisory">Eligibility is informational. Dispute submission is not available here.</p>
+      @if (item.dispute.eligible && !item.dispute.id) {
+        <button appButton="primary" type="button" [routerLink]="['/customer/disputes/new']" [queryParams]="{ transactionId: item.id }">Dispute this transaction</button>
+      } @else if (item.dispute.id) {
+        <p class="advisory">A dispute has already been submitted for this transaction.</p>
+      } @else {
+        <p class="advisory">{{ item.dispute.ineligibilityReason === 'NOT_OUTGOING' ? 'Only payments leaving your account can be disputed.' : 'Only completed transactions can be disputed.' }}</p>
+      }
     </article>
   }
 </section>

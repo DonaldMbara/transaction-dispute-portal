@@ -60,7 +60,7 @@ class AuthenticationMigrationTest {
 
     @Test
     void freshInstallationUsesThePinnedSessionSchemaAndCreatesNoAccounts() throws Exception {
-        assertThat(flyway("latest").migrate().migrationsExecuted).isEqualTo(6);
+        assertThat(flyway("latest").migrate().migrationsExecuted).isEqualTo(7);
         assertThat(flyway("latest").validateWithResult().validationSuccessful).isTrue();
         assertThat(count("SELECT count(*) FROM app_users")).isZero();
         assertThat(count("SELECT count(*) FROM spring_session")).isZero();
@@ -98,7 +98,7 @@ class AuthenticationMigrationTest {
         try (var connection = connection(); var statement = connection.createStatement()) {
             statement.execute(user("00000000-0000-0000-0000-000000000001", "canonical@example.test"));
         }
-        assertThat(flyway("latest").migrate().migrationsExecuted).isEqualTo(5);
+        assertThat(flyway("latest").migrate().migrationsExecuted).isEqualTo(6);
         try (var connection = connection(); var statement = connection.createStatement()) {
             statement.execute(session("00000000-0000-0000-0000-000000000002"));
         }

@@ -24,7 +24,7 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class JdbcTransactionReadRepository implements TransactionReadRepository {
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("Africa/Johannesburg");
-    private static final String FROM_JOIN = " FROM bank_transactions t JOIN accounts a ON a.id = t.account_id ";
+    private static final String FROM_JOIN = " FROM bank_transactions t JOIN accounts a ON a.id = t.account_id LEFT JOIN disputes d ON d.transaction_id = t.id ";
     private static final String OWNERSHIP = " a.customer_id = :customerId ";
     private final NamedParameterJdbcTemplate jdbc;
 
@@ -49,7 +49,7 @@ public class JdbcTransactionReadRepository implements TransactionReadRepository 
     @Override
     public List<TransactionReadRow> list(UUID customerId, TransactionQuery query) {
         var sql = new StringBuilder("SELECT t.id, t.account_id, t.reference, t.merchant, t.amount, t.currency, ")
-                .append("t.direction, t.status, t.occurred_at, a.account_number")
+                .append("t.direction, t.status, t.occurred_at, a.account_number, d.id AS dispute_id")
                 .append(FROM_JOIN).append("WHERE").append(OWNERSHIP);
         var parameters = new MapSqlParameterSource("customerId", customerId);
         appendFilters(sql, parameters, query);
@@ -64,7 +64,7 @@ public class JdbcTransactionReadRepository implements TransactionReadRepository 
     @Override
     public Optional<TransactionReadRow> findOwned(UUID customerId, UUID transactionId) {
         List<TransactionReadRow> rows = jdbc.query("SELECT t.id, t.account_id, t.reference, t.merchant, t.amount, t.currency, "
-                        + "t.direction, t.status, t.occurred_at, a.account_number" + FROM_JOIN
+                        + "t.direction, t.status, t.occurred_at, a.account_number, d.id AS dispute_id" + FROM_JOIN
                         + "WHERE a.customer_id = :customerId AND t.id = :transactionId",
                 Map.of("customerId", customerId, "transactionId", transactionId), ROW_MAPPER);
         return rows.stream().findFirst();
@@ -114,6 +114,6 @@ public class JdbcTransactionReadRepository implements TransactionReadRepository 
                 rs.getString("reference"), rs.getString("merchant"), rs.getBigDecimal("amount"),
                 rs.getString("currency").trim(), TransactionDirection.valueOf(rs.getString("direction")),
                 TransactionStatus.valueOf(rs.getString("status")), rs.getTimestamp("occurred_at").toInstant());
-        return new TransactionReadRow(transaction, rs.getString("account_number"));
+        return new TransactionReadRow(transaction, rs.getString("account_number"), rs.getObject("dispute_id", UUID.class));
     }
 }
