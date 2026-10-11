@@ -17,8 +17,12 @@ public final class TransactionResponseMapper {
             log.warn("Malformed stored account number accountId={} reason={}", transaction.accountId(),
                     AccountNumberMask.malformedReason(number));
         }
-        boolean eligible = transaction.status() == TransactionStatus.COMPLETED;
-        var dispute = new TransactionResponse.DisputeEligibility(null, eligible, eligible ? null : "NOT_COMPLETED");
+        boolean completed = transaction.status() == TransactionStatus.COMPLETED;
+        boolean outgoing = transaction.direction() == com.assessment.disputeportal.transaction.model.TransactionDirection.OUT;
+        boolean eligible = completed && outgoing && row.disputeId() == null;
+        String reason = row.disputeId() != null ? "ALREADY_DISPUTED"
+                : (!completed ? "NOT_COMPLETED" : (!outgoing ? "NOT_OUTGOING" : null));
+        var dispute = new TransactionResponse.DisputeEligibility(row.disputeId(), eligible, reason);
         return new TransactionResponse(transaction.id(), transaction.reference(), transaction.merchant(),
                 transaction.amount().toPlainString(), transaction.currency(), transaction.direction(), transaction.status(),
                 transaction.occurredAt(), new TransactionResponse.AccountSummary(transaction.accountId(), AccountNumberMask.mask(number)),

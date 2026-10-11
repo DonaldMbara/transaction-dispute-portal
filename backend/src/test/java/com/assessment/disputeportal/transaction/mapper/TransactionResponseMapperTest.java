@@ -35,11 +35,32 @@ class TransactionResponseMapperTest {
         assertThat(response.dispute().ineligibilityReason()).isEqualTo("NOT_COMPLETED");
     }
 
+    @Test
+    void existingDisputeIsReturnedAndMakesCompletedTransactionIneligible() {
+        UUID disputeId = UUID.randomUUID();
+        var transaction = row("0123456789", TransactionStatus.COMPLETED);
+        var response = mapper.toResponse(new TransactionReadRow(transaction.transaction(), transaction.accountNumber(), disputeId));
+        assertThat(response.dispute().id()).isEqualTo(disputeId);
+        assertThat(response.dispute().eligible()).isFalse();
+        assertThat(response.dispute().ineligibilityReason()).isEqualTo("ALREADY_DISPUTED");
+    }
+
+    @Test
+    void completedIncomingTransactionIsNotEligibleForDispute() {
+        var response = mapper.toResponse(row("0123456789", TransactionStatus.COMPLETED, TransactionDirection.IN));
+        assertThat(response.dispute().eligible()).isFalse();
+        assertThat(response.dispute().ineligibilityReason()).isEqualTo("NOT_OUTGOING");
+    }
+
     private static TransactionReadRow row(String number, TransactionStatus status) {
+        return row(number, status, TransactionDirection.OUT);
+    }
+
+    private static TransactionReadRow row(String number, TransactionStatus status, TransactionDirection direction) {
         UUID accountId = UUID.randomUUID();
         var transaction = new BankTransaction(UUID.randomUUID(), accountId, "TXN-TEST", "Synthetic Shop",
-                new BigDecimal("12.30"), "ZAR", TransactionDirection.OUT, status,
+                new BigDecimal("12.30"), "ZAR", direction, status,
                 Instant.parse("2025-03-10T08:00:00Z"));
-        return new TransactionReadRow(transaction, number);
+        return new TransactionReadRow(transaction, number, null);
     }
 }

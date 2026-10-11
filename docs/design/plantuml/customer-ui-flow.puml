@@ -25,7 +25,17 @@ end note
 note right
   Back link returns to list preserving accountId + filters.
   Back from list → account dashboard.
-  No dispute CTA in Customer Transactions.
+  Completed transactions without an existing dispute show a
+  keyboard-accessible row chevron. Expanding the row smoothly reveals
+  Raise dispute without changing the merchant link to transaction details.
+end note
+:Raise dispute /customer/disputes/new?transactionId=<uuid>;
+note right
+  Reload transaction details; show merchant, amount, reference,
+  and masked account only. Desktop shows summary beside the form;
+  mobile stacks summary above it. Choose reason, describe, submit directly.
+  Confirmation says case received/open; it does not promise a refund.
+  Customer dispute history/detail routes remain deferred.
 end note
 stop
 @enduml

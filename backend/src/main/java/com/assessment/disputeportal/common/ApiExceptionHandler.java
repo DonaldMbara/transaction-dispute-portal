@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.assessment.disputeportal.common.exception.BusinessConflictException;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;
+import com.assessment.disputeportal.dispute.exception.DisputeApiException;
 
 @RestControllerAdvice
 public final class ApiExceptionHandler {
@@ -29,6 +30,12 @@ public final class ApiExceptionHandler {
     ResponseEntity<ApiEnvelope> conflict() {
         return ResponseEntity.status(409).body(ApiEnvelope.failure(2008,"account-state-conflict","Account state conflict",
                 "The requested account change conflicts with its current state."));
+    }
+    @ExceptionHandler(DisputeApiException.class)
+    ResponseEntity<ApiEnvelope> disputeFailure(DisputeApiException failure) {
+        var response = ResponseEntity.status(failure.status()).cacheControl(org.springframework.http.CacheControl.noStore());
+        if (failure.retryAfter()) response.header("Retry-After", "1");
+        return response.body(ApiEnvelope.failure(failure.errorCode(), failure.type(), failure.title(), failure.detail()));
     }
     @ExceptionHandler(org.springframework.web.HttpMediaTypeNotSupportedException.class)
     ResponseEntity<ApiEnvelope> unsupportedMedia() {

@@ -37,4 +37,50 @@ describe('TransactionDetail', () => {
     const external = externalHarness.routeDebugElement!.componentInstance as TransactionDetail;
     expect(external.returnTo()).toBe('/customer/transactions');
   });
+
+  it('COMPLETED OUT: shows signed amount, no status note', async () => {
+    const harness = await RouterTestingHarness.create(`/customer/transactions/${transaction.id}`);
+    harness.detectChanges(); await harness.fixture.whenStable(); harness.detectChanges();
+    const el = harness.routeNativeElement!;
+    const amountEl = el.querySelector('.amount') as HTMLElement;
+    expect(amountEl.classList).not.toContain('amount-failed');
+    expect(amountEl.classList).not.toContain('amount-pending');
+    expect(amountEl.querySelector('[aria-hidden]')?.textContent).toBe('−R 125.50');
+    expect(amountEl.querySelector('.visually-hidden')?.textContent).toBe('minus R 125.50');
+    expect(el.querySelector('.status-note')).toBeNull();
+  });
+
+  it('FAILED: shows no sign, accessible label, and failed status note', async () => {
+    const failed = { ...transaction, status: 'FAILED' as const, dispute: { id: null, eligible: false, ineligibilityReason: 'NOT_COMPLETED' as const } };
+    api.get.and.returnValue(of(failed));
+    const harness = await RouterTestingHarness.create(`/customer/transactions/${failed.id}`);
+    harness.detectChanges(); await harness.fixture.whenStable(); harness.detectChanges();
+    const el = harness.routeNativeElement!;
+    const amountEl = el.querySelector('.amount') as HTMLElement;
+    expect(amountEl.classList).toContain('amount-failed');
+    expect(amountEl.querySelector('[aria-hidden]')?.textContent).toBe('R 125.50');
+    expect(amountEl.querySelector('.visually-hidden')?.textContent).toBe('R 125.50, failed, no money moved');
+    const note = el.querySelector('.status-note--failed');
+    expect(note).toBeTruthy();
+    expect(note?.textContent).toContain("didn't go through");
+    expect(note?.textContent).toContain('No money was taken');
+    expect(el.querySelector('.status-note--pending')).toBeNull();
+  });
+
+  it('PENDING: shows signed amount with accessible label and pending status note', async () => {
+    const pending = { ...transaction, status: 'PENDING' as const, dispute: { id: null, eligible: false, ineligibilityReason: 'NOT_COMPLETED' as const } };
+    api.get.and.returnValue(of(pending));
+    const harness = await RouterTestingHarness.create(`/customer/transactions/${pending.id}`);
+    harness.detectChanges(); await harness.fixture.whenStable(); harness.detectChanges();
+    const el = harness.routeNativeElement!;
+    const amountEl = el.querySelector('.amount') as HTMLElement;
+    expect(amountEl.classList).toContain('amount-pending');
+    expect(amountEl.classList).not.toContain('amount-failed');
+    expect(amountEl.querySelector('[aria-hidden]')?.textContent).toBe('−R 125.50');
+    expect(amountEl.querySelector('.visually-hidden')?.textContent).toBe('minus R 125.50, pending');
+    const note = el.querySelector('.status-note--pending');
+    expect(note).toBeTruthy();
+    expect(note?.textContent).toContain('not completed yet');
+    expect(el.querySelector('.status-note--failed')).toBeNull();
+  });
 });

@@ -28,7 +28,7 @@
 
 1. Strong ETag / If-Match on all agent mutations is approved: HTTP 428 missing, 400 malformed, 412 stale/lost write race, 409 matching-version business conflict. Canonical tag representation and action-URI semantics are in the API contract.
 2. Same-origin /api/v1 requests use the foundation Angular development proxy; application container/reverse-proxy deployment is deferred.
-3. Completed incoming transactions remain eligible. Terminal resolving-agent/assigned_at retention is approved; customer views omit agent identity.
+3. Only completed outgoing transactions are eligible for customer dispute submission, per the 2026-10-11 customer-requested amendment. Terminal resolving-agent/assigned_at retention is approved; customer views omit agent identity.
 4. Spring Security / Spring Session JDBC in PostgreSQL, opaque HttpOnly session cookies (Secure/SameSite=Lax in production), 30-minute idle expiry, CSRF including login/logout and admin-controlled provisioning are approved. No public registration. One modular Spring Boot application; no MVP gateway/microservices. Feature-spec approval still precedes tasks/code.
 5. Feature order: project-foundation → authentication → **customer-accounts** → customer-transactions → dispute-submission → customer-dispute-history → agent-workflow → integration-hardening. The `customer-accounts` spec owns the `accounts` table (V5 migration), GET /api/v1/accounts, the account dashboard UI, the shared account-selector component, and the account fixture command. The `customer-transactions` spec then adds `bank_transactions` (V6 migration) and the transactions list with accountId selector support. Customer Transactions ends at transaction detail and has no dispute CTA.
 

@@ -42,6 +42,7 @@ export class Transactions implements OnInit {
   readonly pageNumber = signal(1);
   readonly returnTo = signal('/customer/transactions');
   readonly filtersOpen = signal(false);
+  readonly expandedTransactionId = signal<string | null>(null);
   readonly form = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
     direction: new FormControl<DirectionFilter>('ALL', { nonNullable: true }),
@@ -97,7 +98,28 @@ export class Transactions implements OnInit {
     return new Intl.DateTimeFormat('en-ZA', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Johannesburg' }).format(new Date(value));
   }
 
-  formatAmount(item: TransactionItem): string { return `${item.direction === 'OUT' ? '−' : '+'}${formatZar(item.amount)}`; }
+  formatAmount(item: TransactionItem): string {
+    if (item.status === 'FAILED') return formatZar(item.amount);
+    return `${item.direction === 'OUT' ? '−' : '+'}${formatZar(item.amount)}`;
+  }
+
+  amountAriaLabel(item: TransactionItem): string {
+    const zar = formatZar(item.amount);
+    if (item.status === 'FAILED') return `${zar}, failed, no money moved`;
+    if (item.status === 'PENDING') return `${item.direction === 'OUT' ? 'minus ' : 'plus '}${zar}, pending`;
+    return `${item.direction === 'OUT' ? 'minus ' : 'plus '}${zar}`;
+  }
+
+  isExpanded(id: string): boolean { return this.expandedTransactionId() === id; }
+
+  toggleExpanded(id: string): void {
+    this.expandedTransactionId.update(current => current === id ? null : id);
+  }
+
+  onTransactionRowClick(event: MouseEvent, id: string): void {
+    if ((event.target as HTMLElement | null)?.closest('a, button')) return;
+    this.toggleExpanded(id);
+  }
 
   isNewMonth(item: TransactionItem, index: number): boolean {
     if (this.form.controls.sortBy.value !== 'occurredAt') return false;

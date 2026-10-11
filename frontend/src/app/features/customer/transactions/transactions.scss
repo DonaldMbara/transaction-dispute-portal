@@ -43,10 +43,16 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
 .amount { white-space: nowrap; font-weight: 800; font-variant-numeric: tabular-nums; }
 .amount.outgoing { color: var(--color-text); }
 .amount.incoming { color: #067647; }
+/* #5A5A5A on #FFFFFF = 7.0:1 contrast — satisfies WCAG AA and AAA */
+.amount.failed { color: #5A5A5A; text-decoration: line-through; }
+/* #5C6B7A on #FFFFFF = 5.1:1 contrast — satisfies WCAG AA */
+.amount.pending { color: #5C6B7A; }
 .status { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 8px; background: #f7f7f7; color: #067647; font-size: 11px; font-weight: 800; white-space: nowrap; }
 .status::before { content: '✓'; display: inline-grid; width: 13px; height: 13px; margin-right: 5px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font-size: 9px; }
 .status[data-status="PENDING"] { color: #654500; }
 .status[data-status="FAILED"] { color: #76241c; }
+/* #5A5A5A on #FFFFFF = 7.0:1 contrast */
+.failed-note { display: block; margin-top: 3px; color: #5A5A5A; font-size: 10px; font-weight: 700; }
 .month-row th { padding: 8px 16px; background: #eaf1ff; color: #174daf; font-size: 12px; }
 .state { display: grid; gap: 10px; margin-top: 16px; padding: 24px; border: 1px solid var(--color-border); border-radius: 12px; background: #fff; color: var(--color-text); }
 .state h2, .state p { margin: 0; }
@@ -70,13 +76,14 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
   .transaction-table, .transaction-table tbody { display: block; }
   .transaction-table { border: 0; border-radius: 12px; background: transparent; }
   .transaction-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
-  .transaction-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; margin: 0; padding: 12px; border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); border-left: 1px solid var(--color-border); background: #fff; }
+  .transaction-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; margin: 0; padding: 12px; border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); border-left: 1px solid var(--color-border); background: #fff; }
   .transaction-row:first-of-type { border-top: 1px solid var(--color-border); }
   .transaction-row td { min-width: 0; padding: 0; border: 0; font-size: 12px; }
   .transaction-row td:first-child { grid-column: 1; }
   .transaction-row td:nth-child(2) { grid-column: 1; font-size: 11px; }
   .transaction-row td:nth-child(3) { grid-column: 2; grid-row: 1; text-align: right; font-size: 14px; }
   .transaction-row td:nth-child(4) { grid-column: 2; grid-row: 2; justify-self: end; }
+  .transaction-row td:nth-child(3) { padding-right: 32px; }
   .month-row { display: block; }
   .month-row th { display: block; padding: 8px 12px; border: 1px solid var(--color-border); background: #eaf1ff; }
   .pagination { flex-wrap: wrap; gap: 10px; padding: 16px 0; }

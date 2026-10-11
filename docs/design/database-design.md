@@ -50,7 +50,7 @@ A service invariant ensures `customer_id` refers to a CUSTOMER user; the FK alon
 | `status` | VARCHAR(16) | NOT NULL, CHECK `PENDING`, `COMPLETED`, `FAILED` |
 | `occurred_at` | TIMESTAMPTZ | NOT NULL |
 
-`direction` supports Money In / Money Out filters; amounts are positive magnitudes. Completed incoming and outgoing transactions remain eligible under current business rules; restricting incoming transactions would require an explicit approved rule change.
+`direction` supports Money In / Money Out filters; amounts are positive magnitudes. Dispute submission accepts only completed outgoing (`OUT`) transactions under the customer-requested eligibility amendment dated 2026-10-11.
 
 ### `disputes`
 | Column | Type | Constraints |
@@ -155,7 +155,8 @@ Case-insensitive literal substring search uses parameterized escaped LIKE over a
 - Applied foundation `V1__create_app_users.sql` is immutable. V2–V4 are applied authentication migrations and must not be edited. Remaining business tables belong to their owning feature migrations; do not recreate app_users or renumber the applied V1–V4.
 - **V5** is owned by the `customer-accounts` feature. It creates the `accounts` table with all columns (id, customer_id, account_number, account_type, balance, is_primary, created_at), a CHECK on `account_number` (`^[0-9]{10}$`), a CHECK constraint on `account_type` (`MAIN`, `SAVINGS`), the partial unique index `UNIQUE (customer_id) WHERE is_primary`, and `idx_accounts_customer(customer_id)`.
 - **V6** is owned by the `customer-transactions` feature. It creates `bank_transactions` and its indexes (`idx_transactions_account_time`, `idx_transactions_time`). It must not recreate or alter the `accounts` table.
-- V1–V4 are never edited. V5 creates accounts; V6 creates bank_transactions. Each migration belongs to exactly one owning feature; they are independently additive.
+- **V7** is owned by `dispute-submission`. It adds disputes, immutable dispute events and scoped successful-response idempotency records, plus status/time and agent queue indexes. It does not edit V1–V6.
+- V1–V4 are never edited. V5 creates accounts; V6 creates bank_transactions; V7 creates dispute submission persistence. Each migration belongs to exactly one owning feature; they are independently additive.
 - spring_session: CHAR(36) primary_id and unique session_id; epoch-ms creation_time/last_access_time/expiry_time, max_inactive_interval seconds, nullable principal_name; expiry/principal indexes. spring_session_attributes: primary(session_primary_id,attribute_name), BYTEA serialized values, parent FK ON DELETE CASCADE.
 - auth_session_activity: primary session_primary_id FK to session parent and account_id UUID FK to app_users, both cascading; nonnegative auth_version and last_authenticated_activity_at BIGINT; account/time indexes. Account/version/deadline checks are authoritative even before cleanup; activity touches never insert or modify framework-managed session columns.
 - Minimal serializable SessionPrincipal contains UUID with fixed serialVersionUID; compatible application releases share schema/serialization/cookie configuration. Controlled DB access is required for Java serialized session attributes.
@@ -178,4 +179,4 @@ Case-insensitive literal substring search uses parameterized escaped LIKE over a
 
 ## 8. Approved baseline and feature-design details
 
-API design fixes description 2000/internal notes 4000/customer message 2000/release reason 2000, decimal-string serialization and assessment-lifetime idempotency retention. Current rules still allow completed IN and OUT. Retained terminal assignee and strong ETag/If-Match are approved; there are no remaining blocking design decisions. Relevant feature specs must verify concurrency and customer-field redaction before implementation. Confirm SQL CHECK expressions, timestamp precision and database timeout values in feature design; terminal texts must be nonblank, and release clears both agent and assigned_at.
+API design fixes description 2000/internal notes 4000/customer message 2000/release reason 2000, decimal-string serialization and assessment-lifetime idempotency retention. Customer-requested amendment dated 2026-10-11 makes only completed OUT transactions eligible for dispute submission. Retained terminal assignee and strong ETag/If-Match are approved; there are no remaining blocking design decisions. Relevant feature specs must verify concurrency and customer-field redaction before implementation. Confirm SQL CHECK expressions, timestamp precision and database timeout values in feature design; terminal texts must be nonblank, and release clears both agent and assigned_at.
