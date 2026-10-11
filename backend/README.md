@@ -19,7 +19,7 @@ src/main/java/com/assessment/disputeportal/
                      filter-chain policy, session validation and activity store
   common/            Shared HTTP envelope/advice and store-failure classification
   account/           Banking-account ownership, customer list, fixtures and selector contract
-  transaction/       Reserved for transaction queries and eligibility
+  transaction/       Read-only customer transaction queries, eligibility and fixtures
   dispute/           Reserved for dispute lifecycle and audit behavior
   idempotency/       Reserved for durable request replay behavior
 src/main/resources/
@@ -44,6 +44,7 @@ src/test/java/com/assessment/disputeportal/
 - `validation` contains shared input policy, not generic utilities. Root `security` owns session activation/inspection/renewal and HTTP security adapters. Database failures flow to common error handling; expected auth rejection is mapped to generic 401 by authentication handling.
 - `cli` contains the trusted non-web operator command. `java -jar target/dispute-portal-0.0.1-SNAPSHOT.jar account-admin ...` manages accounts; it is not a web route or a running service. The older `provision` command remains an alias.
 - `java -jar target/dispute-portal-0.0.1-SNAPSHOT.jar account-fixture --email <existing-customer-email>` is a separate explicit non-web command that idempotently creates or verifies that enabled CUSTOMER's synthetic MAIN and SAVINGS accounts. It does not provision users or accept account numbers; see `docs/operations/customer-account-fixtures.md` for its safeguards and recovery guidance.
+- `java -jar target/dispute-portal-0.0.1-SNAPSHOT.jar transaction-fixture --email <existing-customer-email>` is a separate explicit non-web command that creates or verifies the deterministic transaction set for an enabled CUSTOMER's already-existing MAIN and SAVINGS accounts. It resolves IDs through `AccountFixturePort`, never creates users/accounts, and is intended only for local/disposable assessment databases; see `docs/operations/customer-transaction-fixtures.md` for safeguards and recovery.
 - Feature modules do not reach into another feature's repository or entity. Share a narrow interface or stable domain identity instead.
 
 Keep new business behavior inside its owning feature. Use singular package names, avoid generic `utils`/`util` buckets and cross-feature repository access, and add layers only when they create a real boundary. Keep separate use cases in separate service classes/files. “Provisioning” means creating or changing portal accounts; the user-facing operator entry point is named `account-admin`.

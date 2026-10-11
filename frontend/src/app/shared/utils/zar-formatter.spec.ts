@@ -1,4 +1,4 @@
-import { formatZar } from './balance-formatter';
+import { formatZar } from './zar-formatter';
 
 describe('formatZar', () => {
   it('formats decimal strings without floating point or locale dependence', () => {

@@ -1,16 +1,22 @@
-<section class="selector" aria-label="Choose an account">
+<section class="selector" aria-label="Account">
   @if (selected; as account) {
-    <div class="current-account" aria-live="polite">
-      <span class="current-label">Current account</span>
-      <strong>{{ account.displayName }}</strong>
-      @if (account.accountNumber !== null) { <span class="full-number">{{ account.accountNumber }}</span> }
-      <span class="current-balance">{{ formatBalance(account.balance) }}</span>
-    </div>
-  }
-  <label for="account-choice">Select account</label>
-  <select id="account-choice" [value]="selectedAccountId() ?? ''" (change)="select($any($event.target).value)">
-    @for (account of accounts(); track account.id) {
-      <option [value]="account.id">{{ account.displayName }} · {{ account.maskedNumber }}</option>
+    <button #trigger class="selector-trigger" type="button" aria-haspopup="listbox"
+      [attr.aria-expanded]="isOpen" [attr.aria-label]="'Selected account: ' + account.displayName"
+      (click)="toggle()" (keydown)="onTriggerKeydown($event)">
+      <app-account-card [account]="account" [expanded]="isOpen" />
+    </button>
+    @if (isOpen) {
+      <div #listbox class="account-options" role="listbox" aria-label="Choose account"
+        (keydown)="onListboxKeydown($event)">
+        @for (option of accounts(); track option.id; let index = $index) {
+          <button class="account-option" type="button" role="option" [attr.data-option-index]="index"
+            [attr.aria-selected]="option.id === selectedAccountId()" [class.current]="option.id === selectedAccountId()"
+            [attr.tabindex]="index === activeIndex ? 0 : -1" (click)="select(option.id)">
+            <app-account-card [account]="option" [trailing]="option.id === selectedAccountId() ? 'selected' : 'none'"
+              [highlighted]="option.id === selectedAccountId()" />
+          </button>
+        }
+      </div>
     }
-  </select>
+  }
 </section>

@@ -3,7 +3,7 @@
 **Date:** 2026-10-11
 **Review status:** Implementation tasks 1–7 completed; verification results and environment limits recorded below.
 **Scope:** ACC-01 through ACC-09; customer accounts and required backend/data/fixture dependencies only.
-**Known navigation limit:** Dashboard tiles link to `/customer/transactions?accountId=<id>`. That route is not present until the separate customer-transactions feature is implemented.
+**Navigation status:** Dashboard account tiles and the primary-account quick link target the implemented `/customer/transactions?accountId=<id>` route.
 
 ## Verification commands and results
 

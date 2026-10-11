@@ -5,13 +5,15 @@ import { provideHttpClient, withInterceptors, withNoXsrfProtection } from '@angu
 import { routes } from './app.routes';
 import { AuthService } from './core/auth/auth-service';
 import { authResponseInterceptor, csrfInterceptor } from './core/auth/auth-interceptors';
+import { httpProgressInterceptor } from './core/http/http-progress';
+import { apiErrorInterceptor } from './core/http/api-error-interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withNoXsrfProtection(), withInterceptors([authResponseInterceptor, csrfInterceptor])),
+    provideHttpClient(withNoXsrfProtection(), withInterceptors([httpProgressInterceptor, authResponseInterceptor, apiErrorInterceptor, csrfInterceptor])),
     provideAppInitializer(() => inject(AuthService).initialize())
   ]
 };

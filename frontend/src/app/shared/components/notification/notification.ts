@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, Injectable, signal } from '@angular/core';
 
-export interface Notification { message: string; tone: 'success' | 'info'; }
+export type NotificationTone = 'success' | 'info' | 'error';
+export interface Notification { message: string; tone: NotificationTone; }
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
@@ -8,7 +9,7 @@ export class NotificationService {
   private dismissTimer: ReturnType<typeof setTimeout> | null = null;
   readonly current = this.currentValue.asReadonly();
 
-  show(message: string, tone: Notification['tone'] = 'info'): void {
+  show(message: string, tone: NotificationTone = 'info'): void {
     this.clearTimer();
     this.currentValue.set({ message, tone });
     this.dismissTimer = setTimeout(() => this.dismiss(), 5_000);
@@ -24,7 +25,10 @@ export class NotificationService {
   selector: 'app-notification-outlet',
   standalone: true,
   template: `@if (notifications.current(); as notification) {
-    <section class="notification" [class.notification--success]="notification.tone === 'success'" role="status" aria-live="polite" aria-atomic="true">
+    <section class="notification" [class.notification--success]="notification.tone === 'success'"
+      [class.notification--error]="notification.tone === 'error'"
+      [attr.role]="notification.tone === 'error' ? 'alert' : 'status'"
+      [attr.aria-live]="notification.tone === 'error' ? 'assertive' : 'polite'" aria-atomic="true">
       <p>{{ notification.message }}</p>
       <button type="button" class="notification__dismiss" (click)="notifications.dismiss()" aria-label="Dismiss notification">Dismiss</button>
     </section>

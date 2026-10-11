@@ -3,6 +3,10 @@
 **Status:** Approved for implementation — 2026-10-11
 **Approval:** Requirements, design, and task plan approved by the developer on 2026-10-11.
 **Feature:** Customer Accounts
+
+### Amendment — shared account selector display and interaction (2026-10-11)
+
+ACC-08.12 is amended: the selector uses a custom accessible listbox dropdown on regular widths and a native `<select>` fallback on narrow widths. The selected summary and every option card show the full `accountNumber` when non-null; the backend alone determines well-formedness. No copy or reveal interaction is provided.
 **Prerequisites:** Project Foundation and Authentication & RBAC (implemented)
 **Related approved baseline:** [business rules](../../../docs/business-rules.md), [API contract](../../../docs/design/api-contract.md), [database design](../../../docs/design/database-design.md), [UI flows](../../../docs/design/ui-flows.md)
 
@@ -124,7 +128,7 @@ These preserve business rules BR-A02 and BR-T01 and the ownership and default-de
 9. The dashboard shall not poll, prefetch, auto-refresh or auto-retry the accounts request.
 10. At desktop widths, the dashboard shall use a two-column layout with the account rows occupying about two thirds and a quick-links slot about one third. On narrow screens the quick-links slot shall stack below the account list. The account list shall precede it in DOM order. The slot shall be a labelled `<nav aria-label="Quick links">` and shall render only shortcuts whose destination routes exist and are implemented. If no qualifying shortcut exists, omit the panel entirely and allow the account list to use the full width. No dead links or disabled "coming soon" items shall appear. Later features add their own shortcuts in their own specifications and tasks (customer-transactions: view transactions for the primary account; dispute features: dispute shortcuts).
 11. The quick-links panel shall never contain transfer, payment, statement, card, or other out-of-scope actions unless requirements are changed and approved.
-12. The `account-selector` shared component shall be implemented in this feature and made available to the later Transactions page. It shall be purely presentational: it shall not fetch account data; it accepts `accounts` and `selectedAccountId` as inputs and emits a `selectionChange` output. It shall show the current account summary (including full `accountNumber` when non-null; the backend alone decides well-formedness and returns null for malformed stored values), with no copy button, reveal toggle or other account-number interaction; it shall use ARIA `listbox`/`combobox` semantics, or a native `<select>` fallback on narrow widths.
+12. The `account-selector` shared component shall be implemented in this feature and made available to the later Transactions page. It shall be purely presentational: it shall not fetch account data; it accepts `accounts` and `selectedAccountId` as inputs and emits a `selectionChange` output. Its selected card and every option card show the full `accountNumber` when non-null (the backend alone decides well-formedness and returns null for malformed stored values). It has no copy button, reveal toggle or other account-number interaction. At regular widths it uses an accessible button/listbox/option pattern and supports Enter/Space, Arrow Up/Down, Home/End, Enter selection and Escape with focus returned to the trigger; it closes on outside click. At narrow widths it keeps a native `<select>` fallback.
 13. Small text in the dashboard, including account labels and badges, shall meet WCAG AA contrast requirements.
 
 ### ACC-09 — Reliability, security and maintainability

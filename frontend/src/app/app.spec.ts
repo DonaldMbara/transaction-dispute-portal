@@ -16,5 +16,6 @@ describe('App', () => {
     TestBed.inject(SessionState).anonymous();
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.directive(RouterOutlet))).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-http-progress')).not.toBeNull();
   });
 });

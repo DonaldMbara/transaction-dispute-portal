@@ -64,13 +64,15 @@
 
 ## Task 6 — Add the reusable presentational account selector
 
-**Requirements:** ACC-08.11, ACC-09.2
+**Requirements:** ACC-08.12, ACC-09.2
 **Depends on:** Task 4
 
+**Amendment (2026-10-11):** ACC-08.12's selector interaction is updated to a custom accessible card dropdown at regular widths and native `<select>` fallback at narrow widths. Both selected summary and all option cards show full `accountNumber` when non-null, matching dashboard formatting; backend owns well-formedness. No number interaction is added.
+
 - Add standalone `shared/components/account-selector` with `accounts` and `selectedAccountId` inputs and a `selectionChange` output. It does not fetch data.
-- Show the selected account summary, including the full number when `accountNumber` is non-null; the backend alone decides well-formedness and returns null for malformed stored values. List choices with masked number context only. Add no copy, reveal, or other account-number interaction.
-- Use the approved accessible selection semantics/native narrow-screen fallback and support keyboard operation.
-- Add component tests for selection, emitted ID, displayed owner-visible summary, masked choice rows and keyboard/accessibility behavior.
+- Show the selected card and every option card with Lucide account-type icon, display name, Primary badge when applicable, full number when `accountNumber` is non-null, and available balance. Use the same formatting as dashboard rows; add no copy, reveal or other number interaction.
+- Use a button trigger and accessible listbox/options with expanded/selected state, keyboard support (Enter/Space, Arrow Up/Down, Home/End, Enter selection, Escape returning focus), outside-click close, visible focus and reduced-motion support. Keep a native `<select>` fallback at narrow widths.
+- Add component tests for selected/option cards, emitted ID, full-number/null display, role and ARIA state, keyboard navigation, Escape focus return and outside-click close.
 - Acceptance: component is reusable by later features without introducing any transaction/dispute page or route now.
 
 ## Task 7 — Verify feature boundaries and acceptance evidence

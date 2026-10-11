@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth-service';
@@ -6,6 +6,7 @@ import { safeReturnUrl } from '../../../core/auth/auth-guards';
 import { AuthFailure, safeMessage } from '../../../core/auth/auth-contracts';
 import { CsrfState } from '../../../core/auth/session-state';
 import { Button } from '../../../shared/components/button/button';
+import { AsyncActionStatus } from '../../../shared/models/async-state';
 
 export function passwordAdmission(control: AbstractControl<string>): ValidationErrors | null {
   const value = control.value;
@@ -29,25 +30,28 @@ function loginEmail(control: AbstractControl<string>): ValidationErrors | null {
 export class Login implements OnDestroy {
   readonly auth = inject(AuthService); readonly csrf = inject(CsrfState);
   private readonly router = inject(Router); private readonly route = inject(ActivatedRoute);
-  readonly pending = signal(false); readonly message = signal(''); readonly confirmed = signal(false);
+  readonly actionState = signal<AsyncActionStatus>('idle'); readonly pending = computed(() => this.actionState() === 'busy');
+  readonly message = signal(''); readonly confirmed = signal(false);
   readonly recoveryRequired = signal(false); readonly passwordVisible = signal(false);
   readonly form = new FormGroup({ email: new FormControl('', { nonNullable: true, validators: [loginEmail] }),
     password: new FormControl('', { nonNullable: true, validators: [passwordAdmission] }) });
   async submit(): Promise<void> {
     if (this.pending() || this.confirmed()) return;
     this.form.markAllAsTouched();if (this.form.invalid) return;
-    this.pending.set(true);this.message.set('');this.recoveryRequired.set(false);
+    this.actionState.set('busy');this.message.set('');this.recoveryRequired.set(false);
     const { email, password } = this.form.getRawValue();
     try {
       const result = await this.auth.login(email, password);
       this.confirmed.set(true);this.form.controls.password.reset();
       if (result.csrfReady) await this.navigate();
       else { this.message.set('You are signed in. Please try again to finish setting up this session.');this.recoveryRequired.set(true); }
+      this.actionState.set('succeeded');
     } catch (failure: unknown) {
+      this.actionState.set('failed');
       this.recoveryRequired.set(this.requiresRecovery(failure));
       this.message.set(this.recoveryRequired() ? 'We could not prepare a secure sign-in. Try again.' : this.loginFailureMessage(failure));
     }
-    finally { this.pending.set(false); }
+    finally { if (this.actionState() === 'busy') this.actionState.set('failed'); }
   }
   togglePassword(): void { this.passwordVisible.update(visible => !visible); }
   fieldInvalid(name: 'email' | 'password'): boolean {
@@ -56,12 +60,13 @@ export class Login implements OnDestroy {
   }
   async retrySecurity(): Promise<void> {
     if (this.pending()) return;
-    this.pending.set(true);
+    this.actionState.set('busy');
     try {
       await this.auth.bootstrap();this.message.set('');this.recoveryRequired.set(false);
       if (this.confirmed()) await this.navigate();
-    } catch (failure: unknown) { this.message.set('We could not restore secure sign-in. Try again.');this.recoveryRequired.set(true); }
-    finally { this.pending.set(false); }
+      this.actionState.set('succeeded');
+    } catch (failure: unknown) { this.actionState.set('failed');this.message.set('We could not restore secure sign-in. Try again.');this.recoveryRequired.set(true); }
+    finally { if (this.actionState() === 'busy') this.actionState.set('failed'); }
   }
   private async navigate(): Promise<void> {
     const identity = this.auth.state.identity();

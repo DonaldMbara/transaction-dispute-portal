@@ -1,5 +1,5 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { NotificationService } from './notification';
+import { NotificationOutlet, NotificationService } from './notification';
 
 describe('NotificationService', () => {
   it('expires a notification after five seconds', fakeAsync(() => {
@@ -16,4 +16,14 @@ describe('NotificationService', () => {
     tick(1_001); expect(notifications.current()?.message).toBe('Second');
     notifications.dismiss(); expect(notifications.current()).toBeNull();
   }));
+
+  it('supports an assertive error notification tone', () => {
+    TestBed.configureTestingModule({ imports: [NotificationOutlet] });
+    const fixture = TestBed.createComponent(NotificationOutlet);
+    const notifications = TestBed.inject(NotificationService);
+    notifications.show('Service unavailable.', 'error');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')?.getAttribute('aria-live')).toBe('assertive');
+    expect(fixture.nativeElement.querySelector('.notification--error')).not.toBeNull();
+  });
 });

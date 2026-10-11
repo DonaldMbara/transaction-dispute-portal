@@ -1,4 +1,3 @@
-/** Formats a non-negative NUMERIC(19,2) decimal string as deterministic South African rand. */
 export function formatZar(amount: string): string {
   const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(amount);
   if (!match) throw new Error('Invalid account balance returned by the service.');

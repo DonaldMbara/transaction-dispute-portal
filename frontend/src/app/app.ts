@@ -3,11 +3,12 @@ import { RouterOutlet, Router } from '@angular/router';
 import { AuthService } from './core/auth/auth-service';
 import { SessionUnavailable } from './features/auth/session-unavailable/session-unavailable';
 import { NotificationOutlet } from './shared/components/notification/notification';
+import { HttpProgressIndicator } from './core/http/http-progress-indicator';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, SessionUnavailable, NotificationOutlet],
+  imports: [RouterOutlet, SessionUnavailable, NotificationOutlet, HttpProgressIndicator],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
