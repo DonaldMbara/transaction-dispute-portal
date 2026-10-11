@@ -9,15 +9,22 @@ describe('DashboardLayout', () => {
   let state: SessionState, logout: jasmine.Spy;
   beforeEach(() => {
     logout = jasmine.createSpy('logout');
-    TestBed.configureTestingModule({ imports: [DashboardLayout], providers: [provideRouter([]), { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState), logout }) }] });
+    TestBed.configureTestingModule({ imports: [DashboardLayout], providers: [provideRouter([{ path: 'customer', children: [] }, { path: 'agent', children: [] }]), { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState), logout }) }] });
     state = TestBed.inject(SessionState);state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'CUSTOMER' });
   });
-  it('hosts its child outlet inside the main landmark with verified role navigation', () => {
+  it('hosts its child outlet and renders the customer navigation item beside the brand', async () => {
     const fixture = TestBed.createComponent(DashboardLayout);fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('main')).query(By.directive(RouterOutlet))).not.toBeNull();
-    expect(fixture.nativeElement.textContent).toContain('Customer area');expect(fixture.nativeElement.textContent).not.toContain('Agent area');
+    const headerStart = fixture.nativeElement.querySelector('.header-start') as HTMLElement;
+    expect(headerStart.children[0].classList.contains('brand')).toBeTrue();
+    expect(headerStart.children[1].classList.contains('portal-navigation')).toBeTrue();
+    expect(fixture.nativeElement.textContent).toContain('Accounts');expect(fixture.nativeElement.textContent).not.toContain('Customer area');expect(fixture.nativeElement.textContent).not.toContain('Agent area');
+    await TestBed.inject(Router).navigateByUrl('/customer');fixture.detectChanges();
+    const accountsLink = fixture.nativeElement.querySelector('.portal-navigation a') as HTMLAnchorElement;
+    expect(accountsLink.classList.contains('is-active')).toBeTrue();expect(accountsLink.getAttribute('aria-current')).toBe('page');
+    expect(getComputedStyle(fixture.nativeElement.querySelector('.brand')).color).toBe('rgb(58, 58, 58)');
     state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'AGENT' });fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Agent area');expect(fixture.nativeElement.textContent).not.toContain('Customer area');
+    expect(fixture.nativeElement.textContent).toContain('Agent area');expect(fixture.nativeElement.textContent).not.toContain('Accounts');
   });
   it('locks duplicate sign-out and navigates only after confirmed success', async () => {
     const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(true);

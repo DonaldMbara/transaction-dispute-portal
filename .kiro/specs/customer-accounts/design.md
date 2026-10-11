@@ -1,13 +1,15 @@
 # Customer Accounts — Design
 
-**Status:** Approved — awaiting task plan — 2026-10-11
-**Approval:** Requirements and design approved by the developer on 2026-10-11; implementation awaits an approved task plan.
+**Status:** Approved for implementation — 2026-10-11
+**Approval:** Requirements, design, and task plan approved by the developer on 2026-10-11.
 **Requirements:** [requirements.md](requirements.md)
 **Approved baselines:** [business rules](../../../docs/business-rules.md), [API contract](../../../docs/design/api-contract.md), [database design](../../../docs/design/database-design.md), [UI flows](../../../docs/design/ui-flows.md)
 
 ## 1. Scope and design decisions
 
 This feature adds the customer account dashboard and the `GET /api/v1/accounts` endpoint to the existing Java 21 / Spring Boot 3.5 modular monolith and Angular standalone application. It relies on the implemented opaque, PostgreSQL-backed session authentication and retains same-origin `/api/v1` requests.
+
+Backend implementation follows the project's Lombok convention for constructor injection, logging, and persistence accessors; Lombok remains a backend-only build dependency.
 
 It introduces the V5 Flyway migration (`accounts` table), two fixture accounts per CUSTOMER, the shared `account-selector` Angular component, and the `AccountFixturePort` contract consumed by the later transaction fixture. The operational fixture command is the only account-row creation path in this phase. It does not add transactions, disputes, customer-facing account mutation, a single-account detail endpoint, or any payment operation.
 
@@ -18,7 +20,7 @@ It introduces the V5 Flyway migration (`accounts` table), two fixture accounts p
 | Account types | `MAIN` and `SAVINGS` only, enforced by a database `CHECK` constraint and a Java `AccountType` enum. Display names are derived at the application layer; no display-name column is stored. |
 | Balance | Synthetic `NUMERIC(19,2)` set by the fixture command only. Not derived from transactions. Serialized as a two-decimal string. No negative-balance semantics. |
 | Primary account | Partial unique index `UNIQUE(customer_id) WHERE is_primary`; at most one primary per customer. Fixture sets `MAIN` as primary. No-primary fallback is UI-side: use first in GET /accounts order. |
-| Account-number validation and masking | Well-formed iff ^[0-9]{10}$ (ASCII digits; leading zeroes allowed); no trimming/normalization. The account feature has one AccountNumberMask.ACCOUNT_NUMBER_LENGTH constant and one matching V5 CHECK. AccountNumberMask is the sole masking implementation. Only owner-scoped GET /accounts may return the full number; malformed values return null plus ****. Transactions/disputes expose masked form only. |
+| Account-number validation and masking | Well-formed iff ^[0-9]{10}$ (ASCII digits; leading zeroes allowed); no trimming/normalization. The account feature has one AccountNumberMask.ACCOUNT_NUMBER_LENGTH constant and one matching V5 CHECK. AccountNumberMask is the sole masking implementation. Only owner-scoped GET /accounts may return the full number; malformed values return null plus ****. The frontend displays accountNumber only when non-null and does not validate it. Transactions/disputes expose masked form only. |
 | Ordering | Fixed: primary first, `created_at ASC`, `id ASC`. No sort/filter/search params; unknown params → 400/1004. |
 | displayName | Derived by the mapper from `AccountType`: `MAIN` → "Main Account", `SAVINGS` → "Savings Account". Not stored. A separate display-name column is not justified: the mapping is a closed function of two enum values. |
 | AccountFixturePort | A narrow interface in the `account` module exposes `Map<String, UUID> getFixtureAccountIds(String customerEmail)`, keyed by the fixed values `MAIN` and `SAVINGS`. Its implementation resolves the existing CUSTOMER through the auth-owned lookup contract and reads fixture IDs through the account-owned repository. The transaction fixture imports only this interface; no account-specific model, entity or Spring Data repository crosses the feature boundary. This makes the contract explicit and compiler-visible. |
@@ -82,9 +84,9 @@ The command accepts an existing customer email, normalizes it through the existi
 | `account_type` | `MAIN` | `SAVINGS` |
 | `is_primary` | `TRUE` | `FALSE` |
 | `balance` | Distinct deterministic value per CUSTOMER (documented) | Distinct deterministic value per CUSTOMER (documented) |
-| `account_number` | A documented synthetic 10-digit fixture value | A documented synthetic 10-digit fixture value |
+| `account_number` | A deterministic synthetic 10-digit value derived from the target customer UUID and account type | A distinct deterministic synthetic 10-digit value derived from the target customer UUID and account type |
 
-Account IDs are deterministic UUIDs derived by the account fixture service from the existing customer UUID and account type using Java's standard `UUID.nameUUIDFromBytes` with the UTF-8 key `customer-accounts:<customer-uuid>:<MAIN|SAVINGS>`. Synthetic account numbers come from the short documented list `0123456789`, `9876543210`, `1111222233`, `4444555566`, `2222333344`, `5555666677`, `3333444455`, `6666777788`; this short allowlist is the sole fixture-number source and each value is assigned deterministically without reuse; these are obviously synthetic. They are disclosed only by the owner-scoped accounts endpoint. The account fixture command and `AccountFixturePort` resolve IDs through the same account-owned lookup; the transaction fixture does not duplicate this derivation.
+Account IDs are deterministic UUIDs derived by the account fixture service from the existing customer UUID and account type using Java's standard `UUID.nameUUIDFromBytes` with the UTF-8 key `customer-accounts:<customer-uuid>:<MAIN|SAVINGS>`. Account numbers are generated as fixed-width ten-digit decimal candidates from a SHA-256 digest of a versioned fixture namespace, customer UUID, account type, and deterministic probe counter. Leading zeroes are preserved. The `account_number` UNIQUE constraint is the final global guard; when a candidate is already used by another row, the service deterministically advances the probe counter until an unused candidate is reserved. If the candidate is already held by this fixture's deterministic account UUID, it is accepted as the existing stable value. If the finite 10-digit value space is exhausted, the command fails safely without modifying rows. Existing fixture rows are verified against their deterministic expected values. Distinct customers therefore receive distinct account numbers and IDs, and reruns keep existing values stable. Fixture account `created_at` uses fixed UTC constants (`MAIN`: `2025-01-01T00:00:00Z`, `SAVINGS`: `2025-01-02T00:00:00Z`; never `now()`), so ordering and immutable-value comparison are deterministic. Synthetic values are disclosed only by the owner-scoped accounts endpoint. The account fixture command and `AccountFixturePort` resolve IDs through the same account-owned lookup; the transaction fixture does not duplicate this derivation.
 
 The command uses `INSERT ... ON CONFLICT DO NOTHING` on stable PKs, then reads and locks the fixture rows and verifies that existing rows match their expected immutable values. A mismatch returns a safe operational error and rolls back without affecting other data. Re-running the command produces no duplicates and no destructive reseed. It never creates authentication users or accepts passwords as arguments. It is never invoked automatically at startup.
 
@@ -98,7 +100,7 @@ Tests create their own isolated data through feature repositories or SQL setup; 
 BankAccount {
   UUID   id
   UUID   customerId
-  String accountNumber      // owner-only accounts DTO when well-formed
+  String accountNumber      // owner-only accounts DTO when non-null
   AccountType accountType   // MAIN | SAVINGS
   BigDecimal balance
   boolean isPrimary
@@ -114,7 +116,7 @@ BankAccount {
 - When malformed persisted data is encountered, log a warning containing account UUID and a safe reason only. Never log the raw number.
 - `GET /api/v1/accounts` returns `accountNumber` (full value when well-formed, otherwise null) and `maskedNumber` to the owning CUSTOMER only. The raw malformed value is never returned.
 - Transaction and all future dispute DTOs expose only `maskedNumber`. No other endpoint, error, log, audit entry, URL or search predicate may contain a full account number.
-- The dashboard tile and account selector's current-account summary display the full value when present. No copy button, reveal toggle or other interaction is included.
+- The dashboard account row and account selector's current-account summary display the full value when present. No copy button, reveal toggle or other interaction is included.
 
 
 **Ownership predicate**: every read begins with `accounts.customer_id = :authenticatedCustomerId`. The same predicate applies to the count and the item query.
@@ -266,7 +268,7 @@ Header navigation for CUSTOMER is: **Accounts** / Transactions / My Disputes. Th
 - `@Input() selectedAccountId: string`
 - `@Output() selectionChange = new EventEmitter<string>()`
 
-It renders a compact card-style switcher showing the currently selected account's `displayName`, full `accountNumber` when well-formed, `maskedNumber` and formatted balance. When opened it lists accounts with `accountNumber` omitted and masked context only. It reuses the dashboard tile's fields and formatting; it is not a separate visual design. It will use ARIA `listbox`/`combobox` semantics, or a native `<select>` fallback at narrow widths. It does not fetch data; account fetching stays in the feature service that uses it.
+It renders a compact card-style switcher showing the currently selected account's `displayName`, full `accountNumber` when non-null, `maskedNumber` and formatted balance. The backend alone decides well-formedness and returns null for malformed stored values; the frontend performs no account-number validation. When opened it lists accounts with `accountNumber` omitted and masked context only. It reuses the dashboard row's summary fields and formatting; it is not a separate visual design. It will use ARIA `listbox`/`combobox` semantics, or a native `<select>` fallback at narrow widths. It does not fetch data; account fetching stays in the feature service that uses it.
 
 The later customer Disputes page also reuses this component and defaults to the primary account, falling back to the first GET /accounts item if no primary exists. Its collection `accountId` is an ownership-validated resource selector; dispute ownership is checked through transaction → account → customer.
 
@@ -280,23 +282,25 @@ The later customer Disputes page also reuses this component and defaults to the 
 
 On init: call `GET /api/v1/accounts`. On 401: rely on the existing session-clearing flow. On 503: set `loadState = 'error'`; display "Something went wrong. Please try again." with a manual retry button. On success with no items: `loadState = 'empty'`. No automatic retry, no polling, no prefetch.
 
-Dashboard goal copy names the accounts as (Main Account, Savings Account). Tile grid: CSS grid targeting 2–3 columns on desktop (`repeat(auto-fill, minmax(280px, 1fr))` or equivalent) and a single stacked column on mobile. Each tile is a single keyboard-operable `<a routerLink="/customer/transactions" [queryParams]="{accountId: account.id}">` with an accessible label. Tiles display: `displayName`, a "Primary" chip when `primary = true`, the full owner-visible `accountNumber` when well-formed, and balance formatted as ZAR. No dispute CTA, statement, receipt or download action. UI follows `docs/design/ui-flows.md` and `.kiro/steering/frontend-standards.md` (desktop-first public-web language, existing `DashboardLayout`, shared button variants, local component styles, Lucide icons). Do not copy labels or layouts from an AI-generated mobile mockup.
+Dashboard goal copy names the accounts as (Main Account, Savings Account). The account list is a single vertical stack of full-width rows at every viewport size; account rows never form a side-by-side grid. Each row is a single keyboard-operable `<a routerLink="/customer/transactions" [queryParams]="{accountId: account.id}">` with visible focus. Its left side contains a Lucide account icon, display name, optional "Primary" chip, and a labelled "Account number" with the full owner-visible `accountNumber` when non-null. Its right side contains the "Available balance" label, the dominant ZAR-formatted balance, and a chevron. Reserve a fixed-height title row so display names align whether or not the Primary chip is present. Do not use letter avatars. Check all small text (labels and badges included) for WCAG AA contrast.
 
-**Balance formatting decision:** Angular `CurrencyPipe` with locale `en-ZA` was executed against the installed Angular packages and produced `R12 500,00` (no space after R, a non-breaking space thousands separator and comma decimal separator). The approved display is the deterministic `R 12 500.00` format. Use one shared formatter for the account tile, selector and transaction amounts: accept decimal-string wire amounts, preserve the two fractional digits, group integer digits with ordinary spaces, use a period decimal separator, and prefix `R `. Do not route through JS floating point or locale-specific currency output. Transaction display may add its direction sign around this formatted value; wire amounts remain decimal strings.
+The page layout has an account-list column at about two thirds width and an optional quick-links column at about one third on desktop. At narrow widths, the quick-links column stacks below the account list. The account list comes first in DOM order. A populated quick-links slot is a labelled `<nav aria-label="Quick links">`; it renders only shortcuts to routes that exist and are implemented. No dead links or disabled "coming soon" entries are rendered. If no qualifying shortcut exists, omit the panel and give the account list the full width. This feature provides the slot only; it currently has no shortcut. Later feature tasks own their shortcuts (customer-transactions may add "View transactions" for the primary account; dispute features may add dispute shortcuts). The panel must never contain transfer, payment, statement, card, or other out-of-scope actions without an approved requirements change. UI follows `docs/design/ui-flows.md` and `.kiro/steering/frontend-standards.md`; do not copy labels or layouts from an AI-generated mobile mockup.
 
-Skeleton loading: display `<div class="skeleton">` placeholders at the tile grid positions while `loadState = 'loading'`. Empty state: a centered message with no tiles or selector. Retry state: error message with a "Try again" button that re-calls `AccountApi.getAccounts()`.
+**Balance formatting decision:** Angular `CurrencyPipe` with locale `en-ZA` was executed against the installed Angular packages and produced `R12 500,00` (no space after R, a non-breaking space thousands separator and comma decimal separator). The approved display is the deterministic `R 12 500.00` format. Use one shared formatter for the account row, selector and transaction amounts: accept decimal-string wire amounts, preserve the two fractional digits, group integer digits with ordinary spaces, use a period decimal separator, and prefix `R `. Do not route through JS floating point or locale-specific currency output. Transaction display may add its direction sign around this formatted value; wire amounts remain decimal strings.
+
+Skeleton loading: display `<div class="skeleton">` placeholders in the stacked account-row positions while `loadState = 'loading'`. Empty state: a centered message with no account rows or selector. Retry state: error message with a "Try again" button that re-calls `AccountApi.getAccounts()`.
 
 ### 7.3 account-selector reuse
 
-The `account-selector` component will be implemented in this feature and registered in `shared/components`; the later `TransactionList` component will import it. Its internal display uses the same balance format as the tile (ZAR space-thousands). It has no dependency on `AccountApi` or any feature service.
+The `account-selector` component will be implemented in this feature and registered in `shared/components`; the later `TransactionList` component will import it. Its internal display uses the same balance format as the account row (ZAR space-thousands). It has no dependency on `AccountApi` or any feature service.
 
 ### 7.4 Accessibility and responsive behavior
 
-- Each tile is a focusable, keyboard-operable `<a>` element; `Enter` and `Space` both activate navigation (Space prevents page scrolling).
+- Each account row is a focusable, keyboard-operable `<a>` element; `Enter` and `Space` both activate navigation (Space prevents page scrolling).
 - The "Primary" badge is conveyed with both text and a visually distinct chip; it is not colour-alone.
-- The skeleton loading state sets `aria-busy="true"` on the grid container.
+- The skeleton loading state sets `aria-busy="true"` on the account-list container.
 - The empty and error states are announced via `role="status"` or `aria-live="polite"`.
-- At mobile widths the grid stacks to a single column with adequate touch targets (min 44px height).
+- Account rows remain full-width at mobile widths with adequate touch targets (min 44px height); the optional quick-links panel stacks below the account list.
 
 ## 8. Testing strategy and traceability
 
@@ -308,7 +312,7 @@ The `account-selector` component will be implemented in this feature and registe
 | ACC-05 | `AccountNumberMask` unit tests: valid 10 digits, leading zeroes, 9 digits, 11 digits, empty, blank, null, letters, hyphen, internal space, trailing newline, a Unicode digit string and an emoji; verify malformed inputs return exactly `****`. Also verify balance serialization as a two-decimal string. HTTP tests assert serialized transaction and dispute-shaped bodies never contain a fixture full number, and CUSTOMER A never receives CUSTOMER B’s account number. |
 | ACC-06 | PostgreSQL constraint test: inserting a second `is_primary=TRUE` account for the same customer violates the partial unique index. No-primary-fallback test: GET /accounts returns accounts in `created_at ASC` order when none is primary; Angular selects the first returned account as the default. |
 | ACC-07 | Fixture command tests: existing-CUSTOMER-only target; idempotent re-run (no duplicate rows); mismatch refusal and rollback; no auth-user creation; `AccountFixturePort.getFixtureAccountIds` returns the documented stable UUIDs. |
-| ACC-08 | Angular component tests (HttpTestingController): skeleton on load; tile grid renders correct count; each tile links to `/customer/transactions?accountId=<id>`; Primary badge shown only on primary tile; empty-state renders; 503 shows retry; no polling after load. `account-selector` unit tests: correct display of selected account; emits `selectionChange` on selection; keyboard/ARIA contract. |
+| ACC-08 | Angular component tests (HttpTestingController): skeleton on load; full-width stacked rows; responsive account-list/quick-links layout; account list precedes the optional panel in DOM order; empty-panel case omits the panel and gives the account list full width; each row links to `/customer/transactions?accountId=<id>`; fixed title-row alignment with and without Primary badge; only implemented-route shortcuts render; 503 retry; no polling. Verify WCAG AA contrast for small text. `account-selector` unit tests: correct display of selected account; emits `selectionChange` on selection; keyboard/ARIA contract. |
 | ACC-09 | HTTP envelope/header tests; database failure isolated suite returning `503/3002`; activity integration test confirming `GET /api/v1/accounts` renews activity while health/CSRF/bootstrap paths do not. |
 
 Integration tests use the existing PostgreSQL Testcontainers setup, never H2. Database outage tests run in an isolated context and never stop the developer Compose database. Tests use customer A / customer B (with 2 accounts each) plus an AGENT to prove ownership and role boundaries.
@@ -316,7 +320,7 @@ Integration tests use the existing PostgreSQL Testcontainers setup, never H2. Da
 ## 9. Risks and decisions resolved
 
 - **AccountFixturePort vs stable UUIDs:** resolved as an interface (`AccountFixturePort`), making the cross-module contract compiler-visible. Documented stable UUIDs alone would allow silent coupling via copied constants.
-- **Balance format:** resolved as a custom ZAR formatter ensuring "R 12 500.00" with ordinary-space thousands grouping and a period decimal separator. Installed Angular `CurrencyPipe` with `en-ZA` returned `R12 500,00` (no space after R, non-breaking-space grouping and comma decimal separator), so both tile and selector use the shared deterministic formatter.
+- **Balance format:** resolved as a custom ZAR formatter ensuring "R 12 500.00" with ordinary-space thousands grouping and a period decimal separator. Installed Angular `CurrencyPipe` with `en-ZA` returned `R12 500,00` (no space after R, non-breaking-space grouping and comma decimal separator), so both account row and selector use the shared deterministic formatter.
 - **Filter retention on account switch (in Transactions, for the forward constraint):** when the account selector changes on the Transactions page, `accountId` is updated and `page` resets to 1; other active filters (direction, status, date range, search, sort) are retained unless the user explicitly clears them. This avoids losing context on account switch. It is recorded here because the account-selector component must emit only `selectionChange(accountId)`, not reset the parent's filters — that logic belongs to the Transactions feature.
 - **No `GET /accounts/{id}`:** no screen requires a single-account detail endpoint. The list is sufficient for the dashboard and selector. Introducing it without a use case would create an untested surface.
 - **No new error code:** no new numeric error code is introduced by this feature. The not-found case (non-owned accountId in a later feature) reuses 404/1003; the validation case reuses 400/1004. Error code 2008 (`ACCOUNT_STATE_CONFLICT`) is an existing authentication-account code and is untouched.

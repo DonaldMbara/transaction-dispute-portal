@@ -1,7 +1,7 @@
 # Customer Accounts — Requirements
 
-**Status:** Approved — awaiting task plan — 2026-10-11
-**Approval:** Requirements and design approved by the developer on 2026-10-11; implementation awaits an approved task plan.
+**Status:** Approved for implementation — 2026-10-11
+**Approval:** Requirements, design, and task plan approved by the developer on 2026-10-11.
 **Feature:** Customer Accounts
 **Prerequisites:** Project Foundation and Authentication & RBAC (implemented)
 **Related approved baseline:** [business rules](../../../docs/business-rules.md), [API contract](../../../docs/design/api-contract.md), [database design](../../../docs/design/database-design.md), [UI flows](../../../docs/design/ui-flows.md)
@@ -17,7 +17,7 @@ It establishes the `accounts` table (V5 migration) and the account fixture comma
 - Customer-only account list API endpoint `GET /api/v1/accounts` under `/api/v1`.
 - PostgreSQL `accounts` table (V5 migration) with `balance`, `is_primary`, a database CHECK constraint on `account_type`, and a partial unique index enforcing at most one primary account per customer.
 - Ownership-scoped account list with fixed deterministic ordering; no search, filters or sort parameters.
-- Angular account dashboard screen: a responsive tile grid, one tile per account, within the existing `DashboardLayout` and session-aware routing.
+- Angular account dashboard screen: full-width stacked account rows, one row per account, within the existing `DashboardLayout` and session-aware routing.
 - Shared presentational `account-selector` Angular component in `shared/components`, accepting `accounts` and `selectedAccountId` as inputs and emitting a `selectionChange` output; reusable by the later Transactions and Disputes pages.
 - Account fixture command: an explicit, opt-in, non-web, idempotent command that creates two deterministic accounts (`MAIN` primary, `SAVINGS`) for an existing CUSTOMER.
 - A narrow `AccountFixturePort` exposed from the `account` module so the later transaction fixture can obtain account IDs without importing the account entity or Spring Data repository.
@@ -114,16 +114,18 @@ These preserve business rules BR-A02 and BR-T01 and the ownership and default-de
 ### ACC-08 — Angular account dashboard
 
 1. An authenticated CUSTOMER shall land on the account dashboard at `/customer` after authentication.
-2. The dashboard shall display a responsive tile grid — 2–3 columns on desktop, stacked on mobile — one tile per owned account in the GET /accounts fixed order.
-3. Each tile shall be a single keyboard-operable link navigating to `/customer/transactions?accountId=<id>`, activated by Enter and Space with visible focus.
-4. Each tile shall display: `displayName`, a "Primary" badge when `primary = true`, the full owner-visible `accountNumber` for well-formed account values (omit it when null), and `balance` formatted as ZAR currency (e.g. "R 12 500.00").
+2. The dashboard shall display one full-width, vertically stacked account row per owned account in GET /accounts fixed order. Rows shall never form a side-by-side account grid.
+3. Each row shall be a single keyboard-operable link navigating to `/customer/transactions?accountId=<id>`, activated by Enter and Space with visible focus.
+4. Each row shall place a Lucide account icon, display name, optional "Primary" badge, and labelled "Account number" with the full owner-visible `accountNumber` when non-null on the left. Its right side shall show the "Available balance" label and ZAR-formatted balance (e.g. "R 12 500.00") as the visually dominant amount, followed by a chevron. The row title area shall have fixed height so rows align whether or not the Primary badge is present. The backend alone decides well-formedness and returns null for malformed stored values; the frontend does not validate or normalize account numbers.
 5. Dashboard goal copy shall name the accounts as (Main Account, Savings Account).
 6. The dashboard shall display a skeleton loading state while GET /accounts is in flight.
-7. When the customer has no accounts, the dashboard shall display an empty state with helpful copy and no tiles or selector.
+7. When the customer has no accounts, the dashboard shall display an empty state with helpful copy and no account rows or selector.
 8. On GET /accounts failure, a `401` shall rely on the existing session-clearing flow; a `503` shall display a manual retry state with no automatic retry.
 9. The dashboard shall not poll, prefetch, auto-refresh or auto-retry the accounts request.
-10. The dashboard shall not display a dispute CTA, statement, receipt, download, card management or transfer action.
-11. The `account-selector` shared component shall be implemented in this feature and made available to the later Transactions page. It shall be purely presentational: it shall not fetch account data; it accepts `accounts` and `selectedAccountId` as inputs and emits a `selectionChange` output. It shall show the current account summary (including full `accountNumber` only when well-formed), with no copy button, reveal toggle or other account-number interaction; it shall use ARIA `listbox`/`combobox` semantics, or a native `<select>` fallback on narrow widths.
+10. At desktop widths, the dashboard shall use a two-column layout with the account rows occupying about two thirds and a quick-links slot about one third. On narrow screens the quick-links slot shall stack below the account list. The account list shall precede it in DOM order. The slot shall be a labelled `<nav aria-label="Quick links">` and shall render only shortcuts whose destination routes exist and are implemented. If no qualifying shortcut exists, omit the panel entirely and allow the account list to use the full width. No dead links or disabled "coming soon" items shall appear. Later features add their own shortcuts in their own specifications and tasks (customer-transactions: view transactions for the primary account; dispute features: dispute shortcuts).
+11. The quick-links panel shall never contain transfer, payment, statement, card, or other out-of-scope actions unless requirements are changed and approved.
+12. The `account-selector` shared component shall be implemented in this feature and made available to the later Transactions page. It shall be purely presentational: it shall not fetch account data; it accepts `accounts` and `selectedAccountId` as inputs and emits a `selectionChange` output. It shall show the current account summary (including full `accountNumber` when non-null; the backend alone decides well-formedness and returns null for malformed stored values), with no copy button, reveal toggle or other account-number interaction; it shall use ARIA `listbox`/`combobox` semantics, or a native `<select>` fallback on narrow widths.
+13. Small text in the dashboard, including account labels and badges, shall meet WCAG AA contrast requirements.
 
 ### ACC-09 — Reliability, security and maintainability
 
@@ -155,7 +157,7 @@ Implementation must provide evidence covering the following outcomes before this
 2. PostgreSQL integration tests that apply the V5 additive Flyway migration, prove its account-number CHECK rejects malformed inserts, verify JPA mappings and constraints (including the partial unique index), and prove scoped list totals across at least two customers with multiple accounts.
 3. HTTP tests for the success envelope, fixed ordering, pagination, unknown-parameter rejection, unauthenticated access (`401/1001`), AGENT denial (`403/1002`), and cross-customer isolation, including proof CUSTOMER A never receives CUSTOMER B’s full number.
 4. Fixture command tests proving: existing-CUSTOMER-only target, idempotence (re-run produces no duplicates), mismatch refusal, no auth-user creation, and that `AccountFixturePort` returns the deterministic IDs for the customer's MAIN and SAVINGS accounts.
-5. Angular component/unit tests for: tile grid render, skeleton loading, empty state, 401 session-clearing, 503 manual retry, tile navigation to correct `?accountId`, Primary badge visibility, and `account-selector` input/output contract.
+5. Angular component/unit tests for: stacked account-row render, skeleton loading, empty state, 401 session-clearing, 503 manual retry, row navigation to correct `?accountId`, Primary badge visibility, and `account-selector` input/output contract.
 6. HTTP coverage shall serialize transaction and dispute-shaped responses and assert neither contains the full account number.
 7. End-to-end or integration evidence that session enforcement and strict idle-activity marking follow the approved authentication policy.
 
@@ -182,7 +184,7 @@ Implementation must provide evidence covering the following outcomes before this
 | Masking rule | `docs/design/api-contract.md` §4 |
 | Pagination, envelopes, error codes | `docs/design/api-contract.md` §§1–3, 7 |
 | accountId as resource selector (transactions, disputes) — forward constraint | `docs/design/api-contract.md` §3, `.kiro/steering/api-contracts.md` |
-| Dashboard tile grid, selector component, routing | `docs/design/ui-flows.md` §§3–4, 7 |
+| Dashboard account rows, selector component, routing | `docs/design/ui-flows.md` §§3–4, 7 |
 | Shared account-selector component location and contract | `.kiro/steering/structure.md` |
 | Module boundaries, Flyway, DTO/persistence practices | `.kiro/steering/backend-standards.md`, `.kiro/steering/structure.md` |
 | Feature order | `.kiro/steering/spec-workflow.md` |

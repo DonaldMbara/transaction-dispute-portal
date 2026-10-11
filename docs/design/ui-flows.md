@@ -1,7 +1,7 @@
 # UI Flows — Transaction Dispute Portal
 
 **Status:** Customer Accounts alignment v0.6 · **Date:** 2026-10-11
-**Design:** Capitec public website as the primary visual reference, not an official Capitec product. **Desktop-first web portal**, responsive at tablet and mobile sizes for both customers and agents. UI follows this document and `.kiro/steering/frontend-standards.md`: simplified authenticated header, existing `DashboardLayout`, shared button variants, local component styles, Lucide icons, accessible and responsive layouts. A mobile mockup shown during discussion is AI-generated and is **not** a source of truth — do not cite it or reproduce its labels, field names, merchant categories, card details, account names or number formats. Tile content, month grouping and the segmented direction control are application design choices justified against these standards.
+**Design:** Capitec public website as the primary visual reference, not an official Capitec product. **Desktop-first web portal**, responsive at tablet and mobile sizes for both customers and agents. UI follows this document and `.kiro/steering/frontend-standards.md`: simplified authenticated header, existing `DashboardLayout`, shared button variants, local component styles, Lucide icons, accessible and responsive layouts. A mobile mockup shown during discussion is AI-generated and is **not** a source of truth — do not cite it or reproduce its labels, field names, merchant categories, card details, account names or number formats. Account-row content, month grouping and the segmented direction control are application design choices justified against these standards.
 
 ## 1. Public website reference and visual audit
 
@@ -73,7 +73,7 @@ Session policy: PostgreSQL-backed server-side sessions with opaque HttpOnly cook
 
 ```text
 /login
-/customer                         (account dashboard — tiles)
+/customer                         (account dashboard — stacked account rows)
 /customer/transactions            (transaction list with account selector)
 /customer/transactions/:id        (transaction detail)
 /customer/disputes
@@ -94,7 +94,7 @@ The later customer Disputes page reuses the shared account selector and defaults
 ## 4. Customer journey A — Find and dispute a transaction
 
 ```text
-Login → Account Dashboard (tiles) → Select account tile → Transactions list (accountId in URL)
+Login → Account Dashboard (stacked account rows) → Select account row → Transactions list (accountId in URL)
       → All | Money In | Money Out
       → Select transaction → Transaction details (no dispute action in Customer Transactions)
 
@@ -105,18 +105,20 @@ The later dispute-submission feature extends this journey with eligibility, subm
 
 - Route: `/customer`. Header label: `Accounts`.
 - **Goal copy:** describe the customer's accounts as (Main Account, Savings Account). Do not use other type or product labels.
-- **Tile grid:** a responsive grid of accessible card-style tiles — 2–3 columns on desktop, stacked on mobile. Each tile is a single keyboard-operable link to `/customer/transactions?accountId=<id>`, activated by Enter or Space with visible focus. Clicking navigates using `router.navigate` (pushState). Include skeleton loading, empty and retry states.
-- **Tile content:** `displayName` ("Main Account" or "Savings Account"), a "Primary" badge when `primary = true`, full `accountNumber` when well-formed, and the formatted balance ("R 24 500.00" — ZAR, two decimal places, space as thousands separator). This deterministic format applies to account balances and transaction amounts (with direction sign where shown); wire amounts remain decimal strings. `displayName` is the customer-visible form of `accountType`; it is derived at the application layer — "Main Account" for `MAIN`, "Savings Account" for `SAVINGS`. No extra display-name column exists. MVP types are `MAIN` and `SAVINGS` only.
-- **Account number display and masking:** stored values are text and well-formed only when they match `^[0-9]{10}$` (exactly 10 ASCII digits, leading zeros allowed, no trimming or normalization). Only owner-scoped `GET /api/v1/accounts` returns `accountNumber`, and only for well-formed values; otherwise it returns null and `maskedNumber: "****"`. Transactions and all future dispute responses expose only `maskedNumber` (`****` plus the last four digits when well-formed; exactly `****` otherwise). The account feature has the sole named length constant `AccountNumberMask.ACCOUNT_NUMBER_LENGTH`, and V5 has one matching CHECK; later changes use one additive migration. `AccountNumberMask` in the account feature is the sole masking implementation. On malformed stored data it logs only account UUID and safe reason. No full number may appear in other endpoints, errors, logs, audit entries, URLs or search predicates. Dashboard tiles and the account selector current-account summary show the full number when present. No copy button, reveal toggle or other number interaction.
-- **Loading:** skeleton tiles while GET /accounts is in flight.
-- **Empty state:** no tiles, no selector; display helpful copy (e.g. "No accounts found. Contact your bank for assistance.").
+- **Layout:** desktop uses two columns: full-width stacked account rows occupy about two thirds, and an optional quick-links panel occupies about one third. On narrow screens, the panel stacks below the account list. Account rows remain full-width and stacked at all sizes. The account list comes first in DOM order.
+- **Account rows:** each row is one accessible, keyboard-operable link to `/customer/transactions?accountId=<id>`, activated by Enter or Space with visible focus. The left side contains a Lucide account icon, `displayName` ("Main Account" or "Savings Account"), an optional "Primary" badge, and a labelled "Account number" with the full value when non-null. The right side contains the "Available balance" label, a visually dominant balance ("R 24 500.00" — ZAR, two decimal places, space as thousands separator), and a chevron. Keep the title-row height fixed so rows align with or without the Primary badge. Do not use letter avatars. Check small text, including labels and badges, against WCAG AA contrast. `displayName` is derived from `accountType`; no extra display-name column exists. MVP types are `MAIN` and `SAVINGS` only.
+- **Quick-links slot:** render shortcuts only when their destination route exists and is implemented. When present, use `<nav aria-label="Quick links">`. Omit the panel entirely when there are no qualifying shortcuts and let the account list use the full width. Do not render dead links or disabled "coming soon" items. The accounts feature provides the slot only and has no shortcut yet. Later feature tasks own their shortcuts (customer-transactions: view transactions for the primary account; dispute features: dispute shortcuts). Never include transfer, payment, statement, card or other out-of-scope actions without an approved requirements change.
+- **Known limitation in this phase:** the row target `/customer/transactions?accountId=<id>` has no route until the separate customer-transactions feature is implemented, so it does not qualify for a quick link.
+- **Account number display and masking:** stored values are text and well-formed only when they match `^[0-9]{10}$` (exactly 10 ASCII digits, leading zeros allowed, no trimming or normalization). Only owner-scoped `GET /api/v1/accounts` returns `accountNumber`; malformed values produce null and `maskedNumber: "****"`. Transactions and all future dispute responses expose only `maskedNumber` (`****` plus the last four digits when well-formed; exactly `****` otherwise). The account feature has the sole named length constant `AccountNumberMask.ACCOUNT_NUMBER_LENGTH`, and V5 has one matching CHECK; later changes use one additive migration. `AccountNumberMask` in the account feature is the sole masking implementation. On malformed stored data it logs only account UUID and safe reason. No full number may appear in other endpoints, errors, logs, audit entries, URLs or search predicates. The backend alone validates the number and returns null for malformed stored values; the frontend does not validate it. Dashboard rows and the account selector current-account summary show the full number when non-null. No copy button, reveal toggle or other number interaction.
+- **Loading:** stacked row skeletons while GET /accounts is in flight.
+- **Empty state:** no account rows, no selector; display helpful copy (e.g. "No accounts yet. Your accounts will appear here when they are available.").
 - **Error states:** 401 relies on the existing session-clearing flow. 503 → "Something went wrong. Please try again." with a manual retry button; no automatic retry. No polling, prefetching or auto-refresh.
 - **No dispute CTA, statement download, card management or transfer action in this phase.**
 
 ### Screen: Transactions
 
 - Route: `/customer/transactions?accountId=<uuid>`. Header label: `Transactions`.
-- **Account selector:** A compact card-style account switcher displayed above the transaction list. Planned as one shared presentational component (`shared/components/account-selector`) accepting `accounts: AccountSummary[]` and `selectedAccountId: string` inputs, emitting a `selectionChange` output. It shows the currently selected account's `displayName`, full `accountNumber` when well-formed, `maskedNumber` and `balance`, and opens a list of account summaries that keep account numbers masked. It reuses the tile's summary fields and formatting; it is not a separate visual design. It will use proper ARIA `listbox`/`combobox` semantics, or a native `<select>` fallback on narrow widths. No "All accounts" option; the selector always reflects one owned account.
+- **Account selector:** A compact card-style account switcher displayed above the transaction list. Planned as one shared presentational component (`shared/components/account-selector`) accepting `accounts: AccountSummary[]` and `selectedAccountId: string` inputs, emitting a `selectionChange` output. It shows the currently selected account's `displayName`, full `accountNumber` when non-null (the backend alone validates and returns null for malformed values), and `balance`; choice rows keep account numbers masked. It reuses the account row's summary fields and formatting; it is not a separate visual design. It uses a keyboard-operable native `<select>`. No "All accounts" option; the selector always reflects one owned account.
 - **URL is the only selection state.** Opening `/customer/transactions` without `accountId`: the feature service loads GET /accounts, selects the primary account (fallback: first in response order if no primary is found), then rewrites the URL with `?accountId=<id>` using `history.replace`. Changing the selector updates `accountId` in the URL, resets pagination to page 1, and retains other active filters.
 - **Not-owned accountId in URL (API returns 404/1003):** show an "Account not available" error state with a link that navigates to the default (primary/first) account. Do not redirect silently.
 - **Stale-response protection:** cancel in-flight requests when the selector changes; discard any response that arrived after a newer request was issued.
@@ -202,7 +204,7 @@ app/
 │   │   └── account-selector/  # shared presentational: inputs accounts/selectedAccountId, output selectionChange
 │   └── ...                    # status badge, error/empty/loading, other reusables
 ├── features/customer/
-│   ├── accounts/            # account dashboard (tiles), account service (owns GET /accounts)
+│   ├── accounts/            # account dashboard (stacked rows), account service (owns GET /accounts)
 │   ├── transactions/        # list (uses account-selector), filter, detail
 │   └── disputes/            # submit form, history, customer detail/timeline
 └── features/agent/
@@ -247,4 +249,4 @@ Use Angular standalone components, typed reactive forms, signals where appropria
 
 ## 11. Open UX decisions
 
-MVP uses explicit 1-based pagination and generic returned-to-queue milestones. The account dashboard uses a tile grid; the transactions list uses the shared account-selector component; the URL is the only account-selection state. Remaining choices: exact wording of resolution disclosures, and whether transaction detail opens as a full page or drawer. Font family and key theme colours are now evidenced by supplied CSS; still verify precise section spacing, mobile navigation collapse and footer presentation; use our own icons with a browser-based visual audit. Validate these against API contracts before implementation.
+MVP uses explicit 1-based pagination and generic returned-to-queue milestones. The account dashboard uses stacked account rows with an optional implemented-route quick-links panel; the transactions list uses the shared account-selector component; the URL is the only account-selection state. Remaining choices: exact wording of resolution disclosures, and whether transaction detail opens as a full page or drawer. Font family and key theme colours are now evidenced by supplied CSS; still verify precise section spacing, mobile navigation collapse and footer presentation; use our own icons with a browser-based visual audit. Validate these against API contracts before implementation.

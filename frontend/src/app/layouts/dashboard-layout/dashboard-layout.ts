@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth/auth-service';
 import { safeMessage } from '../../core/auth/auth-contracts';
 import { Button } from '../../shared/components/button/button';
 import { NotificationService } from '../../shared/components/notification/notification';
-@Component({ selector: 'app-dashboard-layout', standalone: true, imports: [RouterOutlet, RouterLink, Button],
+@Component({ selector: 'app-dashboard-layout', standalone: true, imports: [RouterOutlet, RouterLink, RouterLinkActive, Button],
   templateUrl: './dashboard-layout.html', styleUrl: './dashboard-layout.scss', changeDetection: ChangeDetectionStrategy.OnPush })
 export class DashboardLayout {
   readonly auth = inject(AuthService);private readonly router = inject(Router);

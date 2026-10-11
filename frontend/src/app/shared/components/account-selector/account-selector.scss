@@ -1,0 +1,10 @@
+:host { display: block; }
+.selector { display: grid; gap: .75rem; }
+.current-account { display: grid; gap: .3rem; padding: 1rem; border: 1px solid #dce4ec; border-radius: 12px; background: #fff; }
+.current-label { color: #526174; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.current-account strong { color: #16304c; }
+.full-number { color: #30455c; font-variant-numeric: tabular-nums; letter-spacing: .06em; }
+.current-balance { color: #102943; font-weight: 700; }
+label { font-weight: 650; }
+select { width: 100%; min-height: 44px; padding: .6rem .75rem; border: 1px solid #9aabba; border-radius: 8px; background: white; color: #17324d; font: inherit; }
+select:focus-visible { outline: 3px solid #78bdf0; outline-offset: 2px; }
