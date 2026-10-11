@@ -12,6 +12,5 @@ dt { font-weight: 700; }
 dd { margin: 0; overflow-wrap: anywhere; }
 .advisory { color: var(--color-text); }
 .detail-card a { color: var(--color-primary); font-weight: 700; }
-.detail-card button { min-height: 2.75rem; width: fit-content; padding: .5rem .9rem; border: 1px solid var(--color-primary); border-radius: .45rem; background: white; color: var(--color-primary); font: inherit; font-weight: 650; cursor: pointer; }
 button:focus-visible, a:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
 @media (max-width: 540px) { dl > div { grid-template-columns: 1fr; gap: .25rem; } }

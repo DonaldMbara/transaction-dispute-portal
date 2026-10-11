@@ -28,7 +28,9 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
 .filter-error { margin: 8px 0; color: #852b20; font-weight: 650; }
 .result-summary { display: flex; justify-content: space-between; margin: 0 0 16px; font-size: 13px; font-weight: 800; }
 .results-region { transition: opacity .12s ease; }
-.results-region.refreshing { opacity: .64; }
+.results-region.refreshing { opacity: 1; }
+.request-spinner { margin-bottom: 12px; }
+.loading-state { min-height: 120px; align-content: center; }
 .transaction-table { width: 100%; overflow: hidden; border: 1px solid var(--color-border); border-radius: 12px; border-collapse: separate; border-spacing: 0; background: #fff; }
 .transaction-table th, .transaction-table td { padding: 14px 16px; border-bottom: 1px solid var(--color-border); text-align: left; font-size: 13px; }
 .transaction-table thead th { padding-top: 12px; padding-bottom: 12px; font-weight: 700; }
@@ -48,7 +50,6 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
 .month-row th { padding: 8px 16px; background: #eaf1ff; color: #174daf; font-size: 12px; }
 .state { display: grid; gap: 10px; margin-top: 16px; padding: 24px; border: 1px solid var(--color-border); border-radius: 12px; background: #fff; color: var(--color-text); }
 .state h2, .state p { margin: 0; }
-.state button, .pagination button { min-height: 40px; width: fit-content; padding: 8px 14px; border: 1px solid var(--color-border); border-radius: 8px; background: #fff; color: #174daf; font: inherit; font-weight: 700; cursor: pointer; }
 .skeleton { min-height: 64px; border-radius: 8px; background: #f0f3f6; }
 .pagination { display: flex; justify-content: center; align-items: end; gap: 16px; padding: 20px; }
 .pagination label { margin-right: auto; }

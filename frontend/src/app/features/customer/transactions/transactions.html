@@ -36,19 +36,19 @@
   @if (filterError(); as message) { <p class="filter-error" role="alert">{{ message }}</p> }
 
   <div class="results-region" [attr.aria-busy]="requestPending()" [class.refreshing]="requestPending()">
-  <span class="visually-hidden" role="status" aria-live="polite">{{ requestPending() ? 'Updating transactions' : '' }}</span>
+  @if (state() === 'busy') { <app-loading-spinner class="request-spinner" [label]="form.controls.search.value.trim() ? 'Searching transactions' : 'Updating transactions'" size="small" /> }
   @if (state() === 'loading' && page() === null) {
-    <div class="state" aria-busy="true" role="status"><span class="skeleton"></span><span class="skeleton"></span><span class="skeleton"></span><span class="visually-hidden">Loading transactions</span></div>
+    <div class="state loading-state" aria-busy="true"><app-loading-spinner label="Loading transactions" /></div>
   } @else if (state() === 'no-accounts') {
     <section class="state" role="status"><h2>No accounts available</h2><p>Transactions will appear when an account is available.</p></section>
   } @else if (state() === 'account-unavailable') {
     <section class="state" role="alert"><h2>Account not available</h2><p>This account cannot be shown.</p>
-      @if (defaultAccountId(); as defaultId) { <button type="button" (click)="onAccountChange(defaultId)">View default account</button> }
+      @if (defaultAccountId(); as defaultId) { <button appButton="secondary" type="button" (click)="onAccountChange(defaultId)">View default account</button> }
     </section>
   } @else if (state() === 'validation') {
     <section class="state" role="alert"><h2>Check your search and filters</h2><p>Some values in the address are invalid. Update the filters and try again.</p></section>
   } @else if (state() === 'error') {
-    <section class="state" role="alert"><h2>Transactions are unavailable</h2><p>Please try again.</p><button type="button" (click)="retry()">Try again</button></section>
+    <section class="state" role="alert"><h2>Transactions are unavailable</h2><p>Please try again.</p><button appButton="secondary" type="button" (click)="retry()">Try again</button></section>
   } @else if (state() === 'none') {
     <section class="state" role="status"><h2>No transactions found</h2><p>Try changing your search or filters.</p></section>
   } @else {
@@ -74,9 +74,9 @@
     </table>
     <nav class="pagination" aria-label="Transaction pages">
       <label>Rows per page<select [value]="form.controls.size.value" (change)="changePageSize($any($event.target).value)"><option value="20">20</option><option value="50">50</option><option value="100">100</option></select></label>
-      <button type="button" [disabled]="pageNumber() <= 1" (click)="previousPage()">Previous</button>
+      <button appButton="secondary" type="button" [disabled]="pageNumber() <= 1" (click)="previousPage()">Previous</button>
       <span>Page {{ pageNumber() }}</span>
-      <button type="button" [disabled]="pageNumber() * (page()?.size ?? 20) >= (page()?.total ?? 0)" (click)="nextPage()">Next</button>
+      <button appButton="secondary" type="button" [disabled]="pageNumber() * (page()?.size ?? 20) >= (page()?.total ?? 0)" (click)="nextPage()">Next</button>
     </nav>
   }
   </div>

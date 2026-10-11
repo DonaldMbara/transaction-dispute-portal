@@ -11,11 +11,13 @@ import { formatZar } from '../../../shared/utils/zar-formatter';
 import { TransactionApi } from './transaction-api';
 import { DirectionFilter, SortDirection, SortField, StatusFilter, TransactionItem, TransactionPage } from './transaction-models';
 import { AsyncViewState } from '../../../shared/models/async-state';
+import { LoadingSpinner } from '../../../shared/components/loading-spinner/loading-spinner';
+import { Button } from '../../../shared/components/button/button';
 
 type TransactionsViewState = AsyncViewState<TransactionPage, 'validation' | 'account-unavailable' | 'no-accounts'>;
 @Component({
   selector: 'app-transactions', standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AccountSelector],
+  imports: [ReactiveFormsModule, RouterLink, AccountSelector, LoadingSpinner, Button],
   templateUrl: './transactions.html', styleUrl: './transactions.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -11,9 +11,9 @@ export class DashboardLayout {
   readonly auth = inject(AuthService);private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
   readonly actionState = signal<AsyncActionStatus>('idle');readonly pending = computed(() => this.actionState() === 'busy');readonly message = signal('');
-  isCustomerMainScreen(): boolean {
+  isCustomerRoute(): boolean {
     const path = this.router.url.split('?')[0].replace(/\/+$/u, '');
-    return path === '/customer' || path === '/customer/transactions';
+    return path === '/customer' || path.startsWith('/customer/');
   }
   async signOut(retry = false): Promise<void> {
     if (this.pending()) return;

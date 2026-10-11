@@ -6,6 +6,8 @@ import { AccountSummary } from './account-contracts';
 import { formatZar } from '../../../shared/utils/zar-formatter';
 import { AsyncViewState } from '../../../shared/models/async-state';
 import { AccountCard } from '../../../shared/components/account-card/account-card';
+import { LoadingSpinner } from '../../../shared/components/loading-spinner/loading-spinner';
+import { Button } from '../../../shared/components/button/button';
 
 interface DashboardQuickLink {
   label: string;
@@ -14,7 +16,7 @@ interface DashboardQuickLink {
 }
 
 @Component({
-  selector: 'app-account-dashboard', standalone: true, imports: [RouterLink, AccountCard],
+  selector: 'app-account-dashboard', standalone: true, imports: [RouterLink, AccountCard, LoadingSpinner, Button],
   templateUrl: './account-dashboard.html', styleUrl: './account-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

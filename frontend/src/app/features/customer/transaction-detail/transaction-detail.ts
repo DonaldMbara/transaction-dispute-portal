@@ -6,12 +6,14 @@ import { TransactionApi } from '../transactions/transaction-api';
 import { TransactionItem } from '../transactions/transaction-models';
 import { formatZar } from '../../../shared/utils/zar-formatter';
 import { AsyncViewState } from '../../../shared/models/async-state';
+import { LoadingSpinner } from '../../../shared/components/loading-spinner/loading-spinner';
+import { Button } from '../../../shared/components/button/button';
 
 type DetailState = AsyncViewState<TransactionItem, 'not-found'>;
 const ALLOWED_RETURN_PARAMETERS = new Set(['accountId', 'page', 'size', 'search', 'direction', 'status', 'fromDate', 'toDate', 'minAmount', 'maxAmount', 'sortBy', 'sortDirection']);
 
 @Component({
-  selector: 'app-transaction-detail', standalone: true, imports: [RouterLink],
+  selector: 'app-transaction-detail', standalone: true, imports: [RouterLink, LoadingSpinner, Button],
   templateUrl: './transaction-detail.html', styleUrl: './transaction-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

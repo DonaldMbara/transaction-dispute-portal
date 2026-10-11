@@ -2,11 +2,11 @@
   <button class="back-link" type="button" (click)="goBack()">← Back to transactions</button>
   <h1 id="transaction-detail-heading">Transaction details</h1>
   @if (status() === 'loading' || status() === 'busy') {
-    <div class="detail-card" aria-busy="true" role="status">Loading transaction</div>
+    <div class="detail-card" aria-busy="true"><app-loading-spinner label="Loading transaction" /></div>
   } @else if (status() === 'not-found') {
     <section class="detail-card" role="status"><h2>Transaction not available</h2><p>This transaction could not be found.</p><a [routerLink]="returnTo()">Return to transactions</a></section>
   } @else if (status() === 'error') {
-    <section class="detail-card" role="alert"><h2>Transaction is unavailable</h2><p>Please try again.</p><button type="button" (click)="retry()">Try again</button></section>
+    <section class="detail-card" role="alert"><h2>Transaction is unavailable</h2><p>Please try again.</p><button appButton="secondary" type="button" (click)="retry()">Try again</button></section>
   } @else if (transaction(); as item) {
     <article class="detail-card">
       <p class="merchant">{{ item.merchant }}</p>
