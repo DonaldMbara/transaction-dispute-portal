@@ -2,13 +2,15 @@
 !pragma layout smetana
 title Application Components — Modular Monolith
 package "Angular SPA" {
-  [Auth & Shell] as authui
+  [AuthService / Guards / DashboardLayout] as authui
   [Customer Transactions] as txui
   [Customer Disputes] as dui
   [Agent Workspace] as aui
 }
 package "Spring Boot" {
   [Auth / Security] as sec
+  [Spring Session JDBC] as sessions
+  [Auth Accounts / Activity] as authstore
   [Account & Transaction] as trans
   [Dispute API / Application] as app
   [Dispute Domain] as domain
@@ -27,7 +29,10 @@ app --> domain
 app --> audit : synchronous append interface
 
 app --> idem
-sec --> PostgreSQL
+sec --> sessions : server-side sessions
+sessions --> PostgreSQL : shared session state
+sec --> authstore : narrow account/activity interfaces
+authstore --> PostgreSQL : accounts / version / guarded activity
 trans --> PostgreSQL
 app --> PostgreSQL
 audit --> PostgreSQL
@@ -37,5 +42,6 @@ One Spring Boot deployment; no cross-module repository access.
 Dispute, audit and idempotency writes share one PostgreSQL transaction.
 Infrastructure: envelopes, correlation IDs, validation and exception mapping.
 No microservices or API Gateway in MVP.
+Auth/session infrastructure implemented; business modules remain future scope.
 end note
 @enduml

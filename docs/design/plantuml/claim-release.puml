@@ -6,7 +6,7 @@ participant "AgentDisputeController" as C
 participant "DisputeService" as S
 database PostgreSQL as DB
 Agent -> UI : Claim case / release with reason
-UI -> C : POST claim or release + If-Match + JWT
+UI -> C : POST claim or release + If-Match + session cookie + CSRF
 C -> S : Authenticated agent; validate command
 S -> DB : Load dispute in mutation transaction
 alt Missing If-Match

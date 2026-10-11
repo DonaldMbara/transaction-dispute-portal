@@ -6,8 +6,8 @@ participant "CustomerDisputeController" as C
 participant "DisputeQueryService" as S
 database PostgreSQL as DB
 Customer -> UI : Open My Disputes
-UI -> C : GET /disputes?page=1&size=20 + JWT + filters/search/sort
-C -> S : List for JWT subject
+UI -> C : GET /disputes?page=1&size=20 + session cookie + filters/search/sort
+C -> S : List for session principal
 S -> DB : Query disputes through transaction -> account -> customer
 DB --> S : Owned disputes only
 S --> C : Authorized {total,page,size,items} in data

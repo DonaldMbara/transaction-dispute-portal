@@ -6,7 +6,7 @@ participant "DisputeController" as C
 participant "DisputeService" as S
 database "PostgreSQL primary" as DB
 Customer -> UI : Reason and description
-UI -> C : POST /api/v1/disputes + JWT + Idempotency-Key
+UI -> C : POST /api/v1/disputes + session cookie + CSRF + Idempotency-Key
 C -> S : Authenticated customer; validate + canonical fingerprint
 S -> DB : Read completed record by user + operation + key
 alt Existing key

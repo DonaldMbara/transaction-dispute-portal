@@ -1,5 +1,12 @@
 # Testcontainers supplies datasource properties dynamically in Task 4.
 spring:
+  session:
+    jdbc:
+      cleanup-cron: "-"
   jpa:
     hibernate:
       ddl-auto: validate
+
+portal:
+  auth:
+    cleanup-cron: "-"

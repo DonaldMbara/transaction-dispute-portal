@@ -1,31 +1,48 @@
 @startuml
-title Login and Role-Based Access
+title Implemented Session Authentication and Lifecycle
 actor User
-participant "Angular login" as UI
-participant "AuthController" as C
-participant "AuthenticationService" as A
-participant "UserRepository" as R
-participant "JWT signer" as J
-User -> UI : Enter credentials
-UI -> C : POST /api/v1/auth/login
-C -> A : Authenticate
-A -> R : Find user by normalized email
-R --> A : User and BCrypt hash
-alt User not found, invalid password or disabled
-  A --> C : Generic authentication failure
-  C --> UI : 401 error envelope (1001)
-else Valid credentials
-  A -> J : Issue RS256 JWT; expires in 900 seconds
-  J --> A : JWT with subject and role
-  A --> C : Token + safe user profile
-  C --> UI : 200 envelope (error_code 0)
-  UI -> UI : Keep token in memory
-  UI --> User : Route by role
+participant "Angular AuthService" as UI
+participant "Security / Auth API" as API
+participant "Spring Session JDBC" as Sessions
+database PostgreSQL as DB
+UI -> API : GET /api/v1/auth/csrf
+API -> Sessions : Materialize session-bound CSRF
+Sessions -> DB : IMMEDIATE persistence
+API --> UI : 200 envelope: masked csrfToken / X-CSRF-TOKEN
+User -> UI : Submit exact email/password
+UI -> API : POST /api/v1/auth/login + SESSION cookie + X-CSRF-TOKEN
+API -> Sessions : Validate masked CSRF before unsafe behavior
+API -> DB : Canonical credential lookup
+API -> API : PBKDF2-HMAC-SHA256 verification\n600,000 iterations / versioned encoder
+alt Unknown / wrong / disabled account
+  API --> UI : Generic 401 / 1001; no new activation
+else Valid enabled supported role
+  API -> Sessions : Identifier rotation + invalidate old CSRF
+  API -> Sessions : Save credential-free context attribute
+  Sessions -> DB : Flush rotated identifier/context before output
+  API -> DB : Lock account; recheck enabled/role/auth_version\nactivate auth_session_activity; commit
+  API --> UI : 200 minimal id/email/role + rotated SESSION
+  UI -> API : GET /api/v1/auth/csrf for fresh masked token
 end
-note over UI, J
-Every protected API validates JWT, current enabled/role state and ownership.
-Replicas share issuer/audience and compatible key configuration.
-Reload / expiry / sign-out requires login; no refresh token.
-Frontend route guards are not authorization.
+UI -> API : GET /api/v1/auth/me (startup/user interaction; no polling)
+API -> DB : Check session / current account / version / strict deadline
+API -> DB : Guarded monotonic activity update at handler admission
+API --> UI : 200 minimal identity, or 401 / 503
+User -> UI : Sign out
+UI -> API : POST /api/v1/auth/logout + cookie + CSRF
+API -> Sessions : Synchronous session invalidation
+Sessions -> DB : Delete parent; cascade attributes/activity
+API --> UI : 200/null + SESSION deletion with original scope
+UI -> UI : Clear private views; bootstrap anonymous CSRF separately
+note over UI, DB
+SESSION: host-only /api/v1, HttpOnly, Lax, browser lifetime.
+Secure=true production; explicit local profile permits HTTP.
+Strict 30-minute idle deadline; bootstrap/health/logout do not renew.
+Account changes increment auth_version; old sessions never revive.
+Required lifecycle persistence precedes success; transactions are separate.
+Before-commit store failures: generic 503/3002.
+After commitment: safe operational reporting / possible transport termination.
+Confirmed transitions survive subsequent CSRF-refresh failure.
+No automatic unsafe replay or authentication browser storage.
 end note
 @enduml

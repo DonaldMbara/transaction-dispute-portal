@@ -14,3 +14,5 @@ fileMatchPattern: ["backend/**/*.java", "backend/**/*.sql", "backend/pom.xml", "
 - Recover concurrent creation retries after rollback in a fresh transaction; distinguish identical-key replay from different-key duplicates. Never coordinate replicas with instance-local locks. Append audit synchronously in the same transaction, then return success after commit.
 - Favor explicit mappings, simple SQL and targeted tests over reflection-heavy frameworks or speculative abstraction.
 - Log request correlation IDs and operation outcomes without leaking secrets or customer-sensitive fields.
+
+- Authentication uses Spring Security and PostgreSQL-backed Spring Session JDBC, not JWT resource-server or stateless session policy. Enforce server-side 30-minute idle timeout and protect unsafe requests including login/logout with CSRF. Derive identity from the session principal and enforce CUSTOMER/AGENT plus ownership/assignment on the backend. Flyway V2–V4 own account extensions and JDBC session/activity tables; validated server principals and marked handler admission enforce the strict idle deadline; never edit an applied foundation migration.

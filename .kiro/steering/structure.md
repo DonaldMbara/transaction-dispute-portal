@@ -13,10 +13,19 @@ transaction-dispute-portal/
   README.md
   .github/workflows/
 ```
-- One Spring Boot deployable modular monolith. No MVP API Gateway; a reverse proxy/load balancer provides HTTP routing/TLS, not domain authorization. Scale stateless replicas and PostgreSQL before considering extraction.
+- One Spring Boot deployable modular monolith. No MVP API Gateway; a reverse proxy/load balancer provides HTTP routing/TLS, not domain authorization. Scale backend instances sharing PostgreSQL-backed JDBC sessions and PostgreSQL before considering extraction; authentication state is shared server-side, not stateless JWT state.
 - Follow module boundaries in .kiro/specs/project-foundation/design.md §§1–2 and interface/transaction relationships in docs/design/plantuml/components.puml; no cross-module repository/entity access or circular dependencies. Audit is a dispute submodule with an append interface joining the caller transaction; common contains technical infrastructure only.
-- Backend root package `com.assessment.disputeportal`, organized by feature: `auth`, `security`, `account`, `transaction`, `dispute`, `idempotency`, `common`.
-- Within dispute feature use `api`, `application`, `domain`, `persistence` only where they improve clarity. Controllers translate HTTP; application services coordinate transactions; domain enforces invariants; repositories persist.
-- Angular organize by `core`, `shared`, `features/customer`, `features/agent`, `features/auth`. Use lazy routes and role guards for UX only.
+- Backend root package is `com.assessment.disputeportal`. Keep business code feature-first: `auth`, `account`, `transaction`, `dispute`, and `idempotency`. Keep genuinely cross-cutting infrastructure at the root in `security` and `common`.
+- Within an implemented feature, use clear responsibility packages such as `controller`, `model`, `mapper`, `repository`, and `service`. Put feature-specific transport contracts in `model/dto`. Add focused packages such as `validation` or `cli` only when they name a real responsibility. Do not create empty scaffolding.
+- `controller` owns HTTP endpoints and translates between the HTTP contract and a use case. `model/dto` holds request/response wire types; DTOs are not domain models, even though both are data-shaped classes.
+- `model` holds feature data models, including JPA entities such as `AppUser`, domain aggregates such as `Account`, and value types such as `AccountRole`. Keep session/framework principals in root `security`, not in the account model.
+- `service` coordinates one application use case per focused class and transaction boundaries. Login, logout and account administration remain separate classes. Services use repository interfaces and models; they do not manipulate JPA entities or call mappers directly.
+- `mapper` owns focused conversions between persistence entities and domain models. `repository` owns repository contracts, Spring Data repositories and persistence adapters; only adapters use the mappers. Keep persistence entities inside their feature and never expose them to controllers.
+- Put input rules in a focused `validation` package when shared; put trusted non-web operator entry points in `cli`. Explain the purpose of each command in the backend guide.
+- Do not create a generic `utils`/`util` package. Put a helper beside its owner or give it a specific responsibility/package name.
+- Root `security` owns shared filter-chain policy, Spring Security adapters and session enforcement. Account lookup/credential data remains owned by `auth` through narrow repository contracts.
+- Feature-specific expected failures stay with their feature. `common` handles truly cross-cutting HTTP concerns; it maps store/database failures to the shared unavailable response, while authentication rejections retain their auth-specific status and response.
+- Test packages should mirror the production feature/responsibility layout. Keep cross-module/application integration tests at the root test package, and shared test fixtures in an explicit test-support location or package with clear visibility.
+- Angular organize by `core`, `shared`, `features/customer`, `features/agent`, `features/auth`. Use lazy routes and future role guards for UX only. Application layouts belong under layouts/dashboard-layout; shared/components contains reusable UI only.
 - No direct entity serialization in REST. Use request/response DTOs; do not expose password hashes or internal audit notes to customers.
 - Keep implementation simple and consistent; do not create abstractions before there is a real second use case.

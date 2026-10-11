@@ -1,1 +1,21 @@
-<main><router-outlet /></main>
+<header class="application-header">
+  <a class="brand" routerLink="/">Transaction Dispute Portal</a>
+  @if (auth.state.phase() === 'authenticated') {
+  <nav aria-label="Portal navigation">
+    @if (auth.state.identity()?.role === 'CUSTOMER') { <a routerLink="/customer">Customer area</a> }
+    @if (auth.state.identity()?.role === 'AGENT') { <a routerLink="/agent">Agent area</a> }
+  </nav>
+  <button appButton="secondary" type="button" [disabled]="pending()" (click)="signOut()">{{ pending() ? 'Signing out…' : 'Sign out'
+    }}</button>
+  }
+</header>
+<main [attr.aria-busy]="pending()">
+  @if (message()) { <p class="message--error" role="alert">{{ message() }}</p> }
+  @if (auth.state.phase() === 'authenticated') {
+  <router-outlet />
+  } @else if (auth.state.phase() === 'logout-unconfirmed') {
+  <p>Protected content is hidden until sign-out is confirmed.</p>
+  <button appButton="secondary" type="button" [disabled]="pending()" (click)="signOut(true)">Try again</button>
+  }
+</main>
+<footer class="application-footer">Assessment portal · Synthetic data only</footer>
