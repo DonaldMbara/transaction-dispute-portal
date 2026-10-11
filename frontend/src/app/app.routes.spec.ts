@@ -4,9 +4,15 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from './app.routes';
 import { AuthService } from './core/auth/auth-service';
 import { SessionState } from './core/auth/session-state';
+import { AccountApi } from './features/customer/accounts/account-api';
+import { of } from 'rxjs';
 
 describe('Foundation routing', () => {
-  beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter(routes), { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState), initialize: () => Promise.resolve() }) }] }));
+  beforeEach(() => TestBed.configureTestingModule({ providers: [
+    provideRouter(routes),
+    { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState), initialize: () => Promise.resolve() }) },
+    { provide: AccountApi, useValue: { list: () => of({ items: [], page: 0, size: 0, total: 0 }) } }
+  ] }));
 
   for (const [url, heading, inDashboard] of [
     ['/login', 'Sign in', false],
