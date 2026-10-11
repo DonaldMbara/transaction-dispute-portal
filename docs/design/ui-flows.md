@@ -1,7 +1,7 @@
 # UI Flows — Transaction Dispute Portal
 
-**Status:** Approved design v0.3 · **Date:** 2026-10-10  
-**Design:** Capitec public website as the primary visual reference, not an official Capitec product. **Desktop-first web portal**, responsive at tablet and mobile sizes for both customers and agents.
+**Status:** Customer Accounts alignment v0.6 · **Date:** 2026-10-11
+**Design:** Capitec public website as the primary visual reference, not an official Capitec product. **Desktop-first web portal**, responsive at tablet and mobile sizes for both customers and agents. UI follows this document and `.kiro/steering/frontend-standards.md`: simplified authenticated header, existing `DashboardLayout`, shared button variants, local component styles, Lucide icons, accessible and responsive layouts. A mobile mockup shown during discussion is AI-generated and is **not** a source of truth — do not cite it or reproduce its labels, field names, merchant categories, card details, account names or number formats. Tile content, month grouping and the segmented direction control are application design choices justified against these standards.
 
 ## 1. Public website reference and visual audit
 
@@ -43,7 +43,7 @@ These values come from the **provided CSS excerpt**, not an independent pixel-pe
 
 ### Adaptation to an authenticated app
 
-- Replace public marketing mega-navigation with a compact desktop header containing project identity, Transactions / My Disputes (customer) or Agent Queue / My Cases (agent), account menu and Sign out.
+- Replace public marketing mega-navigation with a compact desktop header containing project identity, Accounts / Transactions / My Disputes (customer) or Agent Queue / My Cases (agent), account menu and Sign out.
 - On narrow screens collapse navigation into an accessible menu; keep primary task actions visible.
 - Reuse reference-inspired hierarchy, white space, headings, restrained CTAs and grouped information. Do not insert a large marketing hero on every authenticated screen.
 - Use a minimal app footer (project name, demo disclaimer and optional help), not the public site's entire corporate footer.
@@ -73,46 +73,72 @@ Session policy: PostgreSQL-backed server-side sessions with opaque HttpOnly cook
 
 ```text
 /login
-/customer/transactions
-/customer/transactions/:id
+/customer                         (account dashboard — tiles)
+/customer/transactions            (transaction list with account selector)
+/customer/transactions/:id        (transaction detail)
 /customer/disputes
 /customer/disputes/:id
 /agent/disputes?queue=unassigned|mine|all
 /agent/disputes/:id
 ```
 
-Authenticated shell displays role-specific navigation. Angular guards help UX; Spring Security remains authoritative.
+Authenticated shell displays role-specific navigation.
+
+- **Customer header links:** Accounts / Transactions / My Disputes
+- **Agent header links:** Agent Queue / My Cases
+
+Angular guards help UX; Spring Security remains authoritative.
+
+The later customer Disputes page reuses the shared account selector and defaults to the primary account, falling back to the first item in GET /accounts order if none is primary. Its `accountId` is a resource selector checked through transaction → account → customer.
 
 ## 4. Customer journey A — Find and dispute a transaction
 
 ```text
-Login → Account / Transactions → All | Money In | Money Out
-      → Select transaction → Transaction details
-      → [Eligible?]
-         No, PENDING/FAILED → explain ineligibility
-         No, already disputed → View existing dispute
-         Yes → Dispute this transaction
-             → Reason select + description
-             → Review/confirm → Submit with Idempotency-Key
-             → Success → Dispute details (OPEN) → My Disputes
+Login → Account Dashboard (tiles) → Select account tile → Transactions list (accountId in URL)
+      → All | Money In | Money Out
+      → Select transaction → Transaction details (no dispute action in Customer Transactions)
+
+The later dispute-submission feature extends this journey with eligibility, submission and history.
 ```
 
+### Screen: Account Dashboard
+
+- Route: `/customer`. Header label: `Accounts`.
+- **Goal copy:** describe the customer's accounts as (Main Account, Savings Account). Do not use other type or product labels.
+- **Tile grid:** a responsive grid of accessible card-style tiles — 2–3 columns on desktop, stacked on mobile. Each tile is a single keyboard-operable link to `/customer/transactions?accountId=<id>`, activated by Enter or Space with visible focus. Clicking navigates using `router.navigate` (pushState). Include skeleton loading, empty and retry states.
+- **Tile content:** `displayName` ("Main Account" or "Savings Account"), a "Primary" badge when `primary = true`, full `accountNumber` when well-formed, and the formatted balance ("R 24 500.00" — ZAR, two decimal places, space as thousands separator). This deterministic format applies to account balances and transaction amounts (with direction sign where shown); wire amounts remain decimal strings. `displayName` is the customer-visible form of `accountType`; it is derived at the application layer — "Main Account" for `MAIN`, "Savings Account" for `SAVINGS`. No extra display-name column exists. MVP types are `MAIN` and `SAVINGS` only.
+- **Account number display and masking:** stored values are text and well-formed only when they match `^[0-9]{10}$` (exactly 10 ASCII digits, leading zeros allowed, no trimming or normalization). Only owner-scoped `GET /api/v1/accounts` returns `accountNumber`, and only for well-formed values; otherwise it returns null and `maskedNumber: "****"`. Transactions and all future dispute responses expose only `maskedNumber` (`****` plus the last four digits when well-formed; exactly `****` otherwise). The account feature has the sole named length constant `AccountNumberMask.ACCOUNT_NUMBER_LENGTH`, and V5 has one matching CHECK; later changes use one additive migration. `AccountNumberMask` in the account feature is the sole masking implementation. On malformed stored data it logs only account UUID and safe reason. No full number may appear in other endpoints, errors, logs, audit entries, URLs or search predicates. Dashboard tiles and the account selector current-account summary show the full number when present. No copy button, reveal toggle or other number interaction.
+- **Loading:** skeleton tiles while GET /accounts is in flight.
+- **Empty state:** no tiles, no selector; display helpful copy (e.g. "No accounts found. Contact your bank for assistance.").
+- **Error states:** 401 relies on the existing session-clearing flow. 503 → "Something went wrong. Please try again." with a manual retry button; no automatic retry. No polling, prefetching or auto-refresh.
+- **No dispute CTA, statement download, card management or transfer action in this phase.**
+
 ### Screen: Transactions
-- Header: `Transactions`, masked account identifier; aggregate all owned accounts with masked account context; no account selector in MVP.
-- Segmented filters: All / Money In / Money Out. Search merchant/reference; status, from/to dates, min/max ZAR amount, sort field/direction as allowlisted by the API. Advanced filters may be collapsible but keyboard/mobile accessible.
-- Rows: merchant, date, signed amount (direction), status where useful; tap/click to details.
+
+- Route: `/customer/transactions?accountId=<uuid>`. Header label: `Transactions`.
+- **Account selector:** A compact card-style account switcher displayed above the transaction list. Planned as one shared presentational component (`shared/components/account-selector`) accepting `accounts: AccountSummary[]` and `selectedAccountId: string` inputs, emitting a `selectionChange` output. It shows the currently selected account's `displayName`, full `accountNumber` when well-formed, `maskedNumber` and `balance`, and opens a list of account summaries that keep account numbers masked. It reuses the tile's summary fields and formatting; it is not a separate visual design. It will use proper ARIA `listbox`/`combobox` semantics, or a native `<select>` fallback on narrow widths. No "All accounts" option; the selector always reflects one owned account.
+- **URL is the only selection state.** Opening `/customer/transactions` without `accountId`: the feature service loads GET /accounts, selects the primary account (fallback: first in response order if no primary is found), then rewrites the URL with `?accountId=<id>` using `history.replace`. Changing the selector updates `accountId` in the URL, resets pagination to page 1, and retains other active filters.
+- **Not-owned accountId in URL (API returns 404/1003):** show an "Account not available" error state with a link that navigates to the default (primary/first) account. Do not redirect silently.
+- **Stale-response protection:** cancel in-flight requests when the selector changes; discard any response that arrived after a newer request was issued.
+- **Segmented direction control:** All / Money In / Money Out — planned as an accessible radio group or tablist with `aria-selected`. Bound to the `direction` query parameter; reflected on load and back/forward navigation; resets pagination to page 1 on change. Justified as a fast, keyboard-accessible way to apply the existing `direction` filter without extra chrome.
+- **Month grouping:** optional presentational grouping of the current page's rows by calendar month in Africa/Johannesburg, shown only when sorted by `occurredAt`. It does not change API pagination, sort or filters; a month heading may repeat on the next page when a month spans pages. Justified as a scan aid for a chronological list, not as a copy of any external screen.
+- Search merchant/reference; status, from/to dates, min/max ZAR amount, sort field/direction as allowlisted by the API. On narrow widths, advanced filters sit behind an accessible Filters control.
+- Rows: merchant, date, signed amount (direction), status where useful; direction-based icons only, no merchant logos; tap/click to details.
+- No dispute CTA, statement, receipt or download action on the list in this phase.
 - Explicit 1-based pagination (default size 20/max 100), skeleton loading, empty filtered state and network retry.
 - No merchant logos required.
 - Envelope status is request success, not case status; read payload from data and numeric error_code. Collections render data.items and use data.total. Keep query controls in URL state without storing tokens/private notes; cancellation must prevent stale responses replacing newer searches.
 
 ### Screen: Transaction details
-- Merchant, amount, direction, date/time, reference, masked account, transaction status.
-- Eligible: primary `Dispute this transaction` CTA.
-- Already disputed: `View dispute` CTA.
-- Pending/failed: disabled dispute CTA or explanatory text, not a silent dead end.
-- Do not imply all outgoing payments are necessarily fraudulent.
+
+- Back link: returns to `/customer/transactions?accountId=<id>` preserving `accountId` and other allowlisted query parameters (direction, status, fromDate, toDate, page, size, sortBy, sortDirection, search). Further back from there leads to the account dashboard (`/customer`).
+- Merchant, amount, direction, date/time (Africa/Johannesburg locale), reference, masked account, transaction status.
+- Show the transaction's status and date/time in Africa/Johannesburg and its masked account context. There is no dispute CTA, statement, receipt or download action in the Customer Transactions phase.
+- Dispute eligibility and the submission action belong to the later dispute-submission feature; do not imply all outgoing payments are necessarily fraudulent.
 
 ### Screen: Submit dispute
+
+This screen belongs to the later dispute-submission feature and is outside Customer Transactions.
 - Transaction summary remains visible.
 - Required reason dropdown (five values from BR-S04).
 - Required description textarea; character counter and inline errors.
@@ -122,6 +148,8 @@ Login → Account / Transactions → All | Money In | Money Out
 - `409` duplicate: show existing dispute when safely accessible; `422` ineligible: explain; network failure: preserve form text.
 
 ## 5. Customer journey B — Track dispute
+
+The later customer dispute list reuses the shared account selector, defaults to the primary account (or the first account in GET /accounts order if no primary exists), and updates the `accountId` resource selector when the customer switches accounts. Backend ownership is validated through transaction → account → customer.
 
 ```text
 My Disputes → Active / Resolved (optional filter)
@@ -169,15 +197,19 @@ Login → Unassigned | My Cases | All Disputes
 ```text
 app/
 ├── core/auth/               # auth service, interceptor, role guard
-├── shared/                  # app shell, status badge, error/empty/loading components
+├── shared/
+│   ├── components/
+│   │   └── account-selector/  # shared presentational: inputs accounts/selectedAccountId, output selectionChange
+│   └── ...                    # status badge, error/empty/loading, other reusables
 ├── features/customer/
-│   ├── transactions/        # list, filter, detail
+│   ├── accounts/            # account dashboard (tiles), account service (owns GET /accounts)
+│   ├── transactions/        # list (uses account-selector), filter, detail
 │   └── disputes/            # submit form, history, customer detail/timeline
 └── features/agent/
     └── disputes/            # queue, agent detail, claim/release/resolve forms
 ```
 
-Use Angular standalone components, typed reactive forms, signals where appropriate, lazy feature routes, accessible controls, and a single API client per feature. Do not share customer and agent DTOs when their visibility differs.
+Use Angular standalone components, typed reactive forms, signals where appropriate, lazy feature routes, accessible controls, and a single API client per feature. Do not share customer and agent DTOs when their visibility differs. Account data fetching belongs in the accounts feature service, not in the shared `account-selector` component.
 
 ## 8. UI state checklist
 
@@ -204,7 +236,7 @@ Use Angular standalone components, typed reactive forms, signals where appropria
 - Agent: desktop queue table and investigation workspace, tablet compressed columns, mobile stacked case cards; no essential action hidden behind hover.
 - Labels associated with inputs; focus moved to first invalid field; success announced via accessible status region.
 - Confirmation dialogs trap focus and restore it when closed.
-- Dates and ZAR amounts localized to South African locale where supported.
+- Times render in `Africa/Johannesburg`. ZAR amounts use the deterministic format `R 12 500.00` (ordinary spaces for thousands, period decimal separator, exactly two decimals); wire amounts remain decimal strings. This display format is an application choice and does not depend on locale-specific currency formatting.
 
 ## 10. PlantUML flow references
 
@@ -215,4 +247,4 @@ Use Angular standalone components, typed reactive forms, signals where appropria
 
 ## 11. Open UX decisions
 
-MVP uses explicit 1-based pagination, aggregate owned accounts and generic returned-to-queue milestones. Remaining choices: exact wording of resolution disclosures, and whether transaction detail opens as a full page or drawer. Font family and key theme colours are now evidenced by supplied CSS; still verify precise section spacing, mobile navigation collapse and footer presentation; use our own icons with a browser-based visual audit. Validate these against API contracts before implementation.
+MVP uses explicit 1-based pagination and generic returned-to-queue milestones. The account dashboard uses a tile grid; the transactions list uses the shared account-selector component; the URL is the only account-selection state. Remaining choices: exact wording of resolution disclosures, and whether transaction detail opens as a full page or drawer. Font family and key theme colours are now evidenced by supplied CSS; still verify precise section spacing, mobile navigation collapse and footer presentation; use our own icons with a browser-based visual audit. Validate these against API contracts before implementation.

@@ -12,4 +12,4 @@ inclusion: manual
 - Do not introduce extra services, libraries, features, speculative refactors or UI redesigns without a requirement.
 - Keep a short ADR in docs/ for meaningful deviations. Never invent test success.
 - During feature design explicitly load relevant backend/frontend/API/testing steering and reference the canonical design documents; fileMatch guidance may not load for Markdown-only work.
-- Feature order: project-foundation, authentication, customer-transactions, dispute-submission, customer-dispute-history, agent-workflow, integration-hardening.
+- Feature order: project-foundation, authentication, customer-accounts, customer-transactions, dispute-submission, customer-dispute-history, agent-workflow, integration-hardening.

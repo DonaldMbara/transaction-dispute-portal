@@ -2,7 +2,7 @@
 
 **Feature:** `authentication-rbac`  
 **Date:** 2026-10-10  
-**Status:** Refinement implementation in progress, revision 2 (2026-10-10). The amended behavior is being implemented and requires fresh refinement verification. Original Tasks 1–18 and acceptance.md remain unchanged historical baseline evidence. Final feature acceptance remains withheld.  
+**Status:** Revision 2 implementation is present; fresh verification of the amended behavior and final feature acceptance remain pending. Task-by-task entries remain historical baseline evidence; acceptance.md now states the current 8–128 policy and records the limitation of the original lower-bound test evidence.
 **Requirements baseline:** requirements.md revision 2 explicitly separates creation and verification and adds approved UX/routing refinements. Original implementation used the 15–128 policy and heading-only root; its evidence must not be reinterpreted as verification of this revision.
 
 ## 1. Baseline, boundaries and review decisions
@@ -40,7 +40,7 @@ Browser → Angular same-origin `/api/v1` → Spring Security → authentication
 | Angular `core/auth` | In-memory identity/CSRF state, initialization, service, functional interceptors and guards. |
 | Angular `features/auth/login` and `layouts/dashboard-layout` | Login form; role-aware header/navigation and sign-out. Preserve `Login`, `DashboardLayout` and `app-dashboard-layout`. |
 
-Add only Boot-managed `spring-session-jdbc` and test-scoped `spring-security-test` to existing dependencies. Do not pin a second Security/Session version, add OAuth resource-server libraries or migrate Angular's test runner. The locally cached Boot 3.5.16 BOM resolves Spring Security **6.5.11** and Spring Session **3.5.7**. Local `javap` inspection confirms the Security session/context APIs and Boot JDBC flush/save properties described in §5.5. Tagged Session source confirms persistence behavior. Reconfirm the dependency tree during implementation; do not use APIs from newer reference documentation.
+The existing optional org.projectlombok:lombok dependency is available for routine backend boilerplate; use it selectively for required-argument constructors and loggers, while keeping domain invariants, secret handling and derived constructor initialization explicit. Do not use @Data on entities or secret-bearing types. Add only Boot-managed `spring-session-jdbc` and test-scoped `spring-security-test` to existing dependencies. Do not pin a second Security/Session version, add OAuth resource-server libraries or migrate Angular's test runner. The locally cached Boot 3.5.16 BOM resolves Spring Security **6.5.11** and Spring Session **3.5.7**. Local `javap` inspection confirms the Security session/context APIs and Boot JDBC flush/save properties described in §5.5. Tagged Session source confirms persistence behavior. Reconfirm the dependency tree during implementation; do not use APIs from newer reference documentation.
 
 Repositories stay inside their owning module. Security consumes a narrow authentication-account lookup interface; future banking modules consume stable authenticated identity, not the authentication repository. Controllers remain thin, services own transactions, DTOs are immutable records, and JPA entities never become response/session payloads.
 
@@ -349,7 +349,7 @@ Browser acceptance uses an actual browser over the existing local proxy and a te
 
 ## 11. Revision boundary, documentation deliverables and review status
 
-The developer approved the refinement direction and assessment-specific 8–128 creation policy. The refinement implementation is separate from the original Tasks 1–18 and requires fresh verification before final feature acceptance. Original Tasks 1–18 and acceptance.md remain untouched historical implementation records for the prior 15–128 baseline and UX. Their passing results are not evidence for the refined policy, entry routing or presentation.
+The developer approved the refinement direction and assessment-specific 8–128 creation policy. The refinement implementation is separate from the original Tasks 1–18 and requires fresh verification before final feature acceptance. Task-by-task entries remain historical implementation records for the prior 15–128 baseline and UX. The acceptance summary now states the current 8–128 policy, while the historical test results do not by themselves verify the revised lower bound, entry routing or presentation.
 
 Previously approved AUTH-04.3 eligible-handler admission, AUTH-05.7 response-commit boundary and AUTH-08.2/6 test-only role scope clarifications are already reflected in requirements and remain unchanged. Strict idle metadata, current-account/version revocation, generic store failures, physical commitment limitations and operational audit crash-consistency limits are retained. PBKDF2 parameters/identifier, session/CSRF/cookie configuration, endpoints/envelope, backend role authority and modular-monolith boundaries are not reopened.
 

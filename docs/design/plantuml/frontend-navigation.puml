@@ -5,8 +5,9 @@ left to right direction
 rectangle "Login /login" as Login
 rectangle "layouts/dashboard-layout\nDashboardLayout" as Shell
 rectangle "Customer routes" {
-  rectangle "Transactions list" as T
-  rectangle "Transaction detail" as TD
+  rectangle "Account dashboard\n/customer" as CA
+  rectangle "Transactions list\n/customer/transactions?accountId=<id>" as T
+  rectangle "Transaction detail\n/customer/transactions/:id" as TD
   rectangle "Submit dispute" as F
   rectangle "Dispute history" as H
   rectangle "Customer dispute detail" as HD
@@ -16,28 +17,35 @@ rectangle "Agent routes" {
   rectangle "Agent case detail" as AD
   rectangle "Claim / Release / Resolve" as ACT
 }
-rectangle "Customer landing /customer" as CL
 rectangle "Agent landing /agent" as AL
 rectangle "Access denied" as Denied
 rectangle "Session check retry" as Retry
 Login --> Shell : Verified server identity + refreshed CSRF
-Shell --> CL : CUSTOMER
+Shell --> CA : CUSTOMER
 Shell --> AL : AGENT
 Shell --> Login : Confirmed logout / expiry
 Shell --> Denied : Wrong role
 Login --> Retry : Unavailable initialization
-CL ..> T : Future customer feature
+CA --> T : Tap account tile (accountId in URL)
 AL ..> Q : Future agent feature
 T --> TD : Select transaction
-TD --> F : Eligible transaction
-TD --> HD : Already disputed
+TD ..> F : Later dispute-submission feature
 F --> HD : Created successfully
 T --> H : My Disputes
 H --> HD : Open case
+TD ..> CA : Back (list → dashboard)
 Q --> AD : Select case
 AD --> ACT : Authorized action
 ACT --> AD : Refresh status
 note bottom
+Header nav (Customer): Accounts / Transactions / My Disputes.
+Header nav (Agent): Agent Queue / My Cases.
+/customer = account dashboard (tile grid, primary-first).
+/customer/transactions?accountId=<id> = list + shared account-selector.
+No /customer/accounts/:accountId/transactions path route.
+URL is the only account-selection state; no localStorage/sessionStorage.
+The later customer Disputes page reuses the selector and accountId ownership rule.
+Customer Transactions ends at transaction detail; no dispute CTA in this phase.
 Desktop: full navigation and dense tables.
 Mobile: collapsed navigation and stacked rows.
 Use Nunito Sans, #2F70EF buttons, own Lucide icons.

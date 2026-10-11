@@ -3,8 +3,9 @@ inclusion: always
 ---
 # Security invariants
 - Backend authorization is authoritative; Angular guards are navigation aids only.
-- Derive customer identity from the authenticated server-side session principal, never from user-supplied customerId or accountId.
-- Customer reads and writes must be ownership-scoped through account -> customer; use 404 for inaccessible resource IDs to avoid enumeration.
+- Derive customer identity only from the authenticated server-side session principal; never accept a user-supplied `customerId` as identity or authorization. A collection `accountId` may select one resource only after ownership validation against that session principal: GET /transactions checks account → customer, and the later customer GET /disputes must check transaction → account → customer. It never establishes or extends the caller's identity or authorization.
+- Only owner-scoped `GET /api/v1/accounts` returns a full well-formed account number; every other endpoint returns masked account context only. Malformed stored values are never returned raw. Logs and audit entries may identify the account UUID and safe validation reason, never the number.
+- Customer reads and writes must be ownership-scoped through the resource's owner chain (account → customer for banking accounts and transaction → account → customer for disputes); use 404 for inaccessible resource IDs to avoid enumeration.
 - Agent mutations require AGENT role plus current assignment checks in the transaction.
 - Validate all request bodies and constrain free text; use Bean Validation and Angular Reactive Forms.
 - Use Spring Security with Spring Session JDBC and shared PostgreSQL session storage. Session identifiers are opaque and kept in HttpOnly cookies; production cookies are Secure and SameSite=Lax. Enforce 30-minute idle expiry on the server, not a frontend timer.

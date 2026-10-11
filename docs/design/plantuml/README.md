@@ -1,13 +1,13 @@
 # PlantUML Diagram Catalogue
 
-**Status:** Authentication implementation alignment v0.6 — 2026-10-10. Diagrams distinguish implemented authentication from approved future business design; no deployed/production-ready claim.
+**Status:** Customer Accounts alignment v0.8 — 2026-10-11. Diagrams distinguish implemented authentication from approved future business design; no deployed/production-ready claim.
 
 ## Architecture and data
 
 - [System context](system-context.puml) — actors and application boundary.
 - [Component architecture](components.puml) — Angular + Spring Boot modular monolith.
 - [Local deployment](container-deployment.puml) — Docker Compose topology (reverse proxy proposed).
-- [Data model](data-model.puml) — approved business tables plus implemented V2–V4 account/session/activity schema.
+- [Data model](data-model.puml) — approved business tables plus implemented V2–V4 authentication-account/session/activity schema.
 
 ## Domain and API workflows
 
@@ -21,7 +21,7 @@
 ## UI flows
 
 - [Frontend navigation](frontend-navigation.puml) — Angular routes and responsive shell.
-- [Customer journey](customer-ui-flow.puml) — transaction → dispute → history.
+- [Customer journey](customer-ui-flow.puml) — account dashboard → per-account transactions (with account selector); dispute actions belong to the later dispute-submission feature.
 - [Agent journey](agent-ui-flow.puml) — queue → claim → investigate → resolve/release.
 
 ## Approved decisions and deferred implementation details
@@ -30,6 +30,7 @@
 2. Same-origin /api/v1 requests use the foundation Angular development proxy; application container/reverse-proxy deployment is deferred.
 3. Completed incoming transactions remain eligible. Terminal resolving-agent/assigned_at retention is approved; customer views omit agent identity.
 4. Spring Security / Spring Session JDBC in PostgreSQL, opaque HttpOnly session cookies (Secure/SameSite=Lax in production), 30-minute idle expiry, CSRF including login/logout and admin-controlled provisioning are approved. No public registration. One modular Spring Boot application; no MVP gateway/microservices. Feature-spec approval still precedes tasks/code.
+5. Feature order: project-foundation → authentication → **customer-accounts** → customer-transactions → dispute-submission → customer-dispute-history → agent-workflow → integration-hardening. The `customer-accounts` spec owns the `accounts` table (V5 migration), GET /api/v1/accounts, the account dashboard UI, the shared account-selector component, and the account fixture command. The `customer-transactions` spec then adds `bank_transactions` (V6 migration) and the transactions list with accountId selector support. Customer Transactions ends at transaction detail and has no dispute CTA.
 
 ## Keeping diagrams useful
 

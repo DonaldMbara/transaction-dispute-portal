@@ -1,5 +1,7 @@
 package com.assessment.disputeportal.security.web;
 
+import lombok.RequiredArgsConstructor;
+
 import com.assessment.disputeportal.common.ApiEnvelope;
 import com.assessment.disputeportal.common.ApiErrorWriter;
 import com.assessment.disputeportal.common.StoreFailureClassifier;
@@ -14,10 +16,11 @@ import java.io.IOException;
 import java.util.UUID;
 
 /** Outer servlet filter: handles only uncommitted failures, without custom response buffering. */
+@RequiredArgsConstructor
 public final class AvailabilityFilter extends OncePerRequestFilter {
     private static final Logger LOG = LoggerFactory.getLogger(AvailabilityFilter.class);
     private final ApiErrorWriter errors;
-    public AvailabilityFilter(ApiErrorWriter errors) { this.errors = errors; }
+
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         String incoming = request.getHeader("X-Correlation-ID");

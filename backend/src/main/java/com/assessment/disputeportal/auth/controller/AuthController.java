@@ -1,5 +1,7 @@
 package com.assessment.disputeportal.auth.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,13 +21,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
+@RequiredArgsConstructor
 public final class AuthController {
 
     private final LoginService loginService;
-
-    public AuthController(LoginService loginService) {
-        this.loginService = loginService;
-    }
 
     @PostMapping("/api/v1/auth/login")
     ApiEnvelope login(@RequestBody LoginRequest input, HttpServletRequest request, HttpServletResponse response) {

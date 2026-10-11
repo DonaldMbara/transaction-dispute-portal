@@ -3,7 +3,7 @@ inclusion: fileMatch
 fileMatchPattern: ["backend/**/*.java", "backend/**/*.sql", "backend/pom.xml", "backend/**/application*.yml", "backend/**/application*.yaml"]
 ---
 # Java / Spring / PostgreSQL standards
-- Use constructor injection, small focused classes, descriptive names, immutable DTO records where practical.
+- Use constructor injection, small focused classes, descriptive names, immutable DTO records where practical. Use the existing Lombok dependency for routine backend boilerplate such as required-argument constructors and loggers; keep domain invariants and derived initialization explicit. Do not use @Data on JPA entities, secret-bearing types or domain aggregates, and do not add Lombok-generated setters to immutable DTOs.
 - Keep controllers thin; services own @Transactional boundaries; domain methods validate state changes; persistence handles database constraints.
 - JPA entities should not leak into REST responses; avoid accidental lazy-loading/N+1 and Open Session in View dependency.
 - Validate external 1-based pagination; adapt to zero-based PageRequest internally. Use authorization-scoped totals, parameterized combined filters/search, allowlisted stable sorting and the API contract bounds.

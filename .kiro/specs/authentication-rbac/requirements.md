@@ -4,7 +4,7 @@
 **Intended repository path:** `.kiro/specs/authentication-rbac/requirements.md`  
 **Branch:** `feature/authentication-rbac`  
 **Date:** 2026-10-10  
-**Status:** Refinement implementation in progress, revision 2 (2026-10-10). The assessment-specific 8-character creation minimum is implemented with separate login admission rules. Original Tasks 1–18 and acceptance.md remain unchanged historical records of the completed 15–128 baseline; fresh refinement verification and feature review remain required.
+**Status:** Revision 2 implemented; fresh verification and feature review remain pending. The assessment-specific 8-character creation minimum is implemented with separate login admission rules. Original task-by-task entries remain historical evidence for the completed 15–128 baseline. The acceptance summary now states the current 8–128 policy and records that the revised lower-bound case still needs fresh verification.
 
 ## 1. Purpose and confirmed decisions
 

@@ -1,6 +1,6 @@
 # API Contract — Transaction Dispute Portal
 
-**Status:** Authentication implementation alignment v0.5 · **Date:** 2026-10-10 · **Base:** `/api/v1` · **Auth:** opaque HttpOnly cookie / PostgreSQL-backed server-side session
+**Status:** Customer Accounts alignment v0.7 · **Date:** 2026-10-11 · **Base:** `/api/v1` · **Auth:** opaque HttpOnly cookie / PostgreSQL-backed server-side session
 
 Round-two contract decisions: custom JSON envelope, numeric error codes, 1-based pagination and PostgreSQL-backed collection queries. Business operations remain design commitments; only foundation and approved authentication endpoints are implemented. ETag/If-Match optimistic locking and retained terminal assignment remain approved; the current session authentication architecture supersedes the former token policy. See [session architecture decision](session-architecture-decision.md) for implemented policy and lifecycle contracts. Implementation remains separately gated. Domain rules remain in [business rules](../business-rules.md).
 
@@ -40,10 +40,11 @@ The listed collection capabilities are in the round-two API/UI design scope; spe
 
 | Method and path | Access | Search | Filters | sortBy (default first) | Pagination / success |
 |---|---|---|---|---|---|
-| GET /transactions | CUSTOMER, owned accounts | merchant, reference | direction=ALL/IN/OUT; status=ALL/PENDING/COMPLETED/FAILED; fromDate,toDate,minAmount,maxAmount | occurredAt, amount, merchant, reference | page,size / 200 |
+| GET /accounts | CUSTOMER, owned | — | — | primary first, created_at ASC, id ASC (fixed; no sort params) | page,size / 200 |
+| GET /transactions | CUSTOMER, owned accounts | merchant, reference | accountId (optional UUID); direction=ALL/IN/OUT; status=ALL/PENDING/COMPLETED/FAILED; fromDate,toDate,minAmount,maxAmount | occurredAt, amount, merchant, reference | page,size / 200 |
 | GET /transactions/{id} | CUSTOMER, owned | — | — | — | — / 200 |
 | POST /disputes | CUSTOMER, owned eligible transaction | — | — | — | — / 201 |
-| GET /disputes | CUSTOMER, owned | dispute UUID (text), submission description, transaction merchant/reference | status=ALL/OPEN/UNDER_REVIEW/ACCEPTED/REJECTED; reason=ALL or supported reason; fromDate,toDate | createdAt, updatedAt, status | page,size / 200 |
+| GET /disputes (later customer feature) | CUSTOMER, owned through transaction → account → customer | dispute UUID (text), submission description, transaction merchant/reference | accountId (optional UUID, forward constraint); status=ALL/OPEN/UNDER_REVIEW/ACCEPTED/REJECTED; reason=ALL or supported reason; fromDate,toDate | createdAt, updatedAt, status | page,size / 200 |
 | GET /disputes/{id} | CUSTOMER, owned | — | — | — | — / 200 |
 | GET /agent/disputes | AGENT | same safe fields as customer dispute search | queue=unassigned/mine/all; same status,reason,date filters | createdAt, updatedAt, status | page,size / 200 |
 | GET /agent/disputes/{id} | AGENT | — | — | — | — / 200 |
@@ -51,7 +52,11 @@ The listed collection capabilities are in the round-two API/UI design scope; spe
 | POST /agent/disputes/{id}/release | Assigned AGENT, UNDER_REVIEW | — | — | — | — / 200 |
 | POST /agent/disputes/{id}/resolve | Assigned AGENT, UNDER_REVIEW | — | — | — | — / 200 |
 
-Queue defaults to unassigned: OPEN with null assignee. Mine means assigned to caller, including retained terminal assignments. All means all cases permitted to AGENT in this MVP. Additional filters intersect queue predicates; contradictory filters yield empty results. Transaction description search is omitted because bank_transactions has no description column. No GET detail search. No account selector/GET accounts in MVP: transactions aggregate all owned accounts with masked account context; a future account filter requires a separate specification.
+Queue defaults to unassigned: OPEN with null assignee. Mine means assigned to caller, including retained terminal assignments. All means all cases permitted to AGENT in this MVP. Additional filters intersect queue predicates; contradictory filters yield empty results. Transaction description search is omitted because bank_transactions has no description column. No GET detail search. Agent queues have no account filter.
+
+GET /accounts is CUSTOMER-only, ownership-scoped, `Cache-Control: no-store`, and uses the existing envelope/correlation rules. It returns the standard {total,page,size,items} collection. Items: id, accountType, displayName (derived from type at the application layer: `MAIN` → "Main Account", `SAVINGS` → "Savings Account"), `accountNumber` (full value for a well-formed owner account; null for malformed stored data), `maskedNumber` (`****` plus last four digits for a well-formed number; exactly `****` otherwise), balance (NUMERIC(19,2) serialized as a two-decimal string), currency ("ZAR"), primary (boolean). Fixed deterministic order: primary first, then created_at ASC, then id ASC. No sort parameters, search or filters; unknown parameters → 400/1004. MVP account types: `MAIN` and `SAVINGS` only. A database CHECK constraint and a Java enum enforce allowed values; adding a type is an additive migration plus an enum change. Do not use any external bank trademark as a type value, display name or fixture label.
+
+The optional `accountId` query parameter on GET /transactions is a resource selector validated against session-derived ownership through the account → customer join. The later customer GET /disputes must accept the same optional single-value UUID and validate ownership through transaction → account → customer. In both cases, it narrows results to one owned account; it never establishes or extends the caller's identity or authorization. A supplied account ID that is absent or non-owned → 404/1003; malformed or duplicate → 400/1004. Omitting it returns all owned records at the API level. GET /transactions/{id}, POST /disputes, and all agent endpoints are unchanged and accept no accountId; agent queues get no account filter. The later customer Disputes page reuses the shared account selector and defaults to the primary account, falling back to the first item in GET /accounts order if none is primary.
 
 Supported reasons: UNRECOGNIZED_TRANSACTION, DUPLICATE_CHARGE, INCORRECT_AMOUNT, GOODS_OR_SERVICES_NOT_RECEIVED, OTHER.
 
@@ -76,9 +81,11 @@ Login rotates the public session ID, invalidates old CSRF material, persists a c
 
 Strict idle activity is renewed at eligible-handler admission after CSRF/authorization, including later validation/handler errors. Only /auth/me currently opts in. Health, bootstrap, logout, unmatched/rejected/background requests never renew it. Equality at 30 minutes expires regardless of cleanup. Default denial applies to all unimplemented business paths; future features add narrow role/ownership matchers with their behavior/tests. Pre-commit store faults return generic 503; faults after commitment are safely logged and may terminate the transport, which is an unconfirmed client outcome. See [operations](../operations/authentication.md).
 
-Transaction list/detail data: `{id,reference,merchant,amount,currency,direction,status,occurredAt,account:{id,maskedNumber},dispute:{id,eligible,ineligibilityReason}}`. `dispute.id` nullable; eligibility false for non-completed/already-disputed, with stable reason NOT_COMPLETED or ALREADY_DISPUTED. Both completed IN and OUT remain eligible under current business rules.
+Account list items (GET /accounts): `{id, accountType, displayName, accountNumber, maskedNumber, balance, currency, primary}`. `balance` is a synthetic read-only display value set by the fixture command only; it is not derived from transactions and has no settlement meaning. A stored number is well-formed iff it matches `^[0-9]{10}$` (exactly ten ASCII digits; leading zeroes allowed), stored as text with no trimming or normalization. `maskedNumber` is `****` plus the last four digits for well-formed values and exactly `****` otherwise. This is the only customer endpoint returning the full number, solely to its owner; malformed `accountNumber` is null, and the raw malformed value is never returned. No other endpoint, error body, log, audit entry, URL or search predicate may contain a full account number.
 
-Customer dispute list items: `{id,transaction:{id,merchant,reference,amount,currency},reason,status,createdAt,updatedAt,resolvedAt}`; resolvedAt nullable. Detail adds description, `decision` (null until terminal, otherwise `{outcome,message}`) and customer-safe `timeline:[{type,message,occurredAt}]`. Timeline follows lifecycle order: SUBMITTED; IN_REVIEW on each claim; RETURNED_TO_QUEUE with generic message on release; RESOLVED on resolution. Never return actor IDs, assignee, internal notes, release reasons or raw events.
+Transaction list/detail data: `{id,reference,merchant,amount,currency,direction,status,occurredAt,account:{id,maskedNumber},dispute:{id,eligible,ineligibilityReason}}`. In Customer Transactions, `dispute.id` is null and eligibility is status-based only: pending/failed returns `NOT_COMPLETED`; completed IN and OUT remain eligible under current business rules. The later dispute-submission feature adds existing-dispute lookup and may return `ALREADY_DISPUTED`; that staged clarification is recorded in the transaction requirements.
+
+Customer dispute list items: `{id,transaction:{id,merchant,reference,amount,currency,account:{id,maskedNumber}},reason,status,createdAt,updatedAt,resolvedAt}`; resolvedAt nullable. Detail adds description, `decision` (null until terminal, otherwise `{outcome,message}`) and customer-safe `timeline:[{type,message,occurredAt}]`. Timeline follows lifecycle order: SUBMITTED; IN_REVIEW on each claim; RETURNED_TO_QUEUE with generic message on release; RESOLVED on resolution. Never return actor IDs, assignee, internal notes, release reasons, raw events or full account numbers; any account context is masked only.
 
 Agent list items add `assignedAgent:{id,email}|null` and version. Agent detail adds description, assignedAt, internalResolutionNotes, customerResolutionMessage, resolvedAt (nullable until applicable) and ordered permitted `events:[{id,disputeVersion,eventType,actorId,fromStatus,toStatus,previousAgentId,newAgentId,internalNotes,customerMessage,createdAt}]`. fromStatus, assignment IDs and notes/messages may be null as appropriate. Agent mutations return the refreshed agent detail DTO, not a customer DTO. No customer-private account number or credentials.
 
@@ -123,13 +130,26 @@ Do not reuse numeric codes. Names are documentation labels; wire `error_code` is
 | 2005 | DISPUTE_STATE_CONFLICT | 409 | Refresh; preserve unsent notes |
 | 2006 | VERSION_STALE | 412 | Refresh; preserve unsent notes |
 | 2007 | PRECONDITION_REQUIRED | 428 | Refetch case/version |
-| 2008 | ACCOUNT_STATE_CONFLICT | 409 | Inspect the account's current version/state before retrying |
+| 2008 | ACCOUNT_STATE_CONFLICT | 409 | Authentication account (`app_users`) state/version conflict; not a banking-account code |
 | 3001 | INTERNAL_ERROR | 500 | Generic message and correlation ID |
 | 3002 | TEMPORARILY_UNAVAILABLE | 503 | Bounded retry; same creation key |
 
 No full account numbers, raw rejected values or internal notes in errors. Problem type URIs use a documented relative namespace such as `/problems/dispute-already-exists`; they are identifiers, not a dependency on an external host. Optional fieldErrors entries `{field,code,message}` use allowlisted field names and generic safe messages.
 
 ## 8. Response examples
+
+Customer accounts (GET list) and account-scoped transaction request:
+```http
+GET /api/v1/accounts?page=1&size=20
+```
+```json
+{"status":true,"data":{"total":1,"page":1,"size":20,"items":[{"id":"a1b2c3d4-0001-0000-0000-000000000001","accountType":"MAIN","displayName":"Main Account","accountNumber":"0123456789","maskedNumber":"****6789","balance":"12500.00","currency":"ZAR","primary":true}]},"error_code":0}
+```
+```http
+GET /api/v1/transactions?accountId=a1b2c3d4-0001-0000-0000-000000000001&direction=OUT&page=1&size=20
+```
+
+A supplied malformed or duplicate `accountId` returns `400/1004`; a well-formed UUID for an absent or non-owned account returns `404/1003`. Omitting `accountId` returns transactions across all accounts owned by the authenticated customer. The later customer `GET /api/v1/disputes?accountId=<uuid>` uses the same error behavior and validates transaction → account → customer ownership.
 
 201 Created with Location and a per-request X-Correlation-ID:
 ```json

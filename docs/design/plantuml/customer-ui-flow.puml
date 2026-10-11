@@ -2,32 +2,30 @@
 title Customer UI Flow
 start
 :Login;
-:Transactions;
+:Account Dashboard /customer;
+note right
+  Tile grid: one tile per owned account
+  (primary first, then created_at ASC).
+  Tile: displayName, owner accountNumber, balance, Primary badge.
+  Transaction rows/detail: maskedNumber only.
+  Tap tile → /customer/transactions?accountId=<id>
+end note
+:Select account tile;
+:Transactions list /customer/transactions?accountId=<id>;
+note right
+  Account selector (shared presentational component).
+  URL is the only selection state.
+  No accountId → resolve primary/first, history.replace.
+  Direction: All / Money In / Money Out (accessible radio group).
+  Search merchant/reference; filter status/date/amount; sort; 1-based page.
+end note
 :Search merchant/reference; filter direction/status/date/amount;
 :Choose sort and 1-based page;
-:Open transaction details;
-if (Completed and not disputed?) then (yes)
-  :Choose Dispute this transaction;
-  :Select reason and enter description;
-  :Review and confirm;
-  :Submit with idempotency key;
-  if (Created?) then (yes)
-    :Show OPEN confirmation;
-    :Navigate to dispute details;
-  else (no)
-    :Explain error; preserve input;
-  endif
-else (no)
-  if (Already disputed?) then (yes)
-    :Link to existing dispute;
-  else (no)
-    :Explain ineligibility;
-  endif
-endif
-:My Disputes;
-:View customer-safe timeline;
-if (Resolved?) then (yes)
-  :Show decision and customer message;
-endif
+:Open transaction details /customer/transactions/:id;
+note right
+  Back link returns to list preserving accountId + filters.
+  Back from list → account dashboard.
+  No dispute CTA in Customer Transactions.
+end note
 stop
 @enduml

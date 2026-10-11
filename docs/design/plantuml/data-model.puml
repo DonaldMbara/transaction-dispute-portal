@@ -1,6 +1,6 @@
 @startuml
 !pragma layout smetana
-title Transaction Dispute Portal — Implemented Auth and Approved Business ER Model
+title Transaction Dispute Portal — Customer Accounts + Approved Business ER Model
 hide circle
 skinparam linetype ortho
 entity "app_users" as users {
@@ -18,7 +18,10 @@ entity "accounts" as accounts {
   --
   * customer_id : UUID <<FK>>
   * account_number : VARCHAR(32) <<UQ>>
-  * account_type : VARCHAR(32)
+  account_number CHECK ^[0-9]{10}$
+  * account_type : MAIN|SAVINGS <<CHECK>>
+  * balance : NUMERIC(19,2) <<NOT NULL>>
+  * is_primary : BOOLEAN NOT NULL DEFAULT FALSE
   * created_at : TIMESTAMPTZ
 }
 entity "bank_transactions" as tx {
@@ -84,6 +87,13 @@ users ||--o{ ev : actor
 users |o--o{ ev : previous_agent
 users |o--o{ ev : new_agent
 users ||--o{ idem : requests
+note right of accounts
+account_type CHECK: MAIN | SAVINGS only.
+displayName derived at app layer; not stored.
+balance is synthetic display value (fixture only).
+UNIQUE(customer_id) WHERE is_primary — at most one primary per customer.
+V5 migration owned by customer-accounts feature.
+end note
 note right of d
 OPEN has no assignment.
 Terminal retains resolving agent + assigned_at.
@@ -117,9 +127,10 @@ sessions ||--o{ attributes : cascade_delete
 sessions ||--o| activity : cascade_delete
 users ||--o{ activity : captured_version
 note as SessionScope
-Implemented authentication: V1 unchanged; V2 account extension,
+Implemented auth: V1 unchanged; V2 account extension,
 V3 framework schema, V4 authoritative activity metadata.
-Business tables/relationships remain approved future feature scope.
+V5 (customer-accounts): accounts table + balance + is_primary + CHECK(account_type) + partial unique index.
+V6 (customer-transactions): bank_transactions and its indexes.
 Session timestamps are epoch milliseconds; cleanup never grants access.
 end note
 @enduml

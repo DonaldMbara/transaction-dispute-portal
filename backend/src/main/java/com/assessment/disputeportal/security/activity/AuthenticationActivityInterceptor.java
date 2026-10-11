@@ -1,5 +1,7 @@
 package com.assessment.disputeportal.security.activity;
 
+import lombok.RequiredArgsConstructor;
+
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.security.session.AccountSessionValidationFilter;
 import com.assessment.disputeportal.security.session.AccountSessionValidator;
@@ -16,13 +18,12 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.util.Set;
 
 @Component
+@RequiredArgsConstructor
 public final class AuthenticationActivityInterceptor implements HandlerInterceptor {
     private final SessionActivityStore activity;
     private final AccountSessionValidator validator;
     private final ApiErrorWriter errors;
-    public AuthenticationActivityInterceptor(SessionActivityStore activity, AccountSessionValidator validator, ApiErrorWriter errors) {
-        this.activity = activity; this.validator = validator; this.errors = errors;
-    }
+
     @Override public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         if (!(handler instanceof HandlerMethod method) || !method.hasMethodAnnotation(AuthenticatedActivity.class)
                 || SecurityConfiguration.isHealthRequest(request) || Set.of("/api/v1/auth/csrf", "/api/v1/auth/login", "/api/v1/auth/logout")

@@ -1,7 +1,7 @@
 # Database Design — Transaction Dispute Portal
 
-**Status:** Current architecture alignment v0.4 · **Date:** 2026-10-10
-**Source:** `docs/business-rules.md` v0.3. The approved design baseline precedes separately approved feature specifications and Flyway implementation.
+**Status:** Customer Accounts alignment v0.5 · **Date:** 2026-10-11
+**Source:** `docs/business-rules.md` v0.5. The approved design baseline precedes separately approved feature specifications and Flyway implementation.
 
 ## 1. Goals and boundaries
 
@@ -29,11 +29,13 @@ Password policy: random 16-byte salt, 600,000 iterations and a 256-bit derived k
 |---|---|---|
 | `id` | UUID | PK |
 | `customer_id` | UUID | NOT NULL FK → `app_users.id` |
-| `account_number` | VARCHAR(32) | NOT NULL, UNIQUE; masked in API |
-| `account_type` | VARCHAR(32) | NOT NULL |
+| `account_number` | VARCHAR(32) | NOT NULL, UNIQUE, CHECK `account_number ~ '^[0-9]{10}$'`; stored as text, no trimming/normalization |
+| `account_type` | VARCHAR(32) | NOT NULL; CHECK (`MAIN` or `SAVINGS`) — MVP values only; enforced by database CHECK constraint and Java enum. `MAIN` maps to display name "Main Account"; `SAVINGS` maps to "Savings Account". Display name is derived at the application layer and not stored. Adding a type requires an additive migration and an enum change. Do not use any external bank trademark as a type value. No credit/overdraft account types in this phase. |
+| `balance` | NUMERIC(19,2) | NOT NULL; synthetic read-only display value set by fixture command only; not derived from transactions; no settlement meaning; no negative-balance semantics in this phase |
+| `is_primary` | BOOLEAN | NOT NULL DEFAULT FALSE |
 | `created_at` | TIMESTAMPTZ | NOT NULL |
 
-A service invariant ensures `customer_id` refers to a CUSTOMER user; the FK alone does not enforce role.
+A service invariant ensures `customer_id` refers to a CUSTOMER user; the FK alone does not enforce role. A partial unique index `UNIQUE (customer_id) WHERE is_primary` ensures at most one primary account per customer. The fixture marks the customer's `MAIN` account as primary. If a customer has accounts but no primary (data fault), the UI falls back to the first account in GET /accounts order; this case must not prevent display. `displayName` is derived from `account_type` at the application layer and is not stored as a separate column.
 
 ### `bank_transactions`
 | Column | Type | Constraints |
@@ -126,6 +128,7 @@ Checks and inserts happen on the primary database; replica-lag reads cannot prov
 ## 4. Proposed indexes
 
 ```sql
+CREATE UNIQUE INDEX idx_accounts_primary ON accounts(customer_id) WHERE is_primary;
 CREATE INDEX idx_accounts_customer ON accounts(customer_id);
 CREATE INDEX idx_transactions_account_time ON bank_transactions(account_id, occurred_at DESC, id DESC);
 CREATE INDEX idx_disputes_status_created ON disputes(status, created_at DESC, id DESC);
@@ -137,7 +140,7 @@ CREATE INDEX idx_transactions_time ON bank_transactions(occurred_at DESC, id DES
 
 Uniqueness constraints automatically create indexes; do not duplicate them. These are starting candidates, not claims of optimized query plans. Transaction account/date handles ownership joins; global time and dispute-created indexes support unfiltered chronological lists. Assignee/status/updated and status/created support agent queues. A reason/date or amount index should be added only if representative EXPLAIN ANALYZE shows a need; arbitrary combinations need not each receive an index.
 
-Case-insensitive literal substring search uses parameterized escaped LIKE over allowed fields and joins. Normal B-tree indexes do not promise acceleration for leading-wildcard searches; bounded assessment datasets can use filtered scans. Verify latency and count queries with realistic owned-account and queue data; consider PostgreSQL trigram indexing only for measured need and a documented extension decision. No Elasticsearch. Counts use the same ownership and filter predicates as items. Use Africa/Johannesburg date ranges converted to UTC; compare NUMERIC amounts without floating point. Sort fields map through an allowlist. No full account number/private-note search.
+Case-insensitive literal substring search uses parameterized escaped LIKE over allowed fields and joins. Normal B-tree indexes do not promise acceleration for leading-wildcard searches; bounded assessment datasets can use filtered scans. Verify latency and count queries with realistic owned-account and queue data; consider PostgreSQL trigram indexing only for measured need and a documented extension decision. No Elasticsearch. Counts use the same ownership and filter predicates as items. Use Africa/Johannesburg date ranges converted to UTC; compare NUMERIC amounts without floating point. Sort fields map through an allowlist. No full account number/private-note search. The only full-number disclosure is owner-scoped `GET /api/v1/accounts`; transactions and future disputes expose only masked numbers.
 
 ## 5. Concurrency and transaction boundaries
 
@@ -149,8 +152,10 @@ Case-insensitive literal substring search uses parameterized escaped LIKE over a
 
 ## 6. Migration and seed plan
 
-- Applied foundation `V1__create_app_users.sql` is immutable. Remaining business tables belong to later owning feature migrations; do not recreate app_users or renumber the applied V1.
-- Flyway V2 adds auth_version and canonical-email constraints/preflight; V3 creates the pinned Session 3.5.7 PostgreSQL schema; V4 creates auth_session_activity. No seeded account or applied-migration rewrite.
+- Applied foundation `V1__create_app_users.sql` is immutable. V2–V4 are applied authentication migrations and must not be edited. Remaining business tables belong to their owning feature migrations; do not recreate app_users or renumber the applied V1–V4.
+- **V5** is owned by the `customer-accounts` feature. It creates the `accounts` table with all columns (id, customer_id, account_number, account_type, balance, is_primary, created_at), a CHECK on `account_number` (`^[0-9]{10}$`), a CHECK constraint on `account_type` (`MAIN`, `SAVINGS`), the partial unique index `UNIQUE (customer_id) WHERE is_primary`, and `idx_accounts_customer(customer_id)`.
+- **V6** is owned by the `customer-transactions` feature. It creates `bank_transactions` and its indexes (`idx_transactions_account_time`, `idx_transactions_time`). It must not recreate or alter the `accounts` table.
+- V1–V4 are never edited. V5 creates accounts; V6 creates bank_transactions. Each migration belongs to exactly one owning feature; they are independently additive.
 - spring_session: CHAR(36) primary_id and unique session_id; epoch-ms creation_time/last_access_time/expiry_time, max_inactive_interval seconds, nullable principal_name; expiry/principal indexes. spring_session_attributes: primary(session_primary_id,attribute_name), BYTEA serialized values, parent FK ON DELETE CASCADE.
 - auth_session_activity: primary session_primary_id FK to session parent and account_id UUID FK to app_users, both cascading; nonnegative auth_version and last_authenticated_activity_at BIGINT; account/time indexes. Account/version/deadline checks are authoritative even before cleanup; activity touches never insert or modify framework-managed session columns.
 - Minimal serializable SessionPrincipal contains UUID with fixed serialVersionUID; compatible application releases share schema/serialization/cookie configuration. Controlled DB access is required for Java serialized session attributes.

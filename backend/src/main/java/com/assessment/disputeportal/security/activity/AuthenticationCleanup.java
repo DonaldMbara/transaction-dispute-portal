@@ -1,13 +1,16 @@
 package com.assessment.disputeportal.security.activity;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public final class AuthenticationCleanup {
     private final JdbcTemplate jdbc;
-    public AuthenticationCleanup(JdbcTemplate jdbc) { this.jdbc=jdbc; }
+
     @Scheduled(cron="${portal.auth.cleanup-cron:0 * * * * *}")
     public void cleanup() {
         jdbc.update("""

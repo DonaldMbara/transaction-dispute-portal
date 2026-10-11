@@ -1,5 +1,7 @@
 package com.assessment.disputeportal.security.activity;
 
+import lombok.RequiredArgsConstructor;
+
 import com.assessment.disputeportal.common.ApiErrorWriter;
 import com.assessment.disputeportal.security.session.AccountSessionValidationFilter;
 import com.assessment.disputeportal.security.session.AccountSessionValidator;
@@ -10,9 +12,10 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration(proxyBeanMethods = false)
+@RequiredArgsConstructor
 public class AuthenticationActivityConfiguration implements WebMvcConfigurer {
     private final AuthenticationActivityInterceptor activity;
-    public AuthenticationActivityConfiguration(AuthenticationActivityInterceptor activity) { this.activity = activity; }
+
     @Override public void addInterceptors(InterceptorRegistry registry) { registry.addInterceptor(activity); }
     @Bean AccountSessionValidationFilter accountSessionValidationFilter(AccountSessionValidator validator, ApiErrorWriter errors) {
         return new AccountSessionValidationFilter(validator, errors);

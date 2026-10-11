@@ -1,6 +1,6 @@
 # Transaction Dispute Portal — Business Rules
 
-**Status:** Approved design baseline · **Version:** 0.4 · **Owner:** Donald Mbara · **Last reviewed:** 2026-10-10
+**Status:** Approved design baseline · **Version:** 0.5 · **Owner:** Donald Mbara · **Last reviewed:** 2026-10-11
 
 > Working business-rules document, not a Kiro steering file. Decisions may evolve during specification and implementation. Proposed refinements are explicitly marked **To confirm**. If a rule changes, update the relevant feature spec, tests, API contract, UI behaviour and design diagrams together.
 
@@ -28,7 +28,7 @@ Admin-controlled account provisioning is required; no public registration. This 
 
 | ID | Rule | Verification |
 |---|---|---|
-| BR-T01 | Transactions belong to an account; an account belongs to a customer. | Data integrity and ownership tests. |
+| BR-T01 | Transactions belong to an account; an account belongs to a customer. Each customer has 1–N owned accounts. `balance` is a synthetic, read-only display value set by the fixture command only; it is not derived from transactions and carries no settlement meaning. Each customer has at most one primary account (enforced by a partial unique index `WHERE is_primary`); "primary" means the account shown first and selected by default in the UI. If no primary account exists (data fault), the UI falls back to the first account in list order. MVP account types are `MAIN` and `SAVINGS` only (display names "Main Account" and "Savings Account", derived at the application layer). Type values and display names must not use any external bank trademark. No credit/overdraft accounts and no negative-balance semantics in this phase. | Data integrity and ownership tests. |
 | BR-T02 | Transaction states are `PENDING`, `COMPLETED`, `FAILED`. Only `COMPLETED` transactions are eligible for dispute. | Eligibility matrix tests. |
 | BR-T03 | Transaction records are read-only through this portal; seeded/mock data is used. | No transaction mutation API; security tests. |
 | BR-T04 | Monetary values use exact decimal precision (`BigDecimal`/`NUMERIC(19,2)`); seeded currency is ZAR. | Persistence and serialization tests. |
@@ -93,9 +93,9 @@ OPEN (unassigned)
 
 ### Customer
 
-1. Authenticate and see only owned accounts/transactions.
-2. Transaction list supports **All / Money In / Money Out** filters; selecting a row opens details.
-3. Eligible transaction details display **Dispute this transaction**. Pending/failed transactions explain ineligibility; already-disputed transactions link to the existing dispute.
+1. Authenticate and land on the **Account Dashboard** (`/customer`) — goal copy describes accounts as (Main Account, Savings Account); one tile per owned account in primary-first order. Tapping a tile navigates to that account's transactions.
+2. The **Transactions** page (`/customer/transactions?accountId=<id>`) shows an account selector defaulting to the primary account. Transaction list supports **All / Money In / Money Out** filters; selecting a row opens details.
+3. The later dispute-submission feature adds a **Dispute this transaction** action for eligible transactions. Customer Transactions only displays the status-based eligibility information; it has no dispute CTA. Pending/failed transactions explain ineligibility, and existing-dispute lookup is staged to dispute submission under the BR-T05 clarification in the transaction requirements.
 4. Submission form collects reason and description; show validation, submitting state, and confirmation after success. Prevent accidental repeated clicks; backend remains authoritative.
 5. **My Disputes** shows active and resolved disputes, status, transaction context and a customer-safe timeline.
 6. For accepted/rejected disputes, show decision and customer-facing explanation. Never claim funds have been returned unless a future integrated system explicitly proves it.
@@ -150,7 +150,8 @@ Every feature spec should map applicable business rule IDs to acceptance criteri
 | Spec | Rules | Required test coverage |
 |---|---|---|
 | `authentication-rbac` | BR-A01–A05 | Authentication role machinery/default denial, JDBC sessions and CSRF; ownership isolation belongs to the owning business features |
-| `customer-transactions` | BR-T01–T05 | Ownership, status filtering, read-only access |
+| `customer-accounts` | BR-A02, BR-T01 | Account ownership scoping; at-most-one primary; masking; balance display; cross-customer account access returns 404; AGENT access returns 403 |
+| `customer-transactions` | BR-T01–T05 | Ownership, status filtering, accountId resource selector, read-only access |
 | `dispute-submission` | BR-S01–S07, BR-L01, BR-H01–H02 | Eligibility, uniqueness, idempotency, rollback |
 | `agent-workflow` | BR-L02–L10, BR-H01–H02 | Claim races, ownership, transitions, stale updates |
 | `customer-dispute-history` | BR-H03–H06 | Visibility, history, terminal state persistence |

@@ -8,7 +8,7 @@ rectangle "Transaction Dispute Portal" {
   component "Spring Boot REST API" as api
   database "PostgreSQL" as db
 }
-Customer --> ui : View transactions / submit disputes
+Customer --> ui : View account dashboard and per-account transactions
 Agent --> ui : Claim / investigate / resolve
 ui --> api : HTTPS JSON envelopes + session cookie\nCSRF on unsafe requests
 

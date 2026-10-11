@@ -1,12 +1,12 @@
 # Authentication and RBAC — Acceptance evidence
 
-Date: 2026-10-10. Status: implementation Tasks 1–18 complete; awaiting developer feature acceptance. No commit, push, deployment, hosted CI run or subsequent feature work was performed.
+Evidence date: 2026-10-10. Current password-policy summary updated: 2026-10-11. Status: implementation Tasks 1–18 complete; awaiting developer feature acceptance. At evidence capture on 2026-10-10, no commit, push, deployment, hosted CI run or subsequent feature work had been performed.
 
 ## Implemented decisions
 
 The existing modular monolith now uses Spring Security and PostgreSQL-backed Spring Session JDBC, credential-free session principals, host-only HttpOnly cookies, production Secure/SameSite=Lax, and strict 30-minute authenticated idle expiry. Eligible-handler admission commits activity independently of later handler outcomes; bootstrap, health, denied requests and background polling cannot extend authentication. Current account state/version and database-derived CUSTOMER/AGENT authorities are checked on every authenticated request.
 
-Versioned PBKDF2-HMAC-SHA256 uses 600,000 iterations, random 16-byte salts and a 256-bit key. Passwords are validated as 15–128 well-formed Unicode code points without normalization or trimming. Administrative maintenance is explicit non-web operation with masked console input, transactional versioning, locking and redacted logs. No ADMIN role, public registration, startup users or business endpoint was added.
+Versioned PBKDF2-HMAC-SHA256 uses 600,000 iterations, random 16-byte salts and a 256-bit key. Current password policy: provisioning/replacement accepts 8–128 well-formed Unicode code points; login accepts non-empty well-formed input up to 128, preserving input without normalization or trimming. The original Tasks 1–18 record their then-current 15-character creation minimum; that historical evidence is unchanged and does not by itself verify the revised lower-bound case. Administrative maintenance is explicit non-web operation with masked console input, transactional versioning, locking and redacted logs. No ADMIN role, public registration, startup users or business endpoint was added.
 
 Login, identity, logout and CSRF bootstrap use the approved envelope/correlation/no-store conventions. Angular uses same-origin requests, memory-only state, one initialization bootstrap/identity exchange, verified-role guards, accessible login and explicit recovery after ambiguous transitions. Modern concise filenames and DashboardLayout organization are preserved.
 

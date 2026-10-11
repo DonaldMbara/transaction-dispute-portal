@@ -1,5 +1,7 @@
 package com.assessment.disputeportal.auth.validation;
 
+import lombok.RequiredArgsConstructor;
+
 import jakarta.validation.Validator;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -10,12 +12,9 @@ import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import java.util.Locale;
 
 @Component
+@RequiredArgsConstructor
 public final class EmailNormalizer {
     private final Validator validator;
-
-    public EmailNormalizer(Validator validator) {
-        this.validator = validator;
-    }
 
     public String normalize(String email) {
         if (email == null) throw new InvalidRequestException("Invalid login email.");

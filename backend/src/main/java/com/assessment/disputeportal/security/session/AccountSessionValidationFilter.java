@@ -1,5 +1,7 @@
 package com.assessment.disputeportal.security.session;
 
+import lombok.RequiredArgsConstructor;
+
 import com.assessment.disputeportal.common.ApiEnvelope;
 import com.assessment.disputeportal.common.ApiErrorWriter;
 import jakarta.servlet.FilterChain;
@@ -14,12 +16,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+@RequiredArgsConstructor
 public final class AccountSessionValidationFilter extends OncePerRequestFilter {
     private final AccountSessionValidator validator;
     private final ApiErrorWriter errors;
-    public AccountSessionValidationFilter(AccountSessionValidator validator, ApiErrorWriter errors) {
-        this.validator = validator; this.errors = errors;
-    }
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         var authentication = SecurityContextHolder.getContext().getAuthentication();

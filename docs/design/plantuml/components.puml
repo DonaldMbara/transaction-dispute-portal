@@ -3,6 +3,7 @@
 title Application Components — Modular Monolith
 package "Angular SPA" {
   [AuthService / Guards / DashboardLayout] as authui
+  [Customer Accounts\n(dashboard + shared account-selector)] as acctui
   [Customer Transactions] as txui
   [Customer Disputes] as dui
   [Agent Workspace] as aui
@@ -11,7 +12,8 @@ package "Spring Boot" {
   [Auth / Security] as sec
   [Spring Session JDBC] as sessions
   [Auth Accounts / Activity] as authstore
-  [Account & Transaction] as trans
+  [Account (GET /accounts, V5)] as acct
+  [Transaction (GET /transactions, V6)] as trans
   [Dispute API / Application] as app
   [Dispute Domain] as domain
   [Dispute Audit submodule] as audit
@@ -20,25 +22,32 @@ package "Spring Boot" {
 }
 database PostgreSQL
 authui --> sec
+acctui --> acct
+txui --> acctui : shared account API client (GET /accounts)
 txui --> trans
+trans --> acct : AccountFixturePort (fixture only)
 dui --> app
 aui --> app
 app --> sec : authenticated principal
 app --> trans : owned transaction lookup / lock interface
 app --> domain
 app --> audit : synchronous append interface
-
 app --> idem
 sec --> sessions : server-side sessions
 sessions --> PostgreSQL : shared session state
 sec --> authstore : narrow account/activity interfaces
-authstore --> PostgreSQL : accounts / version / guarded activity
+authstore --> PostgreSQL : app_users / version / guarded activity
+acct --> PostgreSQL
 trans --> PostgreSQL
 app --> PostgreSQL
 audit --> PostgreSQL
 idem --> PostgreSQL
 note bottom
 One Spring Boot deployment; no cross-module repository access.
+account module owns accounts table (V5); transaction module owns bank_transactions (V6).
+transaction fixture accesses account IDs through narrow public AccountFixturePort only.
+Shared account-selector is a presentational Angular component in shared/components;
+account data fetching stays in the accounts feature service.
 Dispute, audit and idempotency writes share one PostgreSQL transaction.
 Infrastructure: envelopes, correlation IDs, validation and exception mapping.
 No microservices or API Gateway in MVP.
