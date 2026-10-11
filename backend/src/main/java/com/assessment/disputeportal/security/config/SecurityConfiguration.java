@@ -78,6 +78,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/me").hasAnyRole("CUSTOMER", "AGENT")
                         .requestMatchers(HttpMethod.GET, "/api/v1/accounts").hasRole("CUSTOMER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/transactions", "/api/v1/transactions/{id}").hasRole("CUSTOMER")
                         .anyRequest().denyAll())
                 .exceptionHandling(failures -> failures.accessDeniedHandler(denied)
                         .authenticationEntryPoint((request, response, failure) -> errors.write(response, 401,

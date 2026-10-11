@@ -14,24 +14,75 @@ describe('AccountSelector', () => {
     fixture.componentRef.setInput('selectedAccountId', 'a');
     fixture.detectChanges();
   });
-  it('shows full number only in current summary and masked choices', () => {
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('0123456789');
-    expect(text).toContain('****6789');
-    expect(text).toContain('****3210');
-    expect(fixture.nativeElement.querySelectorAll('option')[0].textContent).toContain('****6789');
+
+  it('shows a selected account card and full account numbers in both selector states', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const trigger: HTMLButtonElement = host.querySelector('.selector-trigger')!;
+    expect(trigger.getAttribute('aria-haspopup')).toBe('listbox');
+    expect(trigger.querySelector('app-account-card')).toBeTruthy();
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    expect(trigger.textContent).toContain('Main Account');
+    expect(trigger.textContent).toContain('Primary');
+    expect(trigger.textContent).toContain('0123456789');
+    expect(trigger.textContent).toContain('R 120.00');
+    expect(getComputedStyle(trigger).minHeight).toBe('72px');
+    expect(trigger.querySelector('.account-info')?.textContent).not.toContain('Available balance');
+    expect(trigger.querySelector('.account-balance')?.textContent).toContain('Available balance');
+    expect(trigger.querySelector('.account-icon[aria-hidden="true"] svg')).toBeTruthy();
+    trigger.click(); fixture.detectChanges();
+    const options = host.querySelectorAll<HTMLElement>('[role="option"]');
+    expect(host.querySelector('[role="listbox"]')).toBeTruthy();
+    expect(host.querySelectorAll('[role="option"] app-account-card').length).toBe(2);
+    expect(options.length).toBe(2);
+    expect(options[0].getAttribute('aria-selected')).toBe('true');
+    expect(options[0].textContent).toContain('0123456789');
+    expect(options[1].textContent).toContain('9876543210');
+    expect(options[0].querySelector('.account-balance')?.textContent).toContain('R 120.00');
+    expect(host.textContent).not.toContain('****6789');
+    expect(host.querySelector('select')).toBeNull();
   });
-  it('emits the native keyboard-select change and omits a null full number', () => {
+
+  it('supports keyboard selection and closes with focus returned to the trigger', async () => {
     const emitted = jasmine.createSpy('selection');
     fixture.componentInstance.selectionChange.subscribe(emitted);
-    const select: HTMLSelectElement = fixture.nativeElement.querySelector('select');
-    expect(fixture.nativeElement.querySelector('label')?.getAttribute('for')).toBe(select.id);
-    select.value = 'b'; select.dispatchEvent(new Event('change'));
-    expect(emitted).toHaveBeenCalledOnceWith('b');
-    fixture.componentRef.setInput('selectedAccountId', 'b');
-    fixture.componentRef.setInput('accounts', [{ ...accounts[1], accountNumber: null }]);
+    const host = fixture.nativeElement as HTMLElement;
+    const trigger: HTMLButtonElement = host.querySelector('.selector-trigger')!;
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('9876543210');
-    expect(fixture.nativeElement.querySelector('select')).toBeTruthy();
+    await new Promise(resolve => setTimeout(resolve));
+    fixture.detectChanges();
+    const listbox = host.querySelector<HTMLElement>('[role="listbox"]')!;
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    listbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    fixture.detectChanges();
+    expect(document.activeElement?.getAttribute('data-option-index')).toBe('1');
+    listbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    fixture.detectChanges();
+    expect(emitted).toHaveBeenCalledOnceWith('b');
+    expect(host.querySelector('[role="listbox"]')).toBeNull();
+    await new Promise(resolve => setTimeout(resolve));
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('supports Home, End and Escape, closes on outside click, and omits null numbers', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const trigger: HTMLButtonElement = host.querySelector('.selector-trigger')!;
+    trigger.click(); fixture.detectChanges();
+    const listbox = host.querySelector<HTMLElement>('[role="listbox"]')!;
+    listbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    expect(document.activeElement?.getAttribute('data-option-index')).toBe('1');
+    listbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+    expect(document.activeElement?.getAttribute('data-option-index')).toBe('0');
+    listbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    expect(host.querySelector('[role="listbox"]')).toBeNull();
+    trigger.click(); fixture.detectChanges();
+    document.body.dispatchEvent(new MouseEvent('click', { bubbles: true })); fixture.detectChanges();
+    expect(host.querySelector('[role="listbox"]')).toBeNull();
+    fixture.componentRef.setInput('accounts', [{ ...accounts[0], accountNumber: null }]);
+    fixture.detectChanges();
+    expect(host.textContent).not.toContain('0123456789');
+    expect(host.querySelector('.selector-trigger')).toBeTruthy();
+    expect(host.querySelector('select')).toBeNull();
   });
 });

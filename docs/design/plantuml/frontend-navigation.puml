@@ -38,13 +38,13 @@ Q --> AD : Select case
 AD --> ACT : Authorized action
 ACT --> AD : Refresh status
 note bottom
-Header nav (Customer): Accounts / Transactions / My Disputes.
-Header nav (Agent): Agent Queue / My Cases.
-/customer = account dashboard (tile grid, primary-first).
+Header nav (Customer): Accounts / Transactions; Transactions is active on list and detail.
+Header nav (Agent): Agent area; no customer Transactions item.
+/customer = account dashboard (stacked rows, primary-first).
 /customer/transactions?accountId=<id> = list + shared account-selector.
 No /customer/accounts/:accountId/transactions path route.
 URL is the only account-selection state; no localStorage/sessionStorage.
-The later customer Disputes page reuses the selector and accountId ownership rule.
+My Disputes is not linked until its route is implemented; later disputes reuse the selector and accountId ownership rule.
 Customer Transactions ends at transaction detail; no dispute CTA in this phase.
 Desktop: full navigation and dense tables.
 Mobile: collapsed navigation and stacked rows.

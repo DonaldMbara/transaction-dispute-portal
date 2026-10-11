@@ -26,17 +26,18 @@ describe('AccountDashboard', () => {
     const element = fixture.nativeElement as HTMLElement;
     const row = element.querySelector('a.account-row');
     expect(row).toBeTruthy();
+    expect(row?.querySelector('app-account-card')).toBeTruthy();
     expect(row?.textContent).toContain('Main Account');
-    expect(row?.textContent).toContain('Account number');
+    expect(row?.querySelector('.full-number')?.textContent).toContain('0123456789');
     expect(row?.textContent).toContain('0123456789');
     expect(row?.textContent).toContain('Primary');
     expect(row?.textContent).toContain('Available balance');
     expect(row?.textContent).toContain('R 1 200.00');
-    expect(row?.querySelector('svg.account-icon')).toBeTruthy();
-    expect(row?.querySelector('svg.account-icon')?.getAttribute('aria-hidden')).toBe('true');
+    expect(row?.querySelector('.account-icon svg')).toBeTruthy();
+    expect(row?.querySelector('.account-icon')?.getAttribute('aria-hidden')).toBe('true');
     expect(row?.querySelector('.account-mark')).toBeNull();
     expect(row?.classList.contains('account-row--primary')).toBeFalse();
-    expect(element.querySelector('nav[aria-label="Quick links"]')).toBeNull();
+    expect(element.querySelector('nav[aria-label="Quick links"]')?.textContent).toContain('View transactions');
   });
 
   it('uses different Lucide icon shapes for MAIN and SAVINGS accounts', () => {
@@ -44,24 +45,25 @@ describe('AccountDashboard', () => {
     api.list.and.returnValue(of(page([main, savings])));
     fixture.componentInstance.load();
     fixture.detectChanges();
-    const icons = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('svg.account-icon'));
+    const icons = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('.account-icon svg'));
     expect(icons.length).toBe(2);
     expect(icons[0].innerHTML).not.toBe(icons[1].innerHTML);
-    expect(icons.every(icon => icon.getAttribute('aria-hidden') === 'true')).toBeTrue();
+    expect(icons.every(icon => icon.parentElement?.getAttribute('aria-hidden') === 'true')).toBeTrue();
     expect((fixture.nativeElement as HTMLElement).querySelectorAll('.primary-badge').length).toBe(1);
   });
 
-  it('keeps the loading skeleton visible until the request completes', () => {
+  it('keeps existing accounts visible and marks the region busy during refresh', () => {
     const response = new Subject<AccountPage>();
     api.list.and.returnValue(response.asObservable());
     fixture.componentInstance.load();
     fixture.detectChanges();
-    expect(fixture.componentInstance.state()).toBe('loading');
-    expect((fixture.nativeElement as HTMLElement).querySelector('[aria-busy="true"]')).toBeTruthy();
+    expect(fixture.componentInstance.state()).toBe('busy');
+    expect((fixture.nativeElement as HTMLElement).querySelector('.dashboard-columns[aria-busy="true"]')).toBeTruthy();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.account-row')).toBeTruthy();
     response.next(page([main]));
     response.complete();
     fixture.detectChanges();
-    expect(fixture.componentInstance.state()).toBe('loaded');
+    expect(fixture.componentInstance.state()).toBe('ready');
   });
 
   it('renders the empty state without account rows or a quick-links panel', () => {
@@ -88,7 +90,7 @@ describe('AccountDashboard', () => {
     (fixture.nativeElement as HTMLElement).querySelector('button')?.click();
     fixture.detectChanges();
     expect(api.list).toHaveBeenCalledTimes(3);
-    expect(fixture.componentInstance.state()).toBe('loaded');
+    expect(fixture.componentInstance.state()).toBe('ready');
   });
 
   it('links each row to its account transaction query target', () => {
@@ -107,28 +109,30 @@ describe('AccountDashboard', () => {
     expect((fixture.nativeElement as HTMLElement).querySelectorAll('a.account-row').length).toBe(1);
   });
 
-  it('does not add a quick-links panel while no in-scope shortcut is implemented', () => {
+  it('adds a quick-links panel for the implemented primary-account route', () => {
     const columns = (fixture.nativeElement as HTMLElement).querySelector('.dashboard-columns')!;
-    expect(columns.children.length).toBe(1);
+    expect(columns.children.length).toBe(2);
     expect(columns.querySelector('.account-list')).toBeTruthy();
-    expect(columns.querySelector('nav[aria-label="Quick links"]')).toBeNull();
+    const quickLink = columns.querySelector('nav[aria-label="Quick links"] a') as HTMLAnchorElement;
+    expect(quickLink.textContent).toContain('View transactions');
+    expect(quickLink.getAttribute('href')).toBe('/customer/transactions?accountId=account-1');
   });
 
   it('keeps account details before the balance in the responsive row structure', () => {
     const row = (fixture.nativeElement as HTMLElement).querySelector('a.account-row')!;
-    const accountDetails = row.querySelector('.account-details')!;
+    const accountDetails = row.querySelector('.account-info')!;
     const balance = row.querySelector('.account-balance')!;
     expect(accountDetails.compareDocumentPosition(balance) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(row.querySelector('.row-chevron')).toBeTruthy();
+    expect(row.querySelector('.chevron')).toBeTruthy();
     expect(getComputedStyle(balance).minWidth).toBe('0px');
   });
 
   it('uses high-contrast token colors for the account number and small labels', () => {
     const element = fixture.nativeElement as HTMLElement;
-    expect(getComputedStyle(element.querySelector('.account-number')!).color).toBe('rgb(58, 58, 58)');
-    expect(getComputedStyle(element.querySelector('.account-number-label')!).color).toBe('rgb(58, 58, 58)');
-    expect(getComputedStyle(element.querySelector('.balance-label')!).color).toBe('rgb(58, 58, 58)');
-    expect(getComputedStyle(element.querySelector('.primary-badge')!).color).toBe('rgb(6, 118, 71)');
+    expect(getComputedStyle(element.querySelector('.full-number')!).color).toBe('rgb(37, 59, 82)');
+    expect(element.textContent).not.toContain('Account number');
+    expect(getComputedStyle(element.querySelector('.balance-label')!).color).toBe('rgb(75, 91, 107)');
+    expect(getComputedStyle(element.querySelector('.primary-badge')!).color).toBe('rgb(23, 76, 118)');
   });
 
   it('omits the account number when the backend returns null', () => {

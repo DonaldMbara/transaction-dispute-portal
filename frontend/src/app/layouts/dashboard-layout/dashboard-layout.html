@@ -1,11 +1,15 @@
-<header class="application-header">
+<header class="application-header" [class.customer-shell]="isCustomerRoute()">
   <div class="header-content">
     <div class="header-start">
-      <a class="brand" routerLink="/">Transaction Dispute Portal</a>
+      <a class="brand" routerLink="/">
+        @if (auth.state.identity()?.role === 'CUSTOMER') { <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 4.7-2.9 8-7 10-4.1-2-7-5.3-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg></span> }
+        <span>Transaction Dispute Portal</span>
+      </a>
       @if (auth.state.phase() === 'authenticated') {
         <nav class="portal-navigation" aria-label="Portal navigation">
           @if (auth.state.identity()?.role === 'CUSTOMER') {
             <a routerLink="/customer" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page">Accounts</a>
+            <a routerLink="/customer/transactions" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page">Transactions</a>
           }
           @if (auth.state.identity()?.role === 'AGENT') {
             <a routerLink="/agent">Agent area</a>
@@ -14,13 +18,11 @@
       }
     </div>
     @if (auth.state.phase() === 'authenticated') {
-      <button appButton="secondary" type="button" [disabled]="pending()" (click)="signOut()">
-        {{ pending() ? 'Signing out…' : 'Sign out' }}
-      </button>
+      <button class="sign-out" appButton="secondary" type="button" [disabled]="pending()" (click)="signOut()">{{ pending() ? 'Signing out…' : 'Sign out' }}</button>
     }
   </div>
 </header>
-<main [attr.aria-busy]="pending()">
+<main [class.customer-main]="isCustomerRoute()" [attr.aria-busy]="pending()">
   @if (message()) { <p class="message--error" role="alert">{{ message() }}</p> }
   @if (auth.state.phase() === 'authenticated') {
     <router-outlet />
@@ -29,4 +31,4 @@
     <button appButton="secondary" type="button" [disabled]="pending()" (click)="signOut(true)">Try again</button>
   }
 </main>
-<footer class="application-footer">Assessment portal · Synthetic data only</footer>
+<footer class="application-footer" [class.customer-footer]="isCustomerRoute()">Assessment portal · Synthetic data only</footer>
