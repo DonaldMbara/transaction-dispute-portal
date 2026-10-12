@@ -120,6 +120,9 @@ export class Disputes {
           this.allAccounts.set(true);
           void this.router.navigate([], { relativeTo: this.route, queryParams: { accounts: 'all' }, replaceUrl: true });
         }
+        // Load immediately after account discovery. Route navigation updates the URL,
+        // but the list should not depend on a query-param emission to start its first request.
+        this.load();
       },
       error: () => { this.accountsLoaded = true; this.error.set('generic'); this.loading.set(false); }
     });

@@ -136,7 +136,7 @@ describe('AccountDashboard', () => {
     expect(getComputedStyle(element.querySelector('.full-number')!).color).toBe('rgb(37, 59, 82)');
     expect(element.textContent).not.toContain('Account number');
     expect(getComputedStyle(element.querySelector('.balance-label')!).color).toBe('rgb(75, 91, 107)');
-    expect(getComputedStyle(element.querySelector('.primary-badge')!).color).toBe('rgb(23, 76, 118)');
+    expect(getComputedStyle(element.querySelector('.primary-badge')!).color).toBe('rgb(23, 77, 175)');
   });
 
   it('omits the account number when the backend returns null', () => {
