@@ -31,21 +31,21 @@ AL ..> Q : Future agent feature
 T --> TD : Select transaction
 TD ..> F : Later dispute-submission feature
 F --> HD : Created successfully
-T --> H : My Disputes
+T --> H : Disputes
 H --> HD : Open case
 TD ..> CA : Back (list → dashboard)
 Q --> AD : Select case
 AD --> ACT : Authorized action
 ACT --> AD : Refresh status
 note bottom
-Header nav (Customer): Accounts / Transactions; Transactions is active on list and detail.
+Header nav (Customer): Accounts / Transactions / Disputes; each is active on its detail route.
 Header nav (Agent): Agent area; no customer Transactions item.
 /customer = account dashboard (stacked rows, primary-first).
 /customer/transactions?accountId=<id> = list + shared account-selector.
 No /customer/accounts/:accountId/transactions path route.
 URL is the only account-selection state; no localStorage/sessionStorage.
-My Disputes is not linked until its route is implemented; later disputes reuse the selector and accountId ownership rule.
-Customer Transactions ends at transaction detail; no dispute CTA in this phase.
+Disputes history and detail are implemented; its selector uses the accounts API and server ownership check.
+Customer Transactions ends at transaction detail, where eligible completed outgoing transactions can start a dispute.
 Desktop: full navigation and dense tables.
 Mobile: collapsed navigation and stacked rows.
 Use Nunito Sans, #2F70EF buttons, own Lucide icons.

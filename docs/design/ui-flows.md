@@ -84,12 +84,12 @@ Session policy: PostgreSQL-backed server-side sessions with opaque HttpOnly cook
 
 Authenticated shell displays role-specific navigation.
 
-- **Customer header links:** Accounts (`/customer`) and Transactions (`/customer/transactions`); Transactions remains active on its detail route. Do not show a My Disputes link until that route exists.
+- **Customer header links:** Accounts (`/customer`), Transactions (`/customer/transactions`) and Disputes (`/customer/disputes`); each remains active on its detail routes.
 - **Agent header links:** Agent area. Do not show customer transaction navigation to AGENT.
 
 Angular guards help UX; Spring Security remains authoritative.
 
-The later customer Disputes page reuses the shared account selector and defaults to the primary account, falling back to the first item in GET /accounts order if none is primary. Its `accountId` is a resource selector checked through transaction → account → customer.
+The customer Disputes page provides search, status and created-date filters, counted All/Active/Resolved tabs, Created/Status sorting and an “All your accounts” selector. It defaults to all owned accounts to match the Figma history view. Reset filters removes list criteria while retaining the account selection. Its `accountId` is a resource selector checked through account → customer ownership.
 
 ## 4. Customer journey A — Find and dispute a transaction
 
@@ -98,7 +98,7 @@ Login → Account Dashboard (stacked account rows) → Select account row → Tr
       → All | Money In | Money Out
       → Select transaction → Transaction details → Dispute this transaction (eligible completed transactions only)
 
-The submission flow lives at `/customer/disputes/new?transactionId=<uuid>`. It reloads transaction details from the API and shows only the merchant, amount, reference and masked account context. The customer chooses a supported reason, enters a required description (maximum 2000 characters), reviews it, then submits with an idempotency key. Loading, validation, safe manual retry, duplicate, unavailable and received/open states are accessible. The form does not promise a refund and does not expose a My Disputes link; history/detail remain deferred.
+The submission flow lives at `/customer/disputes/new?transactionId=<uuid>`. It reloads transaction details from the API and shows only the merchant, amount, reference and masked account context. The customer chooses a supported reason, enters a required description (maximum 2000 characters), reviews it, then submits with an idempotency key. Loading, validation, safe manual retry, duplicate, unavailable and received/open states are accessible. The form does not promise a refund. Customers can use the Disputes navigation item to find the new case and follow its status.
 ```
 
 ### Screen: Account Dashboard
@@ -125,7 +125,7 @@ The submission flow lives at `/customer/disputes/new?transactionId=<uuid>`. It r
 - **Stale-response protection:** cancel in-flight requests when the selector changes; discard any response that arrived after a newer request was issued.
 - **Segmented direction control:** All / Money In / Money Out — planned as an accessible radio group or tablist with `aria-selected`. Bound to the `direction` query parameter; reflected on load and back/forward navigation; resets pagination to page 1 on change. Justified as a fast, keyboard-accessible way to apply the existing `direction` filter without extra chrome.
 - **Month grouping:** optional presentational grouping of the current page's rows by calendar month in Africa/Johannesburg, shown only when sorted by `occurredAt`. It does not change API pagination, sort or filters; a month heading may repeat on the next page when a month spans pages. Justified as a scan aid for a chronological list, not as a copy of any external screen.
-- **List polish amendment (2026-10-11):** Keep only Transaction, Date, Amount and Status columns; the selector already identifies the current account. Merchant is a link with reference below in smaller muted text. Transaction, Date and Amount headers are buttons with `aria-sort`, visible Lucide sort direction icons and descriptive accessible names. Clicking an active column flips direction; a new column uses Date DESC, Amount DESC or Transaction ASC. Reference sorting remains available to the API, without a UI control. Search, Direction and Status share the main control row; date/amount ranges are behind a collapsed Filters panel with an active-filter count, inline inverted-range/over-366-day messages and a Clear filters action that keeps `accountId`. Put rows per page beside the pagination controls. Hide radio indicators visually while preserving the accessible radio group and focus ring. Amounts keep their sign and use red for money out, green for money in, with no direction arrow. Status chips are sentence case and use distinct WCAG AA text/background tints. Month heading rows remain semantic and non-interactive. List and detail timestamps use the same `dd MMM yyyy, HH:mm` format in Africa/Johannesburg; month headings use `MMM yyyy`.
+- **List polish amendment (2026-10-11):** Keep only Transaction, Date, Amount and Status columns; the selector already identifies the current account. Merchant is a link with reference below in smaller muted text. Transaction, Date and Amount headers are buttons with `aria-sort`, visible Lucide sort direction icons and descriptive accessible names. Clicking an active column flips direction; a new column uses Date DESC, Amount DESC or Transaction ASC. Reference sorting remains available to the API, without a UI control. Search, Direction and Status share the main control row; date/amount ranges are behind a collapsed Filters panel with an active-filter count, inline inverted-range/over-366-day messages and a Reset filters action that keeps `accountId`. Put rows per page beside the pagination controls. Hide radio indicators visually while preserving the accessible radio group and focus ring. Amounts keep their sign and use red for money out, green for money in, with no direction arrow. Status chips are sentence case and use distinct WCAG AA text/background tints. Month heading rows remain semantic and non-interactive. List and detail timestamps use the same `dd MMM yyyy, HH:mm` format in Africa/Johannesburg; month headings use `MMM yyyy`.
 - Search merchant/reference; status, from/to dates, min/max ZAR amount, sort field/direction as allowlisted by the API. On narrow widths, advanced filters sit behind an accessible Filters control.
 - Rows: merchant, date, signed amount (direction), status where useful; direction-based icons only, no merchant logos; tap/click to details.
 - No dispute CTA, statement, receipt or download action on the list in this phase.
@@ -146,26 +146,40 @@ Route: `/customer/disputes/new?transactionId=<uuid>`. Reload transaction details
 - Required description textarea, 2000-character counter and inline validation.
 - Show the transaction summary beside the form on desktop and above it on mobile. Submit directly from the validated form using the shared primary/secondary buttons; there is no intermediate review screen.
 - Disable submit while pending; maintain the same idempotency key for an unchanged retry.
-- Show receipt/open confirmation; do not promise a refund. Customer history/detail remain deferred.
+- Show receipt/open confirmation; do not promise a refund. Customers can open the Disputes page to find the case and track its status.
 - The user supplied desktop and mobile screenshot references for the list expansion and dispute form. The form follows the third screenshot; the transaction list reveals the eligible “Raise dispute” action inline with a rotating chevron and an animated expansion. Merchant links continue to open transaction details. Masked account numbers remain in the summary.
 - Success shows dispute reference/status and navigation to details.
 - `409` duplicate: show existing dispute when safely accessible; `422` ineligible: explain; network failure: preserve form text.
 
 ## 5. Customer journey B — Track dispute
 
-The later customer dispute list reuses the shared account selector, defaults to the primary account (or the first account in GET /accounts order if no primary exists), and updates the `accountId` resource selector when the customer switches accounts. Backend ownership is validated through transaction → account → customer.
+The customer dispute list is at `/customer/disputes`. It defaults to all owned accounts on first entry to match the Figma history view. `?accounts=all` in the URL represents this view; `?accountId=<id>` represents a selected single account. Backend ownership is validated through dispute → transaction → account → customer.
 
 ```text
-My Disputes → Active / Resolved (optional filter)
-            → Select dispute → Status + customer-safe timeline
-            → If terminal: decision + customer resolution message
+Disputes (header nav) → /customer/disputes
+  → All | Active | Resolved tabs (status group filter)
+  → Search, Status dropdown, Created date preset, Reset filters
+  → Account selector (includes "All your accounts" option)
+  → Select row → Dispute details + customer-safe timeline
+  → If terminal: outcome banner + customer resolution message
 ```
 
-- History includes active and resolved cases, newest first. Search case ID/submission description/transaction merchant/reference; combine status/reason/date filters and allowed sorting with 1-based pagination. Debounce search, reset page to 1 on filter/sort changes, preserve controls during reload and announce empty filtered results.
-- Status labels: OPEN = Received; UNDER_REVIEW = Under review; ACCEPTED = Accepted; REJECTED = Rejected.
-- Timeline is a **curated projection**: Submitted, Under review on claim, Returned to queue on release, Decision. Repeated claims/releases remain ordered by disputeVersion; generic release copy contains no internal reason. Do not expose claim/release notes, agent identities, or internal audit event details.
-- For ACCEPTED, show: `Your dispute was accepted.` and the agent's customer-facing message. **Never say `Refund processed`**.
-- For REJECTED, show: `Your dispute was not accepted.` and the customer-facing explanation.
+**List page** (`/customer/disputes`):
+- Page eyebrow "DISPUTES", heading "Your disputes", subtitle "A clear view of where things stand, from receipt to resolution."
+- **Filter bar:** search field ("Case ID or merchant") — searches dispute reference (with optional `DSP-` prefix), description, merchant, transaction reference; Status dropdown (`All statuses`, `Received`, `Under review`, `Accepted`, `Rejected`); Created date preset (`Any date`, `Last 7 days`, `Last 30 days`, `Custom range`); **Reset filters** clears search/status/date/tab while retaining account selection and sorting.
+- **Tabs:** All / Active / Resolved — stored in the UI-only `tab` query parameter (`ALL`, `ACTIVE`, `RESOLVED`). Each shows its result count for the current account, search and date filters. The selected group is never sent separately to the API. Choosing an individual status moves to its matching group; the `status` API parameter carries the individual value.
+- **Account selector:** reuses the shared component with the "All your accounts" option enabled. Selecting it shows disputes across all owned accounts (`?accounts=all` in URL). Selecting a specific account shows only that account's disputes (`?accountId=<id>`). The API receives only `accountId` or nothing; the `accounts=all` marker is Angular-only.
+- **Sort:** Created and Status column headers are sortable; default is Created descending. A static sort summary reports the current order; controls are on the table headers.
+- **Rows:** merchant name (bold), case reference (`DSP-<8 hex>`) and reason label in muted text below; unsigned ZAR amount (`R 0.00`) as shown in Figma; status chip (icon + label — `inbox` = Received, `clock` = Under review, `check-circle-2` = Accepted, `x-circle` = Rejected); created date; "View case" link. On narrow widths rows become stacked cards with the same elements.
+- **Status labels:** OPEN = "Received"; UNDER_REVIEW = "Under review"; ACCEPTED = "Accepted"; REJECTED = "Rejected".
+- **Empty state:** "No disputes yet" message and a link to transactions.
+
+**Detail page** (`/customer/disputes/:id`):
+- Case reference label (`DSP-…`), heading "Dispute details", subtitle "Your case, its progress and the final decision — all in one place."
+- **Outcome banner** (terminal only): ACCEPTED → green tint (`#ECFDF3`), "Your dispute has been accepted", customer resolution message, resolved date/time, and a subordinate note "This decision applies to your dispute only and does not automatically result in a payment or refund." REJECTED → red tint (`#FFF5F5`), "Your dispute was not accepted", customer resolution message, resolved date/time. **Never say `Refund processed`.**
+- **Two-column layout** (desktop): left = transaction card (merchant, signed amount, account as "Main Account · ****1467", transaction date/time, reason, submitted date, "What you told us" + description); right = timeline card.
+- **Timeline** is a **curated projection**: `SUBMITTED` (Dispute submitted), `IN_REVIEW` (Review began / Review resumed on repeat claims), `RETURNED_TO_QUEUE` (generic copy, no internal reason), `RESOLVED` (Dispute accepted/rejected). Each entry has a Lucide icon, bold label, date/time and one-line message.
+- **Locked-record note** (resolved): "This case is resolved. Your submitted details and the decision are available here for your records." **In-progress note** (open/under review): "Your case is being reviewed. We will update the timeline as your dispute progresses."
 - No reopening button in MVP.
 
 ## 6. Agent journey — Claim, investigate, resolve

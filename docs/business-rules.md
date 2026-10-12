@@ -97,7 +97,7 @@ OPEN (unassigned)
 2. The **Transactions** page (`/customer/transactions?accountId=<id>`) shows an account selector defaulting to the primary account. Transaction list supports **All / Money In / Money Out** filters; selecting a row opens details.
 3. The dispute-submission feature adds **Raise dispute** for completed outgoing transactions without an existing dispute. Incoming credits and pending/failed transactions explain why they cannot be disputed through this flow.
 4. Submission form collects reason and description; show validation, submitting state, and confirmation after success. Prevent accidental repeated clicks; backend remains authoritative.
-5. **My Disputes** shows active and resolved disputes, status, transaction context and a customer-safe timeline.
+5. **Disputes** shows active and resolved disputes, status, transaction context and a customer-safe timeline.
 6. For accepted/rejected disputes, show decision and customer-facing explanation. Never claim funds have been returned unless a future integrated system explicitly proves it.
 
 ### Agent

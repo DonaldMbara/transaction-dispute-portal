@@ -35,7 +35,17 @@ note right
   and masked account only. Desktop shows summary beside the form;
   mobile stacks summary above it. Choose reason, describe, submit directly.
   Confirmation says case received/open; it does not promise a refund.
-  Customer dispute history/detail routes remain deferred.
+end note
+ :Open Disputes from customer navigation /customer/disputes;
+note right
+  All / Active / Resolved tabs, search, status, created-date presets,
+  reset, account scope selector and paginated case list.
+  Mobile cards retain merchant, amount, status, date and View case action.
+end note
+:Open case /customer/disputes/:id;
+note right
+  Customer-safe transaction summary, outcome and curated timeline.
+  No agent identity, internal notes or release reason.
 end note
 stop
 @enduml

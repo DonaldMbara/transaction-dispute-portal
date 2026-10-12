@@ -1,0 +1,51 @@
+<section class="disputes-page" aria-labelledby="disputes-title">
+  <p class="eyebrow">DISPUTES</p>
+  <div class="page-heading">
+    <div><h1 id="disputes-title">Your disputes</h1><p>A clear view of where things stand, from receipt to resolution.</p></div>
+  </div>
+
+  <section class="filters customer-filter-panel" aria-label="Filter disputes">
+    <label class="search-field customer-filter-field"><span>Search cases</span><span class="customer-search-field"><input class="customer-filter-control" type="search" [formControl]="search" placeholder="Case ID or merchant" /><svg class="customer-search-field__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></span></label>
+    <label class="customer-filter-field"><span>Status</span><select class="customer-filter-control" [formControl]="statusDropdown" (change)="onStatusChange()"><option value="ALL">All statuses</option>@for (status of statuses; track status.value) { <option [value]="status.value">{{ status.label }}</option> }</select></label>
+    <label class="customer-filter-field"><span>Created date</span><select class="customer-filter-control" [formControl]="datePreset" (change)="onDatePresetChange()"><option value="any">Any date</option><option value="last7">Last 7 days</option><option value="last30">Last 30 days</option><option value="custom">Custom range</option></select></label>
+    @if (datePreset.value === 'custom') {
+      <label class="customer-filter-field"><span>From</span><input class="customer-filter-control" type="date" [formControl]="fromDate" (change)="updateDates()" /></label>
+      <label class="customer-filter-field"><span>To</span><input class="customer-filter-control" type="date" [formControl]="toDate" (change)="updateDates()" /></label>
+    }
+    <div class="filter-footer">
+      @if (accounts().length) { <app-account-selector [accounts]="accounts()" [selectedAccountId]="allAccounts() ? null : selectedAccountId()" [showAllAccounts]="true" (selectionChange)="selectAccount($event)" /> }
+      <button appButton="tertiary" class="clear-filters customer-filter-reset customer-text-action" type="button" (click)="clearFilters()">Reset filters</button>
+    </div>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="Dispute status groups">
+    @for (option of tabs; track option.value) {
+      <button type="button" role="tab" [attr.data-dispute-tab]="option.value" [attr.aria-selected]="tab() === option.value" [class.active]="tab() === option.value" (click)="setTab(option.value)" (keydown)="onTabKeydown($event, option.value)">{{ tabLabel(option.value, option.label) }}</button>
+    }
+  </div>
+
+  <div class="results-heading customer-results-summary"><h2>{{ total() }} {{ total() === 1 ? 'dispute' : 'disputes' }}</h2><span>{{ sortSummary() }}</span></div>
+
+  @if (loading()) { <div class="loading-panel" aria-busy="true"><app-loading-spinner label="Loading disputes" /></div> }
+  @else if (error() === 'account') { <section class="state-card" role="alert"><h2>Account not available</h2><p>Choose one of your accounts to view its disputes.</p><button appButton="secondary" type="button" (click)="selectAccount(null)">View all accounts</button></section> }
+  @else if (error()) { <section class="state-card" role="alert"><h2>We couldn't load your disputes</h2><p>Please try again.</p><button appButton="secondary" type="button" (click)="load()">Try again</button></section> }
+  @else if (!items().length) { <section class="empty-state" role="status"><h2>No disputes found</h2><p>Need to dispute another payment? Start from Transactions.</p><a appButton="secondary" routerLink="/customer/transactions">View transactions</a></section> }
+  @else {
+    <div class="table-wrap"><table class="customer-data-table customer-data-table--tinted-header"><thead><tr><th scope="col">Case / merchant</th><th scope="col">Amount</th><th scope="col" [attr.aria-sort]="ariaSort('status')"><button class="customer-sort-button" type="button" (click)="toggleSort('status')">Status @if (sortBy() === 'status') { <svg class="visible" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="sortIcon('status')" /></svg> }</button></th><th scope="col" [attr.aria-sort]="ariaSort('createdAt')"><button class="customer-sort-button" type="button" (click)="toggleSort('createdAt')">Created @if (sortBy() === 'createdAt') { <svg class="visible" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="sortIcon('createdAt')" /></svg> }</button></th><th scope="col">Details</th></tr></thead>
+      <tbody>@for (item of items(); track item.id) { <tr>
+        <td class="case-cell"><strong>{{ item.transaction.merchant }}</strong><span>{{ formatDisputeRef(item.id) }} · {{ formatReason(item.reason) }}</span></td>
+        <td class="amount-cell">{{ formatListAmount(item.transaction.amount) }}</td>
+        <td><span class="status-chip" [class]="'status-chip status-chip--' + item.status.toLowerCase()"><svg viewBox="0 0 24 24" aria-hidden="true">@for (path of statusIconPaths[item.status]; track $index) { <path [attr.d]="path" /> }</svg>{{ displayStatus(item.status) }}</span></td>
+        <td class="date-cell">{{ item.createdAt | date:'dd MMM yyyy':'Africa/Johannesburg' }}</td>
+        <td><a appButton="secondary" class="view-case" [routerLink]="['/customer/disputes', item.id]" [queryParams]="{ returnTo: currentUrl }"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>View case</a></td>
+      </tr> }</tbody></table></div>
+    <div class="mobile-cards">@for (item of items(); track item.id) { <article class="dispute-card">
+      <div class="card-top"><strong>{{ item.transaction.merchant }}</strong><strong>{{ formatListAmount(item.transaction.amount) }}</strong></div>
+      <p>{{ formatDisputeRef(item.id) }} · {{ formatReason(item.reason) }}</p>
+      <div class="card-meta"><span class="status-chip" [class]="'status-chip status-chip--' + item.status.toLowerCase()"><svg viewBox="0 0 24 24" aria-hidden="true">@for (path of statusIconPaths[item.status]; track $index) { <path [attr.d]="path" /> }</svg>{{ displayStatus(item.status) }}</span><time>{{ item.createdAt | date:'dd MMM yyyy':'Africa/Johannesburg' }}</time></div>
+      <a appButton="secondary" class="view-case" [routerLink]="['/customer/disputes', item.id]" [queryParams]="{ returnTo: currentUrl }"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>View case</a>
+    </article> }</div>
+    @if (totalPages() > 1) { <nav class="pagination" aria-label="Dispute pages"><button appButton="secondary" type="button" [disabled]="page() <= 1" (click)="changePage(page() - 1)">Previous</button><span>Page {{ page() }} of {{ totalPages() }}</span><button appButton="secondary" type="button" [disabled]="page() >= totalPages()" (click)="changePage(page() + 1)">Next</button></nav> }
+  }
+  <p class="help-note"><span aria-hidden="true">ⓘ</span>Need to dispute another payment? Start from <a routerLink="/customer/transactions">Transactions</a>.</p>
+</section>

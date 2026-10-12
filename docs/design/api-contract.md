@@ -44,8 +44,8 @@ The listed collection capabilities are in the round-two API/UI design scope; spe
 | GET /transactions | CUSTOMER, owned accounts | merchant, reference | accountId (optional UUID); direction=ALL/IN/OUT; status=ALL/PENDING/COMPLETED/FAILED; fromDate,toDate,minAmount,maxAmount | occurredAt, amount, merchant, reference | page,size / 200 |
 | GET /transactions/{id} | CUSTOMER, owned | — | — | — | — / 200 |
 | POST /disputes | CUSTOMER, owned eligible transaction | — | — | — | — / 201 |
-| GET /disputes (later customer feature) | CUSTOMER, owned through transaction → account → customer | dispute UUID (text), submission description, transaction merchant/reference | accountId (optional UUID, forward constraint); status=ALL/OPEN/UNDER_REVIEW/ACCEPTED/REJECTED; reason=ALL or supported reason; fromDate,toDate | createdAt, updatedAt, status | page,size / 200 |
-| GET /disputes/{id} | CUSTOMER, owned | — | — | — | — / 200 |
+| GET /disputes | CUSTOMER, owned through transaction → account → customer | dispute UUID (text), submission description, transaction merchant/reference | accountId (optional UUID); status=ALL/ACTIVE/RESOLVED/OPEN/UNDER_REVIEW/ACCEPTED/REJECTED; reason=ALL or supported reason; fromDate,toDate | createdAt, updatedAt, status | page,size / 200 |
+| GET /disputes/{id} | CUSTOMER, owned through transaction → account → customer | — | — | — | — / 200 |
 | GET /agent/disputes | AGENT | same safe fields as customer dispute search | queue=unassigned/mine/all; same status,reason,date filters | createdAt, updatedAt, status | page,size / 200 |
 | GET /agent/disputes/{id} | AGENT | — | — | — | — / 200 |
 | POST /agent/disputes/{id}/claim | AGENT, OPEN/unassigned | — | — | — | — / 200 |
@@ -56,7 +56,7 @@ Queue defaults to unassigned: OPEN with null assignee. Mine means assigned to ca
 
 GET /accounts is CUSTOMER-only, ownership-scoped, `Cache-Control: no-store`, and uses the existing envelope/correlation rules. It returns the standard {total,page,size,items} collection. Items: id, accountType, displayName (derived from type at the application layer: `MAIN` → "Main Account", `SAVINGS` → "Savings Account"), `accountNumber` (full value for a well-formed owner account; null for malformed stored data), `maskedNumber` (`****` plus last four digits for a well-formed number; exactly `****` otherwise), balance (NUMERIC(19,2) serialized as a two-decimal string), currency ("ZAR"), primary (boolean). Fixed deterministic order: primary first, then created_at ASC, then id ASC. No sort parameters, search or filters; unknown parameters → 400/1004. MVP account types: `MAIN` and `SAVINGS` only. A database CHECK constraint and a Java enum enforce allowed values; adding a type is an additive migration plus an enum change. Do not use any external bank trademark as a type value, display name or fixture label.
 
-The optional `accountId` query parameter on GET /transactions is a resource selector validated against session-derived ownership through the account → customer join. The later customer GET /disputes must accept the same optional single-value UUID and validate ownership through transaction → account → customer. In both cases, it narrows results to one owned account; it never establishes or extends the caller's identity or authorization. A supplied account ID that is absent or non-owned → 404/1003; malformed or duplicate → 400/1004. Omitting it returns all owned records at the API level. GET /transactions/{id}, POST /disputes, and all agent endpoints accept no accountId; agent queues get no account filter. The later customer Disputes page reuses the shared account selector and defaults to the primary account, falling back to the first item in GET /accounts order if none is primary.
+The optional `accountId` query parameter on GET /transactions and GET /disputes is a resource selector validated against session-derived ownership. For disputes, ownership runs through dispute → transaction → account → customer. It narrows results to one owned account; it never establishes or extends the caller's identity or authorization. A supplied account ID that is absent or non-owned → 404/1003; malformed or duplicate → 400/1004. Omitting it returns all owned records at the API level. `accounts=all` exists only in the Angular URL and is omitted from API requests. GET /transactions/{id}, POST /disputes, and all agent endpoints accept no accountId; agent queues get no account filter. The customer Disputes page defaults to the primary account, falling back to the first item in GET /accounts order if none is primary.
 
 Supported reasons: UNRECOGNIZED_TRANSACTION, DUPLICATE_CHARGE, INCORRECT_AMOUNT, GOODS_OR_SERVICES_NOT_RECEIVED, OTHER.
 
@@ -75,7 +75,7 @@ Content-Type: application/json
 {"transactionId":"72824030-2eba-47f9-a4b0-654438d809d1","reason":"DUPLICATE_CHARGE","description":"I was charged twice."}
 ```
 
-201 response data is `{id,transactionId,reason,description,status:"OPEN",createdAt}` and the `Location` header is `/api/v1/disputes/{id}`. The customer-submission scope does not implement GET dispute history or detail, so Location is an identifier for the created resource and is not a claim that those routes are available yet.
+201 response data is `{id,transactionId,reason,description,status:"OPEN",createdAt}` and the `Location` header is `/api/v1/disputes/{id}`. Customers can follow that location to the customer-safe dispute detail resource.
 
 ## 4. Authentication and DTOs
 
@@ -102,7 +102,7 @@ Account list items (GET /accounts): `{id, accountType, displayName, accountNumbe
 
 Transaction list/detail data: `{id,reference,merchant,amount,currency,direction,status,occurredAt,account:{id,maskedNumber},dispute:{id,eligible,ineligibilityReason}}`. `dispute.id` contains the existing dispute UUID or null. Ineligibility reasons are `ALREADY_DISPUTED`, `NOT_COMPLETED`, and `NOT_OUTGOING`; only completed outgoing transactions without disputes are eligible.
 
-Customer dispute list items: `{id,transaction:{id,merchant,reference,amount,currency,account:{id,maskedNumber}},reason,status,createdAt,updatedAt,resolvedAt}`; resolvedAt nullable. Detail adds description, `decision` (null until terminal, otherwise `{outcome,message}`) and customer-safe `timeline:[{type,message,occurredAt}]`. Timeline follows lifecycle order: SUBMITTED; IN_REVIEW on each claim; RETURNED_TO_QUEUE with generic message on release; RESOLVED on resolution. Never return actor IDs, assignee, internal notes, release reasons, raw events or full account numbers; any account context is masked only.
+Customer dispute list items: `{id,transaction:{id,merchant,reference,amount,currency,direction,occurredAt,account:{id,displayName,maskedNumber}},reason,status,createdAt,updatedAt,resolvedAt}`; resolvedAt nullable. Detail adds description, `decision` (null until terminal, otherwise `{outcome,message}`) and customer-safe `timeline:[{type,message,occurredAt}]`. Timeline follows lifecycle order: SUBMITTED; IN_REVIEW on each claim; RETURNED_TO_QUEUE with generic message on release; RESOLVED on resolution. Never return actor IDs, assignee, internal notes, release reasons, raw events or full account numbers; any account context is masked only.
 
 Agent list items add `assignedAgent:{id,email}|null` and version. Agent detail adds description, assignedAt, internalResolutionNotes, customerResolutionMessage, resolvedAt (nullable until applicable) and ordered permitted `events:[{id,disputeVersion,eventType,actorId,fromStatus,toStatus,previousAgentId,newAgentId,internalNotes,customerMessage,createdAt}]`. fromStatus, assignment IDs and notes/messages may be null as appropriate. Agent mutations return the refreshed agent detail DTO, not a customer DTO. No customer-private account number or credentials.
 
@@ -166,7 +166,7 @@ GET /api/v1/accounts?page=1&size=20
 GET /api/v1/transactions?accountId=a1b2c3d4-0001-0000-0000-000000000001&direction=OUT&page=1&size=20
 ```
 
-A supplied malformed or duplicate `accountId` returns `400/1004`; a well-formed UUID for an absent or non-owned account returns `404/1003`. Omitting `accountId` returns transactions across all accounts owned by the authenticated customer. The later customer `GET /api/v1/disputes?accountId=<uuid>` uses the same error behavior and validates transaction → account → customer ownership.
+A supplied malformed or duplicate `accountId` returns `400/1004`; a well-formed UUID for an absent or non-owned account returns `404/1003`. Omitting `accountId` returns transactions across all accounts owned by the authenticated customer. Customer `GET /api/v1/disputes?accountId=<uuid>` uses the same error behavior and validates transaction → account → customer ownership. Status groups `ACTIVE` (OPEN, UNDER_REVIEW) and `RESOLVED` (ACCEPTED, REJECTED) are accepted; `accounts=all` is URL-only and never sent to the API.
 
 201 Created with Location and a per-request X-Correlation-ID:
 ```json
@@ -182,8 +182,13 @@ A supplied malformed or duplicate `accountId` returns `400/1004`; a well-formed 
 ```
 200 paginated customer disputes (single matching item):
 ```json
-{"status":true,"data":{"total":1,"page":1,"size":20,"items":[{"id":"5f9868e0-1272-47ee-b0d2-ef33e4e1d331","transaction":{"id":"72824030-2eba-47f9-a4b0-654438d809d1","merchant":"Example Merchant","reference":"TX-2026-0001","amount":"450.00","currency":"ZAR"},"reason":"DUPLICATE_CHARGE","status":"OPEN","createdAt":"2026-10-10T08:00:00Z","updatedAt":"2026-10-10T08:00:00Z","resolvedAt":null}]},"error_code":0}
+{"status":true,"data":{"total":1,"page":1,"size":20,"items":[{"id":"5f9868e0-1272-47ee-b0d2-ef33e4e1d331","transaction":{"id":"72824030-2eba-47f9-a4b0-654438d809d1","merchant":"Example Merchant","reference":"TX-2026-0001","amount":"450.00","currency":"ZAR","direction":"OUT","occurredAt":"2026-10-10T07:45:00Z","account":{"id":"a1b2c3d4-0001-0000-0000-000000000001","displayName":"Main Account","maskedNumber":"****1467"}},"reason":"DUPLICATE_CHARGE","status":"OPEN","createdAt":"2026-10-10T08:00:00Z","updatedAt":"2026-10-10T08:00:00Z","resolvedAt":null}]},"error_code":0}
 ```
+200 customer dispute detail (sensitive customer context is limited to masked account data):
+```json
+{"status":true,"data":{"id":"5f9868e0-1272-47ee-b0d2-ef33e4e1d331","transaction":{"id":"72824030-2eba-47f9-a4b0-654438d809d1","merchant":"Example Merchant","reference":"TX-2026-0001","amount":"450.00","currency":"ZAR","direction":"OUT","occurredAt":"2026-10-10T07:45:00Z","account":{"id":"a1b2c3d4-0001-0000-0000-000000000001","displayName":"Main Account","maskedNumber":"****1467"}},"reason":"DUPLICATE_CHARGE","status":"ACCEPTED","createdAt":"2026-10-10T08:00:00Z","updatedAt":"2026-10-11T10:00:00Z","resolvedAt":"2026-10-11T10:00:00Z","description":"I was charged twice.","decision":{"outcome":"ACCEPTED","message":"A duplicate charge was confirmed."},"timeline":[{"type":"SUBMITTED","message":"We received your dispute.","occurredAt":"2026-10-10T08:00:00Z"},{"type":"RESOLVED","message":"A duplicate charge was confirmed.","occurredAt":"2026-10-11T10:00:00Z"}]},"error_code":0}
+```
+
 200 empty authorized search results:
 ```json
 {"status":true,"data":{"total":0,"page":1,"size":20,"items":[]},"error_code":0}

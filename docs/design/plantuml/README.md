@@ -21,7 +21,7 @@
 ## UI flows
 
 - [Frontend navigation](frontend-navigation.puml) — Angular routes and responsive shell.
-- [Customer journey](customer-ui-flow.puml) — account dashboard → per-account transactions (with account selector); dispute actions belong to the later dispute-submission feature.
+- [Customer journey](customer-ui-flow.puml) — account dashboard → per-account transactions (with account selector); customer dispute history and timeline follow submission.
 - [Agent journey](agent-ui-flow.puml) — queue → claim → investigate → resolve/release.
 
 ## Approved decisions and deferred implementation details

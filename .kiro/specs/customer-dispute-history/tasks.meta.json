@@ -1,0 +1,158 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "All tasks above are marked complete with their verification criteria satisfied.": [
+      {
+        "executionId": "340d00fc-dd3f-4e30-b610-25f47b505e0a",
+        "chatSessionId": "sess_66af40fb-012f-4247-b077-285b26af4f72",
+        "timestamp": 1791748975670
+      }
+    ],
+    "`mvn verify` passes with no new test failures.": [
+      {
+        "executionId": "340d00fc-dd3f-4e30-b610-25f47b505e0a",
+        "chatSessionId": "sess_66af40fb-012f-4247-b077-285b26af4f72",
+        "timestamp": 1791748975818
+      },
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750230710
+      }
+    ],
+    "`ng test --watch=false` passes (or equivalent browser-based test run).": [
+      {
+        "executionId": "340d00fc-dd3f-4e30-b610-25f47b505e0a",
+        "chatSessionId": "sess_66af40fb-012f-4247-b077-285b26af4f72",
+        "timestamp": 1791748975882
+      }
+    ],
+    "No `any` in Angular TypeScript without a documented justification comment.": [
+      {
+        "executionId": "340d00fc-dd3f-4e30-b610-25f47b505e0a",
+        "chatSessionId": "sess_66af40fb-012f-4247-b077-285b26af4f72",
+        "timestamp": 1791748975962
+      }
+    ],
+    "Serialized HTTP response bodies in integration tests assert the absence of `internalResolutionNotes`, `assignedAgent`, `accountNumber` and agent identity fields.": [
+      {
+        "executionId": "340d00fc-dd3f-4e30-b610-25f47b505e0a",
+        "chatSessionId": "sess_66af40fb-012f-4247-b077-285b26af4f72",
+        "timestamp": 1791748976024
+      }
+    ],
+    "Both `GET /api/v1/disputes` and `GET /api/v1/disputes/{id}` are covered in the `docs/design/api-contract.md` endpoint matrix.": [
+      {
+        "executionId": "340d00fc-dd3f-4e30-b610-25f47b505e0a",
+        "chatSessionId": "sess_66af40fb-012f-4247-b077-285b26af4f72",
+        "timestamp": 1791748976100
+      }
+    ],
+    "Customer header shows \"My Disputes\" link; account dashboard shows \"View my disputes\" shortcut.": [
+      {
+        "executionId": "340d00fc-dd3f-4e30-b610-25f47b505e0a",
+        "chatSessionId": "sess_66af40fb-012f-4247-b077-285b26af4f72",
+        "timestamp": 1791748976203
+      }
+    ],
+    "The Figma-referenced outcome banner, transaction card, case timeline and locked-record note all render correctly at desktop and mobile widths.": [
+      {
+        "executionId": "340d00fc-dd3f-4e30-b610-25f47b505e0a",
+        "chatSessionId": "sess_66af40fb-012f-4247-b077-285b26af4f72",
+        "timestamp": 1791748976291
+      }
+    ],
+    "Task 0 pre-check passed; schema confirmed before any code was written.": [
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750230533
+      },
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750244257
+      },
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750305998
+      }
+    ],
+    "All tasks 1–8 marked complete with their verification criteria satisfied.": [
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750230628
+      },
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750316999
+      }
+    ],
+    "`ng test --watch=false` passes (or equivalent).": [
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750230790
+      }
+    ],
+    "No `any` in Angular TypeScript without a justification comment.": [
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750230900
+      }
+    ],
+    "Serialized HTTP response bodies assert absence of `internalResolutionNotes`, `assignedAgent`, `assignedAt`, `internalNotes`, `actorId`, `previousAgentId`, `newAgentId`, `accountNumber`.": [
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750230963
+      }
+    ],
+    "`status=ACTIVE` and `status=RESOLVED` covered in HTTP tests.": [
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750231041
+      }
+    ],
+    "Both endpoints covered in `docs/design/api-contract.md`.": [
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750231097
+      }
+    ],
+    "Customer header shows \"Disputes\"; dashboard shows \"View Disputes\".": [
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750231176
+      }
+    ],
+    "All / Active / Resolved tabs, date preset, Reset filters, \"All your accounts\" option, row layout, mobile cards, status chip icons all render and behave correctly.": [
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750231235
+      }
+    ],
+    "ACCEPTED banner has no-refund note; REJECTED banner does not.": [
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750231314
+      }
+    ],
+    "`ui-flows.md` §5 updated and consistent with this spec.": [
+      {
+        "executionId": "54fc3529-b503-408c-ab2d-e6f8c739de66",
+        "chatSessionId": "sess_cb29a329-4333-4128-80d8-8121d00440c5",
+        "timestamp": 1791750231374
+      }
+    ]
+  }
+}

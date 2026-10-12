@@ -10,6 +10,7 @@
           @if (auth.state.identity()?.role === 'CUSTOMER') {
             <a routerLink="/customer" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page">Accounts</a>
             <a routerLink="/customer/transactions" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page">Transactions</a>
+            <a routerLink="/customer/disputes" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page">Disputes</a>
           }
           @if (auth.state.identity()?.role === 'AGENT') {
             <a routerLink="/agent">Agent area</a>
@@ -18,7 +19,7 @@
       }
     </div>
     @if (auth.state.phase() === 'authenticated') {
-      <button class="sign-out" appButton="secondary" type="button" [disabled]="pending()" (click)="signOut()">{{ pending() ? 'Signing out…' : 'Sign out' }}</button>
+      <button class="sign-out customer-text-action" appButton="secondary" type="button" [disabled]="pending()" (click)="signOut()">{{ pending() ? 'Signing out…' : 'Sign out' }}</button>
     }
   </div>
 </header>
