@@ -34,7 +34,7 @@ describe('Customer disputes list', () => {
 
   it('requests ACTIVE and RESOLVED groups from their tabs', () => {
     const component = fixture.componentInstance;
-    const mainQuery = () => api.list.calls.allArgs().find(([query]) => query.size === 20)?.[0];
+    const mainQuery = () => api.list.calls.allArgs().filter(([query]) => query.size === 20).at(-1)?.[0];
     component.setTab('ACTIVE'); component.load(); expect(mainQuery()?.status).toBe('ACTIVE');
     component.setTab('RESOLVED'); component.load(); expect(mainQuery()?.status).toBe('RESOLVED');
     component.setTab('ALL'); component.load(); expect(mainQuery()?.status).toBeUndefined();
