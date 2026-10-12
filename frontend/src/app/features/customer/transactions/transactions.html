@@ -7,9 +7,9 @@
     </div>
   }
 
-  <form class="query-controls" [formGroup]="form" aria-label="Transaction search and filters">
-    <label class="search-field">Search merchant or reference
-      <input type="search" formControlName="search" autocomplete="off" />
+  <form class="query-controls customer-filter-panel" [formGroup]="form" aria-label="Transaction search and filters">
+    <label class="search-field customer-filter-field">Search merchant or reference
+      <span class="customer-search-field"><input class="customer-filter-control" type="search" formControlName="search" autocomplete="off" /><svg class="customer-search-field__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></span>
     </label>
     <fieldset class="direction-control">
       <legend>Direction</legend>
@@ -19,19 +19,19 @@
         }
       </div>
     </fieldset>
-    <label class="status-control">Status
-      <select formControlName="status"><option value="ALL">All statuses</option><option value="PENDING">Pending</option><option value="COMPLETED">Completed</option><option value="FAILED">Failed</option></select>
+    <label class="status-control customer-filter-field">Status
+      <select class="customer-filter-control" formControlName="status"><option value="ALL">All statuses</option><option value="PENDING">Pending</option><option value="COMPLETED">Completed</option><option value="FAILED">Failed</option></select>
     </label>
     <details class="advanced-filters" [open]="filtersOpen()">
       <summary (click)="$event.preventDefault(); toggleFilters()">Filters @if (activeFilterCount()) { <span class="filter-count">{{ activeFilterCount() }}</span> }</summary>
       <div class="filter-grid">
-        <label>From date<input type="date" formControlName="fromDate" /></label>
-        <label>To date<input type="date" formControlName="toDate" /></label>
-        <label>Minimum amount<input inputmode="decimal" formControlName="minAmount" /></label>
-        <label>Maximum amount<input inputmode="decimal" formControlName="maxAmount" /></label>
+        <label class="customer-filter-field">From date<input class="customer-filter-control" type="date" formControlName="fromDate" /></label>
+        <label class="customer-filter-field">To date<input class="customer-filter-control" type="date" formControlName="toDate" /></label>
+        <label class="customer-filter-field">Minimum amount<input class="customer-filter-control" inputmode="decimal" formControlName="minAmount" /></label>
+        <label class="customer-filter-field">Maximum amount<input class="customer-filter-control" inputmode="decimal" formControlName="maxAmount" /></label>
       </div>
     </details>
-    @if (activeFilterCount()) { <button class="clear-filters" type="button" (click)="clearFilters()">Clear filters</button> }
+    <button appButton="tertiary" class="clear-filters customer-filter-reset customer-text-action" type="button" (click)="clearFilters()">Reset filters</button>
   </form>
   @if (filterError(); as message) { <p class="filter-error" role="alert">{{ message }}</p> }
 
@@ -52,12 +52,12 @@
   } @else if (state() === 'none') {
     <section class="state" role="status"><h2>No transactions found</h2><p>Try changing your search or filters.</p></section>
   } @else {
-    <div class="result-summary" aria-live="polite"><span>{{ page()?.total }} transactions</span><span>{{ form.controls.sortBy.value === 'occurredAt' ? 'Date · ' + (form.controls.sortDirection.value === 'DESC' ? 'Newest first' : 'Oldest first') : 'Transaction · ' + (form.controls.sortDirection.value === 'DESC' ? 'Z to A' : 'A to Z') }} ↓</span></div>
-    <table class="transaction-table">
+    <div class="result-summary customer-results-summary" aria-live="polite"><span>{{ page()?.total }} transactions</span><span>{{ form.controls.sortBy.value === 'occurredAt' ? 'Date · ' + (form.controls.sortDirection.value === 'DESC' ? 'Newest first' : 'Oldest first') : 'Transaction · ' + (form.controls.sortDirection.value === 'DESC' ? 'Z to A' : 'A to Z') }} ↓</span></div>
+    <table class="transaction-table customer-data-table">
       <thead><tr>
-        <th scope="col" [attr.aria-sort]="ariaSort('merchant')"><button class="sort-button" type="button" aria-label="Sort by Transaction" (click)="sortBy('merchant')">Transaction <svg [class.visible]="isSorted('merchant')" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="sortIcon('merchant')" /></svg></button></th>
-        <th scope="col" [attr.aria-sort]="ariaSort('occurredAt')"><button class="sort-button" type="button" aria-label="Sort by Date" (click)="sortBy('occurredAt')">Date <svg [class.visible]="isSorted('occurredAt')" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="sortIcon('occurredAt')" /></svg></button></th>
-        <th scope="col" [attr.aria-sort]="ariaSort('amount')"><button class="sort-button" type="button" aria-label="Sort by Amount" (click)="sortBy('amount')">Amount <svg [class.visible]="isSorted('amount')" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="sortIcon('amount')" /></svg></button></th>
+        <th scope="col" [attr.aria-sort]="ariaSort('merchant')"><button class="customer-sort-button" type="button" aria-label="Sort by Transaction" (click)="sortBy('merchant')">Transaction <svg [class.visible]="isSorted('merchant')" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="sortIcon('merchant')" /></svg></button></th>
+        <th scope="col" [attr.aria-sort]="ariaSort('occurredAt')"><button class="customer-sort-button" type="button" aria-label="Sort by Date" (click)="sortBy('occurredAt')">Date <svg [class.visible]="isSorted('occurredAt')" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="sortIcon('occurredAt')" /></svg></button></th>
+        <th scope="col" [attr.aria-sort]="ariaSort('amount')"><button class="customer-sort-button" type="button" aria-label="Sort by Amount" (click)="sortBy('amount')">Amount <svg [class.visible]="isSorted('amount')" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="sortIcon('amount')" /></svg></button></th>
         <th scope="col">Status</th><th scope="col"><span class="visually-hidden">Expand transaction</span></th>
       </tr></thead>
       <tbody>
@@ -83,7 +83,7 @@
       </tbody>
     </table>
     <nav class="pagination" aria-label="Transaction pages">
-      <label>Rows per page<select [value]="form.controls.size.value" (change)="changePageSize($any($event.target).value)"><option value="20">20</option><option value="50">50</option><option value="100">100</option></select></label>
+      <label class="customer-filter-field">Rows per page<select class="customer-filter-control" [value]="form.controls.size.value" (change)="changePageSize($any($event.target).value)"><option value="20">20</option><option value="50">50</option><option value="100">100</option></select></label>
       <button appButton="secondary" type="button" [disabled]="pageNumber() <= 1" (click)="previousPage()">Previous</button>
       <span>Page {{ pageNumber() }}</span>
       <button appButton="secondary" type="button" [disabled]="pageNumber() * (page()?.size ?? 20) >= (page()?.total ?? 0)" (click)="nextPage()">Next</button>

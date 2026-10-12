@@ -13,5 +13,7 @@
 .app-button--primary:hover:not(:disabled) { background: var(--color-primary-hover); }
 .app-button--secondary { background: var(--color-surface); color: var(--color-primary); }
 .app-button--secondary:hover:not(:disabled) { background: var(--color-primary-soft); }
+.app-button--tertiary { min-height: 2.25rem; border-color: transparent; background: transparent; color: var(--color-primary); padding-inline: 0; text-decoration: underline; }
+.app-button--tertiary:hover:not(:disabled) { background: transparent; color: var(--color-primary-hover); }
 .app-button:disabled { opacity: .65; cursor: wait; }
 .app-button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }

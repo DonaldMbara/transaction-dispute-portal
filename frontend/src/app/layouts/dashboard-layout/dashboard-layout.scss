@@ -24,7 +24,7 @@ a:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; 
 .customer-shell .portal-navigation { position: absolute; left: 50%; transform: translateX(-50%); gap: 12px; }
 .customer-shell .portal-navigation a { justify-content: center; min-width: 126px; height: 48px; min-height: 0; border-radius: 8px 8px 0 0; }
 .customer-shell .portal-navigation a.is-active { border-bottom: 3px solid var(--color-primary); background: var(--color-primary-soft); }
-.customer-shell .sign-out { height: 48px; padding: 0; border: 0; background: transparent; color: #174daf; font: inherit; font-weight: 700; cursor: pointer; }
+.customer-shell .sign-out { height: 48px; padding: 0; border: 0; background: transparent; color: var(--color-primary); cursor: pointer; }
 @media (max-width: 48rem) {
   .application-header, main, .application-footer { padding: 1rem; }
   .header-start { flex-wrap: wrap; gap: .5rem 1rem; }

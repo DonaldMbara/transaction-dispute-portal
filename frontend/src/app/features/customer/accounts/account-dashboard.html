@@ -34,8 +34,8 @@
       @if (quickLinks().length > 0) {
         <nav class="quick-links" aria-label="Quick links">
           @for (link of quickLinks(); track link.label) {
-            <h2>View transactions</h2>
-            <p>Browse payments and find the transaction you want to dispute.</p>
+            <h2>{{ link.label }}</h2>
+            <p>{{ link.label === 'View transactions' ? 'Browse payments and find a transaction.' : 'Track the progress and outcome of your cases.' }}</p>
             <a [routerLink]="link.routerLink" [queryParams]="link.queryParams"><span>{{ link.label }}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
           }
         </nav>

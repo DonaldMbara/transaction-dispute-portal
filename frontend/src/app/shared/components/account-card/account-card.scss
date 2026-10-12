@@ -31,6 +31,7 @@
 .chevron--expanded { transform: rotate(90deg); }
 .selected-mark { color: var(--color-primary); font-weight: 800; text-align: center; }
 .trailing-space { width: 1.1rem; }
+:host-context(.disputes-page) .account-card { grid-template-columns: 2.35rem minmax(0, 1fr) minmax(0, auto) 1.1rem; gap: .5rem; padding-inline: .75rem; }
 @media (max-width: 600px) {
   .account-card { min-height: 80px; grid-template-columns: 2.2rem minmax(0, 1fr) 1.1rem; gap: .45rem .65rem; padding: .6rem .7rem; }
   .account-balance { grid-column: 2; grid-row: 2; justify-items: start; text-align: left; }

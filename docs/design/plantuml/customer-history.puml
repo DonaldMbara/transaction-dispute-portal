@@ -5,8 +5,8 @@ participant "Angular history" as UI
 participant "CustomerDisputeController" as C
 participant "DisputeQueryService" as S
 database PostgreSQL as DB
-Customer -> UI : Open My Disputes
-UI -> C : GET /disputes?page=1&size=20 + session cookie + filters/search/sort
+Customer -> UI : Open Disputes
+UI -> C : GET /disputes?page=1&size=20 + session cookie + account/status/date/search
 C -> S : List for session principal
 S -> DB : Query disputes through transaction -> account -> customer
 DB --> S : Owned disputes only

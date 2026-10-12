@@ -14,7 +14,7 @@ describe('DashboardLayout', () => {
   let state: SessionState, logout: jasmine.Spy;
   beforeEach(() => {
     logout = jasmine.createSpy('logout');
-    TestBed.configureTestingModule({ imports: [DashboardLayout], providers: [provideRouter([{ path: 'customer', children: [{ path: 'transactions', component: StubCustomerPage }, { path: 'transactions/:id', component: StubCustomerPage }] }, { path: 'agent', children: [] }]), { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState), logout }) }] });
+    TestBed.configureTestingModule({ imports: [DashboardLayout], providers: [provideRouter([{ path: 'customer', children: [{ path: 'transactions', component: StubCustomerPage }, { path: 'transactions/:id', component: StubCustomerPage }, { path: 'disputes', component: StubCustomerPage }, { path: 'disputes/:id', component: StubCustomerPage }] }, { path: 'agent', children: [] }]), { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState), logout }) }] });
     state = TestBed.inject(SessionState);state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'CUSTOMER' });
   });
   it('hosts its child outlet and renders the customer navigation item beside the brand', async () => {
@@ -31,11 +31,15 @@ describe('DashboardLayout', () => {
     const transactionsLink = fixture.nativeElement.querySelector('.portal-navigation a[routerLink="/customer/transactions"]') as HTMLAnchorElement;
     expect(transactionsLink.classList.contains('is-active')).toBeTrue();expect(transactionsLink.getAttribute('aria-current')).toBe('page');
     expect(accountsLink.classList.contains('is-active')).toBeFalse();
+    const disputesLink = fixture.nativeElement.querySelector('.portal-navigation a[routerLink="/customer/disputes"]') as HTMLAnchorElement;
+    expect(disputesLink).toBeTruthy();
+    await TestBed.inject(Router).navigateByUrl('/customer/disputes/10000000-0000-0000-0000-000000000001');fixture.detectChanges();
+    expect(disputesLink.classList.contains('is-active')).toBeTrue();expect(disputesLink.getAttribute('aria-current')).toBe('page');
     await TestBed.inject(Router).navigateByUrl('/customer/transactions/10000000-0000-0000-0000-000000000001');fixture.detectChanges();
     expect(transactionsLink.classList.contains('is-active')).toBeTrue();expect(transactionsLink.getAttribute('aria-current')).toBe('page');
     expect(getComputedStyle(fixture.nativeElement.querySelector('.brand')).color).toBe('rgb(58, 58, 58)');
     state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'AGENT' });fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Agent area');expect(fixture.nativeElement.textContent).not.toContain('Accounts');expect(fixture.nativeElement.textContent).not.toContain('Transactions');
+    expect(fixture.nativeElement.textContent).toContain('Agent area');expect(fixture.nativeElement.textContent).not.toContain('Accounts');expect(fixture.nativeElement.textContent).not.toContain('Transactions');expect(fixture.nativeElement.textContent).not.toContain('Disputes');
   });
   it('locks duplicate sign-out and navigates only after confirmed success', async () => {
     const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(true);

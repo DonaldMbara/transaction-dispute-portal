@@ -33,7 +33,10 @@ export class AccountDashboard implements OnInit {
   readonly quickLinks = computed<DashboardQuickLink[]>(() => {
     const accounts = this.accounts();
     const primary = accounts.find(account => account.primary) ?? accounts[0];
-    return primary ? [{ label: 'View transactions', routerLink: ['/customer/transactions'], queryParams: { accountId: primary.id } }] : [];
+    return primary ? [
+      { label: 'View transactions', routerLink: ['/customer/transactions'], queryParams: { accountId: primary.id } },
+      { label: 'View disputes', routerLink: ['/customer/disputes'] }
+    ] : [];
   });
   readonly formatBalance = formatZar;
   ngOnInit(): void { this.load(); }

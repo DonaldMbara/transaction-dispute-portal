@@ -76,7 +76,8 @@ export class Transactions implements OnInit {
     return (list.find(account => account.primary) ?? list[0])?.id ?? null;
   }
 
-  onAccountChange(id: string): void {
+  onAccountChange(id: string | null): void {
+    if (id === null) return; // transactions page does not support all-accounts mode
     void this.router.navigate([], { relativeTo: this.route, queryParams: { accountId: id, page: 1 }, queryParamsHandling: 'merge' });
   }
 

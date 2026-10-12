@@ -8,5 +8,9 @@ export const CUSTOMER_ROUTES: Routes = [
   { path: 'transactions/:id', loadComponent: () =>
     import('./transaction-detail/transaction-detail').then(m => m.TransactionDetail) },
   { path: 'disputes/new', loadComponent: () =>
-    import('./disputes/dispute-submission').then(m => m.DisputeSubmission) }
+    import('./disputes/dispute-submission').then(m => m.DisputeSubmission) },
+  { path: 'disputes', pathMatch: 'full', loadComponent: () =>
+    import('./disputes/disputes').then(m => m.Disputes) },
+  { path: 'disputes/:id', loadComponent: () =>
+    import('./disputes/dispute-detail/dispute-detail').then(m => m.DisputeDetail) }
 ];

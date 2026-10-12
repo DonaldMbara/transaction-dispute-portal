@@ -38,6 +38,7 @@ describe('AccountDashboard', () => {
     expect(row?.querySelector('.account-mark')).toBeNull();
     expect(row?.classList.contains('account-row--primary')).toBeFalse();
     expect(element.querySelector('nav[aria-label="Quick links"]')?.textContent).toContain('View transactions');
+    expect(element.querySelector('nav[aria-label="Quick links"]')?.textContent).toContain('View disputes');
   });
 
   it('uses different Lucide icon shapes for MAIN and SAVINGS accounts', () => {
@@ -116,6 +117,9 @@ describe('AccountDashboard', () => {
     const quickLink = columns.querySelector('nav[aria-label="Quick links"] a') as HTMLAnchorElement;
     expect(quickLink.textContent).toContain('View transactions');
     expect(quickLink.getAttribute('href')).toBe('/customer/transactions?accountId=account-1');
+    const disputesLink = columns.querySelectorAll('nav[aria-label="Quick links"] a')[1] as HTMLAnchorElement;
+    expect(disputesLink.textContent).toContain('View disputes');
+    expect(disputesLink.getAttribute('href')).toBe('/customer/disputes');
   });
 
   it('keeps account details before the balance in the responsive row structure', () => {
@@ -132,7 +136,7 @@ describe('AccountDashboard', () => {
     expect(getComputedStyle(element.querySelector('.full-number')!).color).toBe('rgb(37, 59, 82)');
     expect(element.textContent).not.toContain('Account number');
     expect(getComputedStyle(element.querySelector('.balance-label')!).color).toBe('rgb(75, 91, 107)');
-    expect(getComputedStyle(element.querySelector('.primary-badge')!).color).toBe('rgb(23, 76, 118)');
+    expect(getComputedStyle(element.querySelector('.primary-badge')!).color).toBe('rgb(23, 77, 175)');
   });
 
   it('omits the account number when the backend returns null', () => {
