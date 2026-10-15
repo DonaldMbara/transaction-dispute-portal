@@ -4,10 +4,10 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.assessment.disputeportal.dispute.model.Dispute;
-import com.assessment.disputeportal.dispute.model.DisputeCreatedEvent;
+import com.assessment.disputeportal.dispute.model.DisputeEvent;
 
 public interface DisputeSubmissionRepository {
     boolean existsForTransaction(UUID transactionId);
     void insert(Dispute dispute);
-    void appendCreated(DisputeCreatedEvent event);
+    void appendCreated(DisputeEvent event);
 }

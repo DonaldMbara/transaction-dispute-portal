@@ -1,0 +1,97 @@
+<section class="case-detail page-shell" aria-labelledby="case-title">
+  @if (loading()) { <app-loading-spinner label="Loading case" /> }
+  @else if (pageError()) {
+    <div class="state-panel" role="alert"><h1>{{ pageError() === 'not-found' ? 'Case not found' : 'Case could not be loaded' }}</h1>
+      <p>{{ pageError() === 'not-found' ? 'This case is unavailable.' : 'Try loading the case again.' }}</p>
+      <button appButton="secondary" type="button" (click)="retryPage()">Try again</button>
+      <a routerLink="/agent/disputes" [queryParams]="backQueryParams">Back to case queue</a>
+    </div>
+  } @else if (detail(); as case) {
+    <a class="back-link" routerLink="/agent/disputes" [queryParams]="backQueryParams">← Back to case queue</a>
+    <header class="page-heading"><p class="eyebrow">{{ case.reference }} · Agent workspace</p><h1 id="case-title">Investigate case</h1>
+      <p class="intro">Review the submission and transaction before deciding the outcome.</p></header>
+    @if (assignedToMe()) { <p class="notice" role="status"><span aria-hidden="true">ⓘ</span> Assigned to you. You can release this case or resolve it as Accepted or Rejected.</p> }
+    @else if (case.status === 'UNDER_REVIEW') { <p class="notice" role="status"><span aria-hidden="true">ⓘ</span> Assigned to another agent. You can review this case, but only its assigned agent can change it.</p> }
+    @else if (terminal()) { <p class="notice" role="status"><span aria-hidden="true">ⓘ</span> This case is resolved and read-only. An accepted decision does not issue a refund or reverse a payment.</p> }
+    @else { <p class="notice" role="status"><span aria-hidden="true">ⓘ</span> This case is in the unassigned queue. Claim it to begin review.</p> }
+
+    <div class="detail-layout">
+      <div class="detail-main">
+        <section class="panel transaction-panel" aria-labelledby="transaction-title">
+          <div class="transaction-heading"><div><p class="panel-kicker">Disputed transaction</p><h2 id="transaction-title">{{ case.merchant }}</h2></div>
+            <strong class="transaction-amount">{{ transactionAmount() }}</strong></div>
+          <dl class="transaction-meta"><div><dt>Account</dt><dd>{{ case.accountDisplayName }} · {{ case.maskedAccountNumber }}</dd></div>
+            <div><dt>Date and time</dt><dd>{{ case.occurredAt | date:'dd MMM yyyy, HH:mm':'Africa/Johannesburg' }}</dd></div>
+            <div><dt>Payment reference</dt><dd>{{ case.transactionReference }}</dd></div></dl>
+        </section>
+
+        <section class="panel" aria-labelledby="submission-title"><h2 id="submission-title">Customer submission</h2>
+          <dl class="submission-meta"><div><dt>Reason</dt><dd>{{ reasonLabel(case.reason) }}</dd></div></dl>
+          <div class="customer-description"><h3>What happened?</h3><p>{{ case.description }}</p></div>
+          <p class="submitted-at">Submitted {{ case.createdAt | date:'dd MMM yyyy at HH:mm':'Africa/Johannesburg' }}</p>
+        </section>
+
+        <section class="panel" aria-labelledby="activity-title"><h2 id="activity-title"><span aria-hidden="true">♙</span> Investigation notes and activity</h2>
+          <p class="internal-label">Internal only · Not shown to the customer</p>
+          @if (case.internalResolutionNotes) { <article class="internal-note"><strong>Resolution notes</strong><p>{{ case.internalResolutionNotes }}</p></article> }
+          <h3 class="subheading">Case activity</h3>
+          <ol class="event-list">@for (event of case.events; track event.id) {
+            <li><time>{{ event.createdAt | date:'dd MMM yyyy · HH:mm':'Africa/Johannesburg' }}</time>
+              <strong>{{ eventActor(event) }} · {{ eventLabel(event) }}</strong>
+              @if (event.internalNotes) { <p class="event-private-note">Internal note: {{ event.internalNotes }}</p> }
+              @if (event.customerMessage) { <p>Customer message: {{ event.customerMessage }}</p> }
+            </li>
+          }</ol>
+        </section>
+      </div>
+
+      <aside class="detail-aside" aria-label="Case actions">
+        <section class="panel case-status-panel"><h2>Your case</h2><span class="status-chip" [class]="'status-chip status-chip--' + statusClass(case.status)">{{ statusLabel(case.status) }}</span>
+          <dl class="side-meta"><div><dt>Assigned to</dt><dd>{{ case.assignedAgent?.id === identity()?.id ? 'You' : case.assignedAgent?.email ?? 'Unassigned' }}</dd></div>
+            @if (case.assignedAt) { <div><dt>{{ terminal() ? 'Resolved by' : 'Review began' }}</dt><dd>{{ case.assignedAt | date:'dd MMM yyyy, HH:mm':'Africa/Johannesburg' }}</dd></div> }
+            @if (case.resolvedAt) { <div><dt>Resolved</dt><dd>{{ case.resolvedAt | date:'dd MMM yyyy, HH:mm':'Africa/Johannesburg' }}</dd></div> }
+          </dl>
+          @if (canClaim()) { <button appButton="primary" type="button" [disabled]="busy()" (click)="claim()">{{ busy() ? 'Claiming…' : 'Claim case' }}</button> }
+          @else if (assignedToMe()) {
+            <hr />
+            @if (formMode() === null) { <button appButton="secondary" type="button" [disabled]="busy()" (click)="formMode.set('release')">Release to queue</button>
+              <p class="action-help">Releasing returns the case to the Received queue and removes your assignment.</p>
+              <button appButton="primary" type="button" [disabled]="busy()" (click)="formMode.set('resolve')">Resolve dispute</button>
+            }
+          }
+          @if (terminal()) { <p class="read-only-note">Resolved · Read-only</p> }
+        </section>
+
+        @if (assignedToMe() && formMode() === 'release') {
+          <section class="panel action-panel" aria-labelledby="release-title"><h2 id="release-title">Release this case</h2>
+            <label for="release-reason">Reason for release</label><textarea id="release-reason" [formControl]="releaseReason" maxlength="2000" rows="4" aria-describedby="release-help release-error"></textarea>
+            <p id="release-help" class="field-help">Internal only. Explain why the case is returning to the queue.</p>
+            @if (releaseReason.touched && (releaseReason.invalid || !releaseReason.value.trim())) { <p id="release-error" class="field-error">Enter a reason of up to 2,000 characters.</p> }
+            <div class="form-actions"><button appButton="primary" type="button" [disabled]="busy()" (click)="askRelease()">Review release</button><button appButton="secondary" type="button" (click)="cancelForm()">Cancel</button></div>
+          </section>
+        }
+        @if (assignedToMe() && formMode() === 'resolve') {
+          <section class="panel action-panel" aria-labelledby="resolve-title"><h2 id="resolve-title">Resolve this dispute</h2>
+            <p class="case-amount">{{ case.reference }} · {{ case.merchant }}<br />Disputed amount: {{ formatAmount(case.amount) }}</p>
+            <fieldset><legend>Decision</legend><label><input type="radio" [formControl]="decision" value="ACCEPT" /> Accept dispute</label><label><input type="radio" [formControl]="decision" value="REJECT" /> Reject dispute</label></fieldset>
+            <label for="internal-notes">Decision explanation for internal records</label><textarea id="internal-notes" [formControl]="internalNotes" maxlength="4000" rows="5"></textarea>
+            @if (internalNotes.touched && (internalNotes.invalid || !internalNotes.value.trim())) { <p class="field-error">Add internal resolution notes (up to 4,000 characters).</p> }
+            <label for="customer-message">Message to customer</label><textarea id="customer-message" [formControl]="customerMessage" maxlength="2000" rows="4"></textarea>
+            @if (customerMessage.touched && (customerMessage.invalid || !customerMessage.value.trim())) { <p class="field-error">Add a customer message (up to 2,000 characters).</p> }
+            <p class="field-help">This message is customer-visible. Do not include internal notes or agent details.</p>
+            <div class="form-actions"><button appButton="primary" type="button" [disabled]="busy()" (click)="askResolve()">Review decision</button><button appButton="secondary" type="button" (click)="cancelForm()">Cancel</button></div>
+          </section>
+        }
+        @if (actionError()) { <p class="action-error" role="alert">{{ actionError() }} <button type="button" appButton="tertiary" (click)="refresh()">Refresh case</button></p> }
+        @if (busy()) { <app-loading-spinner size="small" label="Saving case" /> }
+        @if (confirmMode(); as confirmation) {
+          <div class="confirm-backdrop"><section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-copy">
+            <h2 id="confirm-title">{{ confirmation === 'release' ? 'Release this case?' : confirmation === 'accept' ? 'Accept this dispute?' : 'Reject this dispute?' }}</h2>
+            <p id="confirm-copy">{{ confirmation === 'release' ? 'The case will return to the unassigned queue.' : 'This closes the case and the decision cannot be changed.' }}</p>
+            <div class="form-actions"><button appButton="primary" type="button" [disabled]="busy()" (click)="confirmAction()">Confirm</button><button appButton="secondary" type="button" (click)="cancelConfirmation()">Go back</button></div>
+          </section></div>
+        }
+      </aside>
+    </div>
+  }
+</section>

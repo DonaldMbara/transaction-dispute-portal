@@ -15,6 +15,7 @@ export class DashboardLayout {
     const path = this.router.url.split('?')[0].replace(/\/+$/u, '');
     return path === '/customer' || path.startsWith('/customer/');
   }
+  isAgentRoute(): boolean { return this.router.url.split('?')[0].startsWith('/agent'); }
   async signOut(retry = false): Promise<void> {
     if (this.pending()) return;
     this.actionState.set('busy');this.message.set('');

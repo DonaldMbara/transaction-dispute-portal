@@ -39,7 +39,7 @@ describe('DashboardLayout', () => {
     expect(transactionsLink.classList.contains('is-active')).toBeTrue();expect(transactionsLink.getAttribute('aria-current')).toBe('page');
     expect(getComputedStyle(fixture.nativeElement.querySelector('.brand')).color).toBe('rgb(58, 58, 58)');
     state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'AGENT' });fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Agent area');expect(fixture.nativeElement.textContent).not.toContain('Accounts');expect(fixture.nativeElement.textContent).not.toContain('Transactions');expect(fixture.nativeElement.textContent).not.toContain('Disputes');
+    expect(fixture.nativeElement.textContent).toContain('Agent workspace');expect(fixture.nativeElement.textContent).not.toContain('Accounts');expect(fixture.nativeElement.textContent).not.toContain('Transactions');expect(fixture.nativeElement.textContent).not.toContain('Disputes');
   });
   it('locks duplicate sign-out and navigates only after confirmed success', async () => {
     const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(true);

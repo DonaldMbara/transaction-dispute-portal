@@ -48,4 +48,16 @@ public final class DisputeApiException extends RuntimeException {
         return new DisputeApiException(503, 3002, "service-unavailable", "Service temporarily unavailable",
                 "The service is temporarily unavailable. Retry this unchanged submission.", true);
     }
+    public static DisputeApiException preconditionRequired() {
+        return new DisputeApiException(428, 2007, "precondition-required", "Version required",
+                "Reload this case before making a change.");
+    }
+    public static DisputeApiException staleVersion() {
+        return new DisputeApiException(412, 2006, "version-stale", "Case changed",
+                "This case has changed. Reload it and review the latest details.");
+    }
+    public static DisputeApiException stateConflict() {
+        return new DisputeApiException(409, 2005, "dispute-state-conflict", "Case cannot be changed",
+                "This case is no longer available for that action.");
+    }
 }

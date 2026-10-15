@@ -4,9 +4,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.assessment.disputeportal.dispute.model.Dispute;
-import com.assessment.disputeportal.dispute.model.DisputeCreatedEvent;
+import com.assessment.disputeportal.dispute.model.DisputeEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -33,13 +34,19 @@ public class JdbcDisputeSubmissionRepository implements DisputeSubmissionReposit
     }
 
     @Override
-    public void appendCreated(DisputeCreatedEvent event) {
+    public void appendCreated(DisputeEvent event) {
+        var params = new MapSqlParameterSource().addValue("id", event.id()).addValue("disputeId", event.disputeId())
+                .addValue("actorId", event.actorId()).addValue("version", event.disputeVersion())
+                .addValue("eventType", event.eventType().name())
+                .addValue("fromStatus", event.fromStatus() == null ? null : event.fromStatus().name())
+                .addValue("toStatus", event.toStatus().name()).addValue("previousAgentId", event.previousAgentId())
+                .addValue("newAgentId", event.newAgentId()).addValue("occurredAt", java.sql.Timestamp.from(event.createdAt()));
         jdbc.update("""
                 INSERT INTO dispute_events
                     (id, dispute_id, actor_id, dispute_version, event_type, from_status, to_status,
                      previous_agent_id, new_agent_id, created_at)
-                VALUES (:id, :disputeId, :actorId, 0, 'CREATED', NULL, 'OPEN', NULL, NULL, :occurredAt)
-                """, Map.of("id", event.id(), "disputeId", event.disputeId(),
-                        "actorId", event.actorId(), "occurredAt", java.sql.Timestamp.from(event.occurredAt())));
+                VALUES (:id, :disputeId, :actorId, :version, :eventType, :fromStatus, :toStatus,
+                        :previousAgentId, :newAgentId, :occurredAt)
+                """, params);
     }
 }
