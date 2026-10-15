@@ -5,12 +5,14 @@ import { AuthService } from './auth-service';
 import { SessionState } from './session-state';
 import { landing, safeReturnUrl } from './auth-guards';
 import { routes } from '../../app.routes';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 describe('Session route boundaries', () => {
   let state: SessionState;
   let initialize: jasmine.Spy;
   beforeEach(() => {
     initialize = jasmine.createSpy('initialize').and.resolveTo();
-    TestBed.configureTestingModule({ providers: [provideRouter(routes), { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState), initialize }) }] });
+    TestBed.configureTestingModule({ providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting(), { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState), initialize }) }] });
     state = TestBed.inject(SessionState);
   });
   it('blocks anonymous protected routes and role content', async () => {
@@ -28,7 +30,7 @@ describe('Session route boundaries', () => {
     const harness = await RouterTestingHarness.create();const navigation = harness.navigateByUrl('/agent');
     await Promise.resolve();expect(harness.routeNativeElement?.querySelector('app-agent') ?? null).toBeNull();
     state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'AGENT' });resolve();await navigation;
-    expect(TestBed.inject(Router).url).toBe('/agent');expect(harness.routeNativeElement?.textContent).toContain('Agent');
+    expect(TestBed.inject(Router).url).toBe('/agent/disputes');expect(harness.routeNativeElement?.textContent).toContain('Case queue');
   });
   it('renders retryable initialization failure without protected content', async () => {
     state.unavailable();const harness = await RouterTestingHarness.create();await harness.navigateByUrl('/customer');

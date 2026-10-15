@@ -162,6 +162,14 @@ class CustomerDisputeControllerIntegrationTest {
         return client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
     }
 
+    private HttpResponse<String> post(String path, Session session, String body, Map<String, String> headers) throws Exception {
+        HttpRequest.Builder builder = HttpRequest.newBuilder(uri(path)).timeout(Duration.ofSeconds(10))
+                .header("Cookie", session.cookie()).header("X-CSRF-TOKEN", session.token())
+                .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body));
+        headers.forEach(builder::header);
+        return client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+    }
+
     private URI uri(String path) { return URI.create("http://localhost:" + port + path); }
     private static String cookie(HttpResponse<String> response) {
         return response.headers().firstValue("set-cookie").orElseThrow().split(";", 2)[0];
@@ -394,6 +402,50 @@ class CustomerDisputeControllerIntegrationTest {
         get("/api/v1/disputes", session.cookie());
         HttpResponse<String> second = get("/api/v1/disputes", session.cookie());
         assertThat(second.statusCode()).isEqualTo(200);
+    }
+
+    @Test
+    void agentQueueAndDetailExposeOnlyMaskedContextWithStableVersionTag() throws Exception {
+        setupUsers();
+        List<UUID> txIds = jdbc.queryForList(
+                "SELECT id FROM bank_transactions WHERE account_id=? AND status='COMPLETED' AND direction='OUT'",
+                UUID.class, mainAccountId);
+        UUID disputeId = createOpenDispute(txIds.get(0), Instant.parse("2026-10-01T10:00:00Z"));
+        Session session = login("agent@test.com");
+
+        HttpResponse<String> queue = get("/api/v1/agent/disputes?queue=unassigned", session.cookie());
+        assertThat(queue.statusCode()).isEqualTo(200);
+        JsonNode item = json.readTree(queue.body()).at("/data/items/0");
+        assertThat(json.readTree(queue.body()).at("/data/total").asInt()).isEqualTo(1);
+        assertThat(item.path("status").asText()).isEqualTo("OPEN");
+        assertThat(item.path("amount").asText()).matches("\\d+\\.\\d{2}");
+
+        HttpResponse<String> detail = get("/api/v1/agent/disputes/" + disputeId, session.cookie());
+        assertThat(detail.statusCode()).isEqualTo(200);
+        assertThat(detail.headers().firstValue("ETag")).contains("\"dispute-" + disputeId + "-v0\"");
+        assertThat(detail.body()).contains("maskedAccountNumber").doesNotContain("accountNumber");
+    }
+
+    @Test
+    void claimCommitsVersionedAuditEventAndReturnsFreshEtag() throws Exception {
+        setupUsers();
+        List<UUID> txIds = jdbc.queryForList(
+                "SELECT id FROM bank_transactions WHERE account_id=? AND status='COMPLETED' AND direction='OUT'",
+                UUID.class, mainAccountId);
+        UUID disputeId = createOpenDispute(txIds.get(0), Instant.parse("2026-10-01T10:00:00Z"));
+        Session session = login("agent@test.com");
+        HttpResponse<String> initial = get("/api/v1/agent/disputes/" + disputeId, session.cookie());
+
+        HttpResponse<String> claimed = post("/api/v1/agent/disputes/" + disputeId + "/claim", session, "{}",
+                Map.of("If-Match", initial.headers().firstValue("ETag").orElseThrow()));
+        assertThat(claimed.statusCode()).isEqualTo(200);
+        assertThat(json.readTree(claimed.body()).at("/data/status").asText()).isEqualTo("UNDER_REVIEW");
+        assertThat(json.readTree(claimed.body()).at("/data/version").asLong()).isEqualTo(1L);
+        assertThat(claimed.headers().firstValue("ETag")).contains("\"dispute-" + disputeId + "-v1\"");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dispute_events WHERE dispute_id=?", Integer.class, disputeId))
+                .isEqualTo(2);
+        assertThat(jdbc.queryForObject("SELECT event_type FROM dispute_events WHERE dispute_id=? AND dispute_version=1",
+                String.class, disputeId)).isEqualTo("CLAIMED");
     }
 
     private void assertProhibitedKeysAbsent(String body) {

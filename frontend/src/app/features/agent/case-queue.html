@@ -1,0 +1,81 @@
+<section class="case-queue page-shell" aria-labelledby="queue-title">
+  <header class="page-heading">
+    <p class="eyebrow">Agent workspace · {{ identity()?.email }}</p>
+    <h1 id="queue-title">Case queue</h1>
+    <p class="intro">Find a case, take ownership and keep reviews moving.</p>
+  </header>
+
+  <div class="queue-tabs" role="tablist" aria-label="Case queue">
+    @for (tab of queues; track tab.value) {
+      <button type="button" role="tab" appButton="secondary" [attr.aria-selected]="queue() === tab.value"
+        [class.is-selected]="queue() === tab.value" (click)="setQueue(tab.value)">
+        {{ tab.label }}@if (counts()[tab.value] !== null) { <span> · {{ counts()[tab.value] }}</span> }
+      </button>
+    }
+  </div>
+
+  <section class="filter-panel" aria-label="Filter cases">
+    <label class="field search-field"><span>Search cases</span>
+      <span class="search-control"><input [formControl]="search" type="search" placeholder="Case ID or merchant" autocomplete="off" />
+        <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
+      </span>
+    </label>
+    <label class="field"><span>Status</span><select [formControl]="status" (change)="updateFilters()">
+      <option value="ALL">All statuses</option><option value="OPEN">Received</option><option value="UNDER_REVIEW">Under review</option><option value="ACCEPTED">Accepted</option><option value="REJECTED">Rejected</option>
+    </select></label>
+    <label class="field"><span>Reason</span><select [formControl]="reason" (change)="updateFilters()">
+      <option value="ALL">All reasons</option>@for (option of reasons; track option.value) { <option [value]="option.value">{{ option.label }}</option> }
+    </select></label>
+    <label class="field"><span>From date</span><input [formControl]="fromDate" type="date" [attr.aria-invalid]="dateError() ? 'true' : null" (change)="updateFilters()" /></label>
+    <label class="field"><span>To date</span><input [formControl]="toDate" type="date" [attr.aria-invalid]="dateError() ? 'true' : null" (change)="updateFilters()" /></label>
+    @if (dateError()) { <p class="filter-error" role="alert">{{ dateError() }}</p> }
+    <div class="filter-actions"><button type="button" appButton="tertiary" (click)="resetFilters()">Reset filters</button></div>
+  </section>
+
+  <div class="results-heading"><h2>{{ total() }} {{ total() === 1 ? 'case' : 'cases' }}</h2>
+    <div class="sort-controls"><label class="visually-hidden" for="case-sort-field">Sort cases by</label><select id="case-sort-field" [value]="sortBy()" (change)="setSortField($any($event.target).value)">
+      <option value="createdAt">Created date</option><option value="updatedAt">Updated date</option><option value="status">Status</option>
+    </select><button type="button" class="sort-summary" (click)="toggleSort(sortBy())" aria-label="Reverse sort direction">{{ sortSummary() }}</button></div>
+  </div>
+
+  @if (loading()) { <app-loading-spinner label="Loading cases" /> }
+  @else if (error()) { <div class="state-panel" role="alert"><p>Cases could not be loaded.</p><button appButton="secondary" type="button" (click)="load()">Try again</button></div> }
+  @else if (!items().length) { <div class="state-panel"><h2>No cases found</h2><p>Try changing your search or filters.</p></div> }
+  @else {
+    <div class="table-wrap">
+      <table class="case-table"><caption class="visually-hidden">Dispute cases in the {{ queue() }} queue</caption>
+        <thead><tr>
+          <th scope="col">Case ID</th>
+          <th scope="col">Merchant</th><th scope="col">Amount</th><th scope="col">Reason</th>
+          <th scope="col" [attr.aria-sort]="ariaSort('status')"><button type="button" (click)="toggleSort('status')">Status {{ sortBy() === 'status' ? (sortDirection() === 'DESC' ? '↓' : '↑') : '' }}</button></th><th scope="col" [attr.aria-sort]="sortBy() === 'createdAt' ? ariaSort('createdAt') : 'none'"><button type="button" (click)="setSortField('createdAt')">Created {{ sortBy() === 'createdAt' ? (sortDirection() === 'DESC' ? '↓' : '↑') : '' }}</button></th>
+          <th scope="col">Assignee</th><th scope="col">Action</th>
+        </tr></thead>
+        <tbody>@for (item of items(); track item.id) {
+          <tr [class.is-mine]="item.assignedAgent?.id === identity()?.id && item.status === 'UNDER_REVIEW'">
+            <td><a [routerLink]="['/agent/disputes', item.id]" [queryParams]="detailQueryParams()">{{ item.reference }}</a></td>
+            <td class="merchant">{{ item.merchant }}</td><td class="amount">{{ amount(item.amount) }}</td><td>{{ reasonLabel(item.reason) }}</td>
+            <td><span class="status-chip" [class]="'status-chip status-chip--' + statusClass(item.status)">{{ label(item.status) }}</span>
+              @if (item.status === 'ACCEPTED' || item.status === 'REJECTED') { <span class="read-only">Read-only</span> }
+            </td>
+            <td>{{ item.createdAt | date:'dd MMM yyyy':'Africa/Johannesburg' }}<small>{{ item.createdAt | date:'HH:mm':'Africa/Johannesburg' }}</small></td>
+            <td>{{ item.assignedAgent?.email ?? 'Unassigned' }}</td>
+            <td><a [appButton]="actionVariant(item)" [routerLink]="['/agent/disputes', item.id]" [queryParams]="detailQueryParams()">{{ action(item) }}</a></td>
+          </tr>
+        }</tbody>
+      </table>
+    </div>
+    <div class="mobile-cases">@for (item of items(); track item.id) {
+      <article class="case-card" [class.is-mine]="item.assignedAgent?.id === identity()?.id && item.status === 'UNDER_REVIEW'">
+        <header><a [routerLink]="['/agent/disputes', item.id]" [queryParams]="detailQueryParams()">{{ item.reference }}</a>
+          <span class="status-chip" [class]="'status-chip status-chip--' + statusClass(item.status)">{{ label(item.status) }}</span></header>
+        <div class="merchant-amount"><h3>{{ item.merchant }}</h3><strong>{{ amount(item.amount) }}</strong></div>
+        <dl><div><dt>Reason</dt><dd>{{ reasonLabel(item.reason) }}</dd></div><div><dt>Created</dt><dd>{{ item.createdAt | date:'dd MMM yyyy · HH:mm':'Africa/Johannesburg' }}</dd></div><div><dt>Assignee</dt><dd>{{ item.assignedAgent?.email ?? 'Unassigned' }}</dd></div></dl>
+        <a [appButton]="actionVariant(item)" [routerLink]="['/agent/disputes', item.id]" [queryParams]="detailQueryParams()">{{ action(item) }}</a>
+      </article>
+    }</div>
+    <nav class="pagination" aria-label="Case pages"><span>Showing {{ (page() - 1) * pageSize + 1 }}–{{ (page() - 1) * pageSize + items().length }} of {{ total() }} cases</span>
+      <div><button appButton="secondary" type="button" [disabled]="page() <= 1" (click)="changePage(page() - 1)">Previous</button><span>Page {{ page() }} of {{ totalPages() }}</span><button appButton="secondary" type="button" [disabled]="page() >= totalPages()" (click)="changePage(page() + 1)">Next</button></div>
+    </nav>
+  }
+  <p class="queue-note">Claim unassigned cases. Only the assigned agent can release or resolve a case. Resolved cases remain read-only.</p>
+</section>

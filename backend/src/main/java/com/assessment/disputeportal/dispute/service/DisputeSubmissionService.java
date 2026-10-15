@@ -11,7 +11,7 @@ import java.util.UUID;
 import com.assessment.disputeportal.common.ApiEnvelope;
 import com.assessment.disputeportal.dispute.exception.DisputeApiException;
 import com.assessment.disputeportal.dispute.model.Dispute;
-import com.assessment.disputeportal.dispute.model.DisputeCreatedEvent;
+import com.assessment.disputeportal.dispute.model.DisputeEvent;
 import com.assessment.disputeportal.dispute.model.DisputeReason;
 import com.assessment.disputeportal.dispute.model.DisputeStatus;
 import com.assessment.disputeportal.dispute.model.dto.DisputeSubmissionResponse;
@@ -88,7 +88,7 @@ public class DisputeSubmissionService {
         UUID disputeId = UUID.randomUUID();
         var dispute = new Dispute(disputeId, transactionId, reason, description, DisputeStatus.OPEN, now, now, 0);
         disputes.insert(dispute);
-        disputes.appendCreated(new DisputeCreatedEvent(UUID.randomUUID(), disputeId, customerId, now));
+        disputes.appendCreated(DisputeEvent.created(UUID.randomUUID(), disputeId, customerId, now));
         var data = new DisputeSubmissionResponse(disputeId, transactionId, reason, description, DisputeStatus.OPEN, now);
         JsonNode response = json.valueToTree(ApiEnvelope.success(data));
         idempotency.save(customerId, OPERATION, key, hash, response);

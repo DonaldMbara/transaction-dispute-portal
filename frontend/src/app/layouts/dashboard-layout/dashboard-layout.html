@@ -1,9 +1,9 @@
-<header class="application-header" [class.customer-shell]="isCustomerRoute()">
+<header class="application-header" [class.customer-shell]="isCustomerRoute()" [class.agent-shell]="isAgentRoute()">
   <div class="header-content">
     <div class="header-start">
       <a class="brand" routerLink="/">
-        @if (auth.state.identity()?.role === 'CUSTOMER') { <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 4.7-2.9 8-7 10-4.1-2-7-5.3-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg></span> }
-        <span>Transaction Dispute Portal</span>
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 4.7-2.9 8-7 10-4.1-2-7-5.3-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <span class="brand-copy"><span>Transaction Dispute Portal</span>@if (auth.state.identity()?.role === 'AGENT') { <small>Agent workspace</small> }</span>
       </a>
       @if (auth.state.phase() === 'authenticated') {
         <nav class="portal-navigation" aria-label="Portal navigation">
@@ -13,7 +13,7 @@
             <a routerLink="/customer/disputes" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page">Disputes</a>
           }
           @if (auth.state.identity()?.role === 'AGENT') {
-            <a routerLink="/agent">Agent area</a>
+            <a routerLink="/agent/disputes" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page">Case queue</a>
           }
         </nav>
       }

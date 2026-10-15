@@ -81,6 +81,8 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/v1/transactions", "/api/v1/transactions/{id}").hasRole("CUSTOMER")
                         .requestMatchers(HttpMethod.POST, "/api/v1/disputes").hasRole("CUSTOMER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/disputes", "/api/v1/disputes/**").hasRole("CUSTOMER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/agent/disputes", "/api/v1/agent/disputes/**").hasRole("AGENT")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/agent/disputes/**").hasRole("AGENT")
                         .anyRequest().denyAll())
                 .exceptionHandling(failures -> failures.accessDeniedHandler(denied)
                         .authenticationEntryPoint((request, response, failure) -> errors.write(response, 401,

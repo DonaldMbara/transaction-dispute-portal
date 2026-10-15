@@ -5,11 +5,13 @@ import { routes } from './app.routes';
 import { AuthService } from './core/auth/auth-service';
 import { SessionState } from './core/auth/session-state';
 import { AccountApi } from './features/customer/accounts/account-api';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 
 describe('Foundation routing', () => {
   beforeEach(() => TestBed.configureTestingModule({ providers: [
-    provideRouter(routes),
+    provideRouter(routes), provideHttpClient(), provideHttpClientTesting(),
     { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState), initialize: () => Promise.resolve() }) },
     { provide: AccountApi, useValue: { list: () => of({ items: [], page: 0, size: 0, total: 0 }) } }
   ] }));
@@ -17,7 +19,7 @@ describe('Foundation routing', () => {
   for (const [url, heading, inDashboard] of [
     ['/login', 'Welcome back', false],
     ['/customer', 'Accounts', true],
-    ['/agent', 'Agent', true]
+    ['/agent', 'Case queue', true]
   ] as const) {
     it(`renders ${url} in the correct layout`, async () => {
       TestBed.inject(SessionState).authenticated({ id: 'fixture', email: 'fixture@example.test', role: url === '/agent' ? 'AGENT' : 'CUSTOMER' });
@@ -27,7 +29,7 @@ describe('Foundation routing', () => {
       expect(element?.querySelector('h1')?.textContent).toBe(heading);
       expect(element?.tagName.toLowerCase() === 'app-dashboard-layout').toBe(inDashboard);
       expect(element?.querySelectorAll('main').length).toBe(1);
-      expect(TestBed.inject(Router).url).toBe(url);
+      expect(TestBed.inject(Router).url).toBe(url === '/agent' ? '/agent/disputes' : url);
     });
   }
 
@@ -35,9 +37,9 @@ describe('Foundation routing', () => {
     TestBed.inject(SessionState).authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'AGENT' });
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/');
-    expect(TestBed.inject(Router).url).toBe('/agent');
+    expect(TestBed.inject(Router).url).toBe('/agent/disputes');
     await harness.navigateByUrl('/unknown/path');
-    expect(TestBed.inject(Router).url).toBe('/agent');
+    expect(TestBed.inject(Router).url).toBe('/agent/disputes');
   });
 
   it('resolves anonymous root to login without rendering welcome content', async () => {
@@ -61,8 +63,8 @@ describe('Foundation routing', () => {
     for (const [url, heading] of [['/customer', 'Accounts'], ['/agent', 'Agent'], ['/login', 'Welcome back']]) {
       TestBed.inject(SessionState).authenticated({ id: 'fixture', email: 'fixture@example.test', role: url === '/agent' ? 'AGENT' : 'CUSTOMER' });
       await harness.navigateByUrl(url);
-      expect(TestBed.inject(Router).url).toBe(url);
-      expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe(heading);
+      expect(TestBed.inject(Router).url).toBe(url === '/agent' ? '/agent/disputes' : url);
+      expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe(url === '/agent' ? 'Case queue' : heading);
     }
   });
 });
