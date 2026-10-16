@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import com.assessment.disputeportal.account.AccountNumberMask;
+import com.assessment.disputeportal.account.mapper.AccountNumberMask;
 import com.assessment.disputeportal.account.model.AccountType;
 import com.assessment.disputeportal.account.port.AccountFixturePort;
 import com.assessment.disputeportal.account.repository.AccountFixtureRepository;

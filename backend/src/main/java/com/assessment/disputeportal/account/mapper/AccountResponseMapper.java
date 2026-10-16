@@ -2,7 +2,7 @@ package com.assessment.disputeportal.account.mapper;
 
 import java.math.RoundingMode;
 
-import com.assessment.disputeportal.account.AccountNumberMask;
+import com.assessment.disputeportal.account.mapper.AccountNumberMask;
 import com.assessment.disputeportal.account.model.BankAccount;
 import com.assessment.disputeportal.account.model.dto.AccountResponse;
 import lombok.extern.slf4j.Slf4j;

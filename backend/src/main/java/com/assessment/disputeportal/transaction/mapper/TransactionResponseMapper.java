@@ -1,6 +1,6 @@
 package com.assessment.disputeportal.transaction.mapper;
 
-import com.assessment.disputeportal.account.AccountNumberMask;
+import com.assessment.disputeportal.account.mapper.AccountNumberMask;
 import com.assessment.disputeportal.transaction.model.TransactionStatus;
 import com.assessment.disputeportal.transaction.model.dto.TransactionResponse;
 import com.assessment.disputeportal.transaction.repository.TransactionReadRow;

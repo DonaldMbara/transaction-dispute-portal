@@ -1,6 +1,6 @@
 package com.assessment.disputeportal.dispute.repository;
 
-import com.assessment.disputeportal.account.AccountNumberMask;
+import com.assessment.disputeportal.account.mapper.AccountNumberMask;
 import com.assessment.disputeportal.account.model.AccountType;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailDto;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeEventDto;

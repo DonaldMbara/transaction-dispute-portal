@@ -3,6 +3,7 @@ package com.assessment.disputeportal.account.repository;
 import java.util.List;
 import java.util.UUID;
 
+import com.assessment.disputeportal.account.mapper.BankAccountMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;

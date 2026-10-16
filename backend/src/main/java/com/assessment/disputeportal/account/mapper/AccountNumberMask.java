@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.account;
+package com.assessment.disputeportal.account.mapper;
 
 import java.util.regex.Pattern;
 
