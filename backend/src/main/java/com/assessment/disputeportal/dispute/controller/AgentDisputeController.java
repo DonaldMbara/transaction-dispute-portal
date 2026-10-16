@@ -4,7 +4,7 @@ import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailDto;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeListItemDto;
-import com.assessment.disputeportal.dispute.model.dto.AgentDisputeQuery;
+import com.assessment.disputeportal.dispute.model.query.AgentDisputeQuery;
 import com.assessment.disputeportal.dispute.service.AgentDisputeQueryParser;
 import com.assessment.disputeportal.dispute.service.AgentDisputeQueryService;
 import com.assessment.disputeportal.security.activity.AuthenticatedActivity;

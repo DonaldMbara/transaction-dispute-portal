@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.transaction.repository;
+package com.assessment.disputeportal.transaction.model.projection;
 
 import com.assessment.disputeportal.transaction.model.BankTransaction;
 import java.util.UUID;

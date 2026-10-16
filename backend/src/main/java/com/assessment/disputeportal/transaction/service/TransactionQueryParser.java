@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.transaction.model.TransactionDirection;
-import com.assessment.disputeportal.transaction.model.TransactionQuery;
+import com.assessment.disputeportal.transaction.model.query.TransactionQuery;
 import com.assessment.disputeportal.transaction.model.TransactionStatus;
 import org.springframework.stereotype.Component;
 

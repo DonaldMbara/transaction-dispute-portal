@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.dispute.model.dto;
+package com.assessment.disputeportal.dispute.model.query;
 
 import org.springframework.data.domain.PageRequest;
 

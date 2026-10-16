@@ -1,7 +1,7 @@
 package com.assessment.disputeportal.dispute.mapper;
 
 import com.assessment.disputeportal.dispute.model.dto.CustomerTimelineEntry;
-import com.assessment.disputeportal.dispute.model.dto.EventProjection;
+import com.assessment.disputeportal.dispute.model.projection.EventProjection;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

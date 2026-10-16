@@ -1,7 +1,7 @@
 package com.assessment.disputeportal.dispute.service;
 
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
-import com.assessment.disputeportal.dispute.model.dto.AgentQueue;
+import com.assessment.disputeportal.dispute.model.AgentQueue;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

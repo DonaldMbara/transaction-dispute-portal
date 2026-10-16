@@ -3,7 +3,7 @@ package com.assessment.disputeportal.transaction.mapper;
 import com.assessment.disputeportal.account.mapper.AccountNumberMask;
 import com.assessment.disputeportal.transaction.model.TransactionStatus;
 import com.assessment.disputeportal.transaction.model.dto.TransactionResponse;
-import com.assessment.disputeportal.transaction.repository.TransactionReadRow;
+import com.assessment.disputeportal.transaction.model.projection.TransactionReadRow;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

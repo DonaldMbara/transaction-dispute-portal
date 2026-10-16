@@ -3,7 +3,7 @@ package com.assessment.disputeportal.dispute.service;
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailDto;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeListItemDto;
-import com.assessment.disputeportal.dispute.model.dto.AgentDisputeQuery;
+import com.assessment.disputeportal.dispute.model.query.AgentDisputeQuery;
 import com.assessment.disputeportal.dispute.repository.AgentDisputeReadRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.dispute.model.dto;
+package com.assessment.disputeportal.dispute.model.projection;
 
 import java.time.Instant;
 

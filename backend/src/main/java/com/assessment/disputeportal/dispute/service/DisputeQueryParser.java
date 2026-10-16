@@ -1,8 +1,8 @@
 package com.assessment.disputeportal.dispute.service;
 
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
-import com.assessment.disputeportal.dispute.model.dto.DisputeQuery;
-import com.assessment.disputeportal.dispute.model.dto.StatusPredicate;
+import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
+import com.assessment.disputeportal.dispute.model.query.StatusPredicate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;

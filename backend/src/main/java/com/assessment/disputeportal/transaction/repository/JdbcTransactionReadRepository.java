@@ -12,7 +12,8 @@ import java.util.UUID;
 
 import com.assessment.disputeportal.transaction.model.BankTransaction;
 import com.assessment.disputeportal.transaction.model.TransactionDirection;
-import com.assessment.disputeportal.transaction.model.TransactionQuery;
+import com.assessment.disputeportal.transaction.model.projection.TransactionReadRow;
+import com.assessment.disputeportal.transaction.model.query.TransactionQuery;
 import com.assessment.disputeportal.transaction.model.TransactionStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;

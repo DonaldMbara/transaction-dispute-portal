@@ -9,7 +9,7 @@ import java.util.UUID;
 import com.assessment.disputeportal.transaction.model.BankTransaction;
 import com.assessment.disputeportal.transaction.model.TransactionDirection;
 import com.assessment.disputeportal.transaction.model.TransactionStatus;
-import com.assessment.disputeportal.transaction.repository.TransactionReadRow;
+import com.assessment.disputeportal.transaction.model.projection.TransactionReadRow;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 

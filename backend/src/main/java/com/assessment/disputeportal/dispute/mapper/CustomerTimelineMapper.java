@@ -5,7 +5,7 @@ package com.assessment.disputeportal.dispute.mapper;
 // Excluded: actor_id, from_status, to_status, previous_agent_id, new_agent_id, internal_notes
 
 import com.assessment.disputeportal.dispute.model.dto.CustomerTimelineEntry;
-import com.assessment.disputeportal.dispute.model.dto.EventProjection;
+import com.assessment.disputeportal.dispute.model.projection.EventProjection;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

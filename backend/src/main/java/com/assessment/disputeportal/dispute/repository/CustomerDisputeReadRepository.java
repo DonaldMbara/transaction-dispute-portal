@@ -2,8 +2,8 @@ package com.assessment.disputeportal.dispute.repository;
 
 import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailDto;
 import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemDto;
-import com.assessment.disputeportal.dispute.model.dto.DisputeQuery;
-import com.assessment.disputeportal.dispute.model.dto.EventProjection;
+import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
+import com.assessment.disputeportal.dispute.model.projection.EventProjection;
 import org.springframework.data.domain.Page;
 
 import java.util.List;

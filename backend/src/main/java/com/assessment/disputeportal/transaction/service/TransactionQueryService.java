@@ -3,10 +3,10 @@ package com.assessment.disputeportal.transaction.service;
 import java.util.UUID;
 
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;
-import com.assessment.disputeportal.transaction.model.TransactionPage;
-import com.assessment.disputeportal.transaction.model.TransactionQuery;
+import com.assessment.disputeportal.transaction.model.projection.TransactionPage;
+import com.assessment.disputeportal.transaction.model.query.TransactionQuery;
 import com.assessment.disputeportal.transaction.repository.TransactionReadRepository;
-import com.assessment.disputeportal.transaction.repository.TransactionReadRow;
+import com.assessment.disputeportal.transaction.model.projection.TransactionReadRow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

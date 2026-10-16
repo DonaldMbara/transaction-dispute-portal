@@ -2,9 +2,9 @@ package com.assessment.disputeportal.dispute.service;
 
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.dispute.model.DisputeReason;
-import com.assessment.disputeportal.dispute.model.dto.AgentDisputeQuery;
-import com.assessment.disputeportal.dispute.model.dto.AgentQueue;
-import com.assessment.disputeportal.dispute.model.dto.DisputeQuery;
+import com.assessment.disputeportal.dispute.model.query.AgentDisputeQuery;
+import com.assessment.disputeportal.dispute.model.AgentQueue;
+import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

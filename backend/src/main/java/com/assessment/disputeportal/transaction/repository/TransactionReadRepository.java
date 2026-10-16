@@ -4,7 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.assessment.disputeportal.transaction.model.TransactionQuery;
+import com.assessment.disputeportal.transaction.model.projection.TransactionReadRow;
+import com.assessment.disputeportal.transaction.model.query.TransactionQuery;
 
 public interface TransactionReadRepository {
     boolean ownsAccount(UUID customerId, UUID accountId);
