@@ -2,7 +2,7 @@ package com.assessment.disputeportal.dispute.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.assessment.disputeportal.dispute.model.dto.CustomerTimelineEntry;
+import com.assessment.disputeportal.dispute.model.dto.CustomerTimelineItemResponse;
 import com.assessment.disputeportal.dispute.model.projection.EventProjection;
 import java.time.Instant;
 import java.util.List;
@@ -32,7 +32,7 @@ class CustomerTimelineMapperTest {
   void singleCreatedEventMapsToSubmitted() {
     var events = List.of(new EventProjection(0, "CREATED", null, T1));
 
-    List<CustomerTimelineEntry> result = mapper.map(events);
+    List<CustomerTimelineItemResponse> result = mapper.map(events);
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).type()).isEqualTo("SUBMITTED");
@@ -44,7 +44,7 @@ class CustomerTimelineMapperTest {
   void singleClaimedEventMapsToInReviewWithBeingReviewedMessage() {
     var events = List.of(new EventProjection(1, "CLAIMED", null, T2));
 
-    List<CustomerTimelineEntry> result = mapper.map(events);
+    List<CustomerTimelineItemResponse> result = mapper.map(events);
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).type()).isEqualTo("IN_REVIEW");
@@ -61,7 +61,7 @@ class CustomerTimelineMapperTest {
             new EventProjection(2, "RELEASED", null, T3),
             new EventProjection(3, "CLAIMED", null, T4));
 
-    List<CustomerTimelineEntry> result = mapper.map(events);
+    List<CustomerTimelineItemResponse> result = mapper.map(events);
 
     assertThat(result).hasSize(4);
 
@@ -85,7 +85,7 @@ class CustomerTimelineMapperTest {
     String customerMsg = "A duplicate charge was confirmed. This case is now resolved.";
     var events = List.of(new EventProjection(1, "RESOLVED_ACCEPTED", customerMsg, T5));
 
-    List<CustomerTimelineEntry> result = mapper.map(events);
+    List<CustomerTimelineItemResponse> result = mapper.map(events);
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).type()).isEqualTo("RESOLVED");
@@ -98,7 +98,7 @@ class CustomerTimelineMapperTest {
     String customerMsg = "We could not confirm a duplicate charge.";
     var events = List.of(new EventProjection(1, "RESOLVED_REJECTED", customerMsg, T5));
 
-    List<CustomerTimelineEntry> result = mapper.map(events);
+    List<CustomerTimelineItemResponse> result = mapper.map(events);
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).type()).isEqualTo("RESOLVED");
@@ -114,7 +114,7 @@ class CustomerTimelineMapperTest {
             new EventProjection(1, "UNKNOWN_FUTURE_EVENT", null, T2),
             new EventProjection(2, "RESOLVED_ACCEPTED", "Resolved.", T3));
 
-    List<CustomerTimelineEntry> result = mapper.map(events);
+    List<CustomerTimelineItemResponse> result = mapper.map(events);
 
     assertThat(result).hasSize(2);
     assertThat(result.get(0).type()).isEqualTo("SUBMITTED");
@@ -135,7 +135,7 @@ class CustomerTimelineMapperTest {
   void releasedMapsToReturnedToQueueWithGenericMessage() {
     var events = List.of(new EventProjection(2, "RELEASED", null, T3));
 
-    List<CustomerTimelineEntry> result = mapper.map(events);
+    List<CustomerTimelineItemResponse> result = mapper.map(events);
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).type()).isEqualTo("RETURNED_TO_QUEUE");
@@ -153,7 +153,7 @@ class CustomerTimelineMapperTest {
             new EventProjection(3, "CLAIMED", null, T4),
             new EventProjection(4, "RESOLVED_ACCEPTED", resolvedMsg, T5));
 
-    List<CustomerTimelineEntry> result = mapper.map(events);
+    List<CustomerTimelineItemResponse> result = mapper.map(events);
 
     assertThat(result).hasSize(5);
     assertThat(result.get(0).type()).isEqualTo("SUBMITTED");

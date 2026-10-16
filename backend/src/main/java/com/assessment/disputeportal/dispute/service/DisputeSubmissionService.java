@@ -8,7 +8,7 @@ import com.assessment.disputeportal.dispute.model.DisputeReason;
 import com.assessment.disputeportal.dispute.model.DisputeStatus;
 import com.assessment.disputeportal.dispute.model.dto.DisputeSubmissionResponse;
 import com.assessment.disputeportal.dispute.repository.DisputeSubmissionRepository;
-import com.assessment.disputeportal.idempotency.DisputeIdempotencyRepository;
+import com.assessment.disputeportal.idempotency.IdempotencyRepository;
 import com.assessment.disputeportal.idempotency.IdempotencyResult;
 import com.assessment.disputeportal.transaction.model.TransactionStatus;
 import com.assessment.disputeportal.transaction.port.DisputeTransactionPort;
@@ -37,7 +37,7 @@ public class DisputeSubmissionService {
   private static final String OPERATION = "customer-dispute-submit";
   private final DisputeTransactionPort transactions;
   private final DisputeSubmissionRepository disputes;
-  private final DisputeIdempotencyRepository idempotency;
+  private final IdempotencyRepository idempotency;
   private final ObjectMapper json;
   private final JdbcTemplate jdbc;
   private final PlatformTransactionManager transactionManager;

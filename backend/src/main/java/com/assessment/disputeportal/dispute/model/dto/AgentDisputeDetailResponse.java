@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-public record AgentDisputeDetailDto(
+public record AgentDisputeDetailResponse(
     UUID id,
     String reference,
     UUID transactionId,
@@ -24,12 +24,12 @@ public record AgentDisputeDetailDto(
     Instant updatedAt,
     Instant assignedAt,
     Instant resolvedAt,
-    AgentIdentitySummary assignedAgent,
+    AgentIdentityResponse assignedAgent,
     String internalResolutionNotes,
     String customerResolutionMessage,
     long version,
-    List<AgentDisputeEventDto> events) {
-  public AgentDisputeDetailDto {
+    List<AgentDisputeEventResponse> events) {
+  public AgentDisputeDetailResponse {
     events = List.copyOf(events);
   }
 }

@@ -3,8 +3,8 @@ package com.assessment.disputeportal.dispute.controller;
 import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.common.api.PageResponse;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
-import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailDto;
-import com.assessment.disputeportal.dispute.model.dto.AgentDisputeListItemDto;
+import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailResponse;
+import com.assessment.disputeportal.dispute.model.dto.AgentDisputeListItemResponse;
 import com.assessment.disputeportal.dispute.model.query.AgentDisputeQuery;
 import com.assessment.disputeportal.dispute.service.AgentDisputeCommandService;
 import com.assessment.disputeportal.dispute.service.AgentDisputeQueryService;
@@ -43,7 +43,7 @@ public final class AgentDisputeController {
   public ResponseEntity<ApiEnvelope<?>> list(
       @AuthenticationPrincipal SessionPrincipal principal, HttpServletRequest request) {
     AgentDisputeQuery query = parser.parse(request.getParameterMap(), principal.accountId());
-    Page<AgentDisputeListItemDto> page = service.list(query);
+    Page<AgentDisputeListItemResponse> page = service.list(query);
     var response =
         new PageResponse<>(
             page.getTotalElements(),
@@ -69,7 +69,7 @@ public final class AgentDisputeController {
     } catch (IllegalArgumentException failure) {
       throw new InvalidRequestException("Dispute ID must be a valid UUID.");
     }
-    AgentDisputeDetailDto detail = service.detail(disputeId);
+    AgentDisputeDetailResponse detail = service.detail(disputeId);
     String etag = AgentIfMatch.format(detail.id(), detail.version());
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
@@ -88,7 +88,7 @@ public final class AgentDisputeController {
       throw new InvalidRequestException("Claim command accepts an empty object only.");
     }
     AgentIfMatch precondition = ifMatch(request);
-    AgentDisputeDetailDto result =
+    AgentDisputeDetailResponse result =
         commands.claim(
             parseId(id), principal.accountId(), precondition.disputeId(), precondition.version());
     return response(result);
@@ -136,7 +136,7 @@ public final class AgentDisputeController {
             customer));
   }
 
-  private ResponseEntity<ApiEnvelope<?>> response(AgentDisputeDetailDto detail) {
+  private ResponseEntity<ApiEnvelope<?>> response(AgentDisputeDetailResponse detail) {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
         .header(HttpHeaders.ETAG, AgentIfMatch.format(detail.id(), detail.version()))

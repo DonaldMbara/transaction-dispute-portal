@@ -2,9 +2,9 @@ package com.assessment.disputeportal.dispute.service;
 
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;
 import com.assessment.disputeportal.dispute.mapper.CustomerTimelineMapper;
-import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailDto;
-import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemDto;
-import com.assessment.disputeportal.dispute.model.dto.CustomerTimelineEntry;
+import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailResponse;
+import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemResponse;
+import com.assessment.disputeportal.dispute.model.dto.CustomerTimelineItemResponse;
 import com.assessment.disputeportal.dispute.model.projection.EventProjection;
 import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
 import com.assessment.disputeportal.dispute.repository.CustomerDisputeReadRepository;
@@ -30,7 +30,7 @@ public class DisputeQueryService {
   private final CustomerTimelineMapper timelineMapper;
 
   /** Returns a paginated, ownership-scoped and filtered page of dispute list items. */
-  public Page<CustomerDisputeListItemDto> getCustomerDisputePage(DisputeQuery query) {
+  public Page<CustomerDisputeListItemResponse> getCustomerDisputePage(DisputeQuery query) {
     if (query.accountId() != null
         && !repository.accountIsOwnedByCustomer(
             query.accountId(), query.authenticatedCustomerId())) {
@@ -44,12 +44,12 @@ public class DisputeQueryService {
    *
    * @throws ResourceNotFoundException if the dispute does not exist or is not owned by the customer
    */
-  public CustomerDisputeDetailDto getCustomerDisputeDetail(UUID disputeId, UUID customerId) {
-    CustomerDisputeDetailDto base =
+  public CustomerDisputeDetailResponse getCustomerDisputeDetail(UUID disputeId, UUID customerId) {
+    CustomerDisputeDetailResponse base =
         repository.findOwnedById(disputeId, customerId).orElseThrow(ResourceNotFoundException::new);
     List<EventProjection> events = repository.findEventsByDisputeId(disputeId);
-    List<CustomerTimelineEntry> timeline = timelineMapper.map(events);
-    return new CustomerDisputeDetailDto(
+    List<CustomerTimelineItemResponse> timeline = timelineMapper.map(events);
+    return new CustomerDisputeDetailResponse(
         base.id(),
         base.transaction(),
         base.reason(),

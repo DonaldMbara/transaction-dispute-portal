@@ -11,9 +11,9 @@ import java.util.UUID;
  * <p>No agent/internal fields are present: no internalResolutionNotes, no assignedAgent, no
  * assignedAt, no internalNotes, no actorId, no previousAgentId, no newAgentId.
  */
-public record CustomerDisputeDetailDto(
+public record CustomerDisputeDetailResponse(
     UUID id,
-    CustomerTransactionSummary transaction,
+    CustomerTransactionResponse transaction,
     String reason,
     String status,
     Instant createdAt,
@@ -21,4 +21,4 @@ public record CustomerDisputeDetailDto(
     Instant resolvedAt,
     String description,
     CustomerDecision decision,
-    List<CustomerTimelineEntry> timeline) {}
+    List<CustomerTimelineItemResponse> timeline) {}

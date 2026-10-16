@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class JdbcDisputeIdempotencyRepository implements DisputeIdempotencyRepository {
+public class JdbcIdempotencyRepository implements IdempotencyRepository {
   private final NamedParameterJdbcTemplate jdbc;
   private final ObjectMapper json;
 

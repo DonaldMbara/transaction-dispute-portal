@@ -1,7 +1,7 @@
 package com.assessment.disputeportal.dispute.repository;
 
-import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailDto;
-import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemDto;
+import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailResponse;
+import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemResponse;
 import com.assessment.disputeportal.dispute.model.projection.EventProjection;
 import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
 import java.util.List;
@@ -16,7 +16,7 @@ public interface CustomerDisputeReadRepository {
    * Returns an ownership-scoped, filtered and paginated list of disputes. Ownership is enforced
    * through dispute → transaction → account → customer_id.
    */
-  Page<CustomerDisputeListItemDto> findOwned(DisputeQuery query);
+  Page<CustomerDisputeListItemResponse> findOwned(DisputeQuery query);
 
   /** Returns whether the requested account belongs to the authenticated customer. */
   boolean accountIsOwnedByCustomer(UUID accountId, UUID customerId);
@@ -25,7 +25,7 @@ public interface CustomerDisputeReadRepository {
    * Returns a single dispute detail DTO, or empty if the dispute does not exist or does not belong
    * to the authenticated customer.
    */
-  Optional<CustomerDisputeDetailDto> findOwnedById(UUID disputeId, UUID customerId);
+  Optional<CustomerDisputeDetailResponse> findOwnedById(UUID disputeId, UUID customerId);
 
   /**
    * Returns customer-safe event projections for a dispute, ordered by dispute_version ASC,

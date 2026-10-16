@@ -3,11 +3,11 @@ package com.assessment.disputeportal.dispute.repository;
 import com.assessment.disputeportal.account.mapper.AccountNumberMask;
 import com.assessment.disputeportal.account.model.AccountType;
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;
-import com.assessment.disputeportal.dispute.model.dto.CustomerAccountSummary;
+import com.assessment.disputeportal.dispute.model.dto.CustomerAccountResponse;
 import com.assessment.disputeportal.dispute.model.dto.CustomerDecision;
-import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailDto;
-import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemDto;
-import com.assessment.disputeportal.dispute.model.dto.CustomerTransactionSummary;
+import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailResponse;
+import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemResponse;
+import com.assessment.disputeportal.dispute.model.dto.CustomerTransactionResponse;
 import com.assessment.disputeportal.dispute.model.projection.EventProjection;
 import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
 import com.assessment.disputeportal.dispute.model.query.StatusPredicate;
@@ -44,7 +44,7 @@ public class JdbcCustomerDisputeReadRepository implements CustomerDisputeReadRep
   // ---------------------------------------------------------------------------
 
   @Override
-  public Page<CustomerDisputeListItemDto> findOwned(DisputeQuery query) {
+  public Page<CustomerDisputeListItemResponse> findOwned(DisputeQuery query) {
     if (query.accountId() != null
         && !accountIsOwnedByCustomer(query.accountId(), query.authenticatedCustomerId())) {
       throw new ResourceNotFoundException();
@@ -102,7 +102,7 @@ public class JdbcCustomerDisputeReadRepository implements CustomerDisputeReadRep
     params.addValue("limit", size);
     params.addValue("offset", offset);
 
-    List<CustomerDisputeListItemDto> items =
+    List<CustomerDisputeListItemResponse> items =
         jdbc.query(listSql, params, (rs, rowNum) -> mapListItem(rs));
     return new PageImpl<>(items, query.pageRequest(), totalCount);
   }
@@ -127,7 +127,7 @@ public class JdbcCustomerDisputeReadRepository implements CustomerDisputeReadRep
   // ---------------------------------------------------------------------------
 
   @Override
-  public Optional<CustomerDisputeDetailDto> findOwnedById(UUID disputeId, UUID customerId) {
+  public Optional<CustomerDisputeDetailResponse> findOwnedById(UUID disputeId, UUID customerId) {
     String sql =
         """
                 SELECT
@@ -151,7 +151,7 @@ public class JdbcCustomerDisputeReadRepository implements CustomerDisputeReadRep
                   AND a.customer_id = :customerId
                 """;
     var params = Map.of("disputeId", disputeId, "customerId", customerId);
-    List<CustomerDisputeDetailDto> results =
+    List<CustomerDisputeDetailResponse> results =
         jdbc.query(sql, params, (rs, rowNum) -> mapDetailRow(rs));
     return results.isEmpty() ? Optional.empty() : Optional.of(results.get(0));
   }
@@ -256,18 +256,18 @@ public class JdbcCustomerDisputeReadRepository implements CustomerDisputeReadRep
     return " ORDER BY " + field + " " + direction + ", d.id " + direction;
   }
 
-  private CustomerDisputeListItemDto mapListItem(ResultSet rs) throws SQLException {
+  private CustomerDisputeListItemResponse mapListItem(ResultSet rs) throws SQLException {
     String rawAccountNumber = rs.getString("account_number");
     String accountType = rs.getString("account_type");
 
-    CustomerAccountSummary account =
-        new CustomerAccountSummary(
+    CustomerAccountResponse account =
+        new CustomerAccountResponse(
             UUID.fromString(rs.getString("account_id")),
             displayNameFor(accountType),
             AccountNumberMask.mask(rawAccountNumber));
 
-    CustomerTransactionSummary transaction =
-        new CustomerTransactionSummary(
+    CustomerTransactionResponse transaction =
+        new CustomerTransactionResponse(
             UUID.fromString(rs.getString("transaction_id")),
             rs.getString("transaction_merchant"),
             rs.getString("transaction_reference"),
@@ -277,7 +277,7 @@ public class JdbcCustomerDisputeReadRepository implements CustomerDisputeReadRep
             toInstant(rs.getTimestamp("transaction_occurred_at")),
             account);
 
-    return new CustomerDisputeListItemDto(
+    return new CustomerDisputeListItemResponse(
         UUID.fromString(rs.getString("id")),
         transaction,
         rs.getString("reason"),
@@ -287,18 +287,18 @@ public class JdbcCustomerDisputeReadRepository implements CustomerDisputeReadRep
         toInstant(rs.getTimestamp("resolved_at")));
   }
 
-  private CustomerDisputeDetailDto mapDetailRow(ResultSet rs) throws SQLException {
+  private CustomerDisputeDetailResponse mapDetailRow(ResultSet rs) throws SQLException {
     String rawAccountNumber = rs.getString("account_number");
     String accountType = rs.getString("account_type");
 
-    CustomerAccountSummary account =
-        new CustomerAccountSummary(
+    CustomerAccountResponse account =
+        new CustomerAccountResponse(
             UUID.fromString(rs.getString("account_id")),
             displayNameFor(accountType),
             AccountNumberMask.mask(rawAccountNumber));
 
-    CustomerTransactionSummary transaction =
-        new CustomerTransactionSummary(
+    CustomerTransactionResponse transaction =
+        new CustomerTransactionResponse(
             UUID.fromString(rs.getString("transaction_id")),
             rs.getString("transaction_merchant"),
             rs.getString("transaction_reference"),
@@ -311,7 +311,7 @@ public class JdbcCustomerDisputeReadRepository implements CustomerDisputeReadRep
     String status = rs.getString("status");
     CustomerDecision decision = buildDecision(status, rs.getString("customer_resolution_message"));
 
-    return new CustomerDisputeDetailDto(
+    return new CustomerDisputeDetailResponse(
         UUID.fromString(rs.getString("id")),
         transaction,
         rs.getString("reason"),

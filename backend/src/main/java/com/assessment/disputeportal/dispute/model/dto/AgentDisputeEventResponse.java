@@ -3,7 +3,7 @@ package com.assessment.disputeportal.dispute.model.dto;
 import java.time.Instant;
 import java.util.UUID;
 
-public record AgentDisputeEventDto(
+public record AgentDisputeEventResponse(
     UUID id,
     long disputeVersion,
     String eventType,

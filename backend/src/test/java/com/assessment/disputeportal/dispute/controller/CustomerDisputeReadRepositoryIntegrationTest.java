@@ -6,8 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.assessment.disputeportal.account.cli.AccountFixtureService;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;
-import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailDto;
-import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemDto;
+import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailResponse;
+import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemResponse;
 import com.assessment.disputeportal.dispute.model.projection.EventProjection;
 import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
 import com.assessment.disputeportal.dispute.repository.CustomerDisputeReadRepository;
@@ -259,11 +259,11 @@ class CustomerDisputeReadRepositoryIntegrationTest {
         Instant.parse("2026-10-06T10:00:00Z"));
 
     DisputeQuery query = buildQuery(customerId, Map.of("status", new String[] {"ACTIVE"}));
-    Page<CustomerDisputeListItemDto> result = repository.findOwned(query);
+    Page<CustomerDisputeListItemResponse> result = repository.findOwned(query);
 
     assertThat(result.getTotalElements()).isEqualTo(2);
     assertThat(result.getContent())
-        .extracting(CustomerDisputeListItemDto::status)
+        .extracting(CustomerDisputeListItemResponse::status)
         .containsExactlyInAnyOrder("OPEN", "UNDER_REVIEW");
   }
 
@@ -297,11 +297,11 @@ class CustomerDisputeReadRepositoryIntegrationTest {
         Instant.parse("2026-10-06T10:00:00Z"));
 
     DisputeQuery query = buildQuery(customerId, Map.of("status", new String[] {"RESOLVED"}));
-    Page<CustomerDisputeListItemDto> result = repository.findOwned(query);
+    Page<CustomerDisputeListItemResponse> result = repository.findOwned(query);
 
     assertThat(result.getTotalElements()).isEqualTo(2);
     assertThat(result.getContent())
-        .extracting(CustomerDisputeListItemDto::status)
+        .extracting(CustomerDisputeListItemResponse::status)
         .containsExactlyInAnyOrder("ACCEPTED", "REJECTED");
   }
 
@@ -336,7 +336,7 @@ class CustomerDisputeReadRepositoryIntegrationTest {
 
     for (String status : List.of("OPEN", "ACCEPTED", "REJECTED")) {
       DisputeQuery query = buildQuery(customerId, Map.of("status", new String[] {status}));
-      Page<CustomerDisputeListItemDto> result = repository.findOwned(query);
+      Page<CustomerDisputeListItemResponse> result = repository.findOwned(query);
       assertThat(result.getTotalElements()).as("status=" + status).isEqualTo(1);
       assertThat(result.getContent().get(0).status()).isEqualTo(status);
     }
@@ -377,7 +377,7 @@ class CustomerDisputeReadRepositoryIntegrationTest {
     // Query with own mainAccountId — should return 1 result
     DisputeQuery query =
         buildQuery(customerId, Map.of("accountId", new String[] {mainAccountId.toString()}));
-    Page<CustomerDisputeListItemDto> result = repository.findOwned(query);
+    Page<CustomerDisputeListItemResponse> result = repository.findOwned(query);
     assertThat(result.getTotalElements()).isEqualTo(1);
 
     // Query with own savingsAccountId — no disputes on savings, should return 0
@@ -449,14 +449,14 @@ class CustomerDisputeReadRepositoryIntegrationTest {
     // All these should match the same dispute
     for (String search : List.of("DSP-5F9868E0", "dsp-5f9868e0", "5F9868E0", "5F98")) {
       DisputeQuery query = buildQuery(customerId, Map.of("search", new String[] {search}));
-      Page<CustomerDisputeListItemDto> result = repository.findOwned(query);
+      Page<CustomerDisputeListItemResponse> result = repository.findOwned(query);
       assertThat(result.getTotalElements()).as("search=" + search).isEqualTo(1);
       assertThat(result.getContent().get(0).id()).isEqualTo(knownDisputeId);
     }
 
     // Non-matching reference returns empty
     DisputeQuery noMatch = buildQuery(customerId, Map.of("search", new String[] {"DSP-XXXXXXXX"}));
-    Page<CustomerDisputeListItemDto> empty = repository.findOwned(noMatch);
+    Page<CustomerDisputeListItemResponse> empty = repository.findOwned(noMatch);
     assertThat(empty.getTotalElements()).isZero();
   }
 
@@ -484,7 +484,7 @@ class CustomerDisputeReadRepositoryIntegrationTest {
 
     DisputeQuery query =
         buildQuery(customerId, Map.of("reason", new String[] {"DUPLICATE_CHARGE"}));
-    Page<CustomerDisputeListItemDto> result = repository.findOwned(query);
+    Page<CustomerDisputeListItemResponse> result = repository.findOwned(query);
 
     assertThat(result.getTotalElements()).isEqualTo(1);
     assertThat(result.getContent().get(0).reason()).isEqualTo("DUPLICATE_CHARGE");
@@ -510,13 +510,13 @@ class CustomerDisputeReadRepositoryIntegrationTest {
     // fromDate=2024-01-16 in Johannesburg should include the above dispute
     DisputeQuery includeQuery =
         buildQuery(customerId, Map.of("fromDate", new String[] {"2024-01-16"}));
-    Page<CustomerDisputeListItemDto> include = repository.findOwned(includeQuery);
+    Page<CustomerDisputeListItemResponse> include = repository.findOwned(includeQuery);
     assertThat(include.getTotalElements()).isEqualTo(1);
 
     // fromDate=2024-01-17 in Johannesburg should exclude it
     DisputeQuery excludeQuery =
         buildQuery(customerId, Map.of("fromDate", new String[] {"2024-01-17"}));
-    Page<CustomerDisputeListItemDto> exclude = repository.findOwned(excludeQuery);
+    Page<CustomerDisputeListItemResponse> exclude = repository.findOwned(excludeQuery);
     assertThat(exclude.getTotalElements()).isZero();
   }
 
@@ -544,9 +544,9 @@ class CustomerDisputeReadRepositoryIntegrationTest {
             txIds.get(2), "OTHER", "OPEN", null, Instant.parse("2026-10-02T10:00:00Z"), null);
 
     DisputeQuery query = buildQuery(customerId, Map.of()); // default sort: createdAt DESC
-    Page<CustomerDisputeListItemDto> result = repository.findOwned(query);
+    Page<CustomerDisputeListItemResponse> result = repository.findOwned(query);
 
-    List<UUID> ids = result.getContent().stream().map(CustomerDisputeListItemDto::id).toList();
+    List<UUID> ids = result.getContent().stream().map(CustomerDisputeListItemResponse::id).toList();
     assertThat(ids).containsExactly(d2, d3, d1);
   }
 
@@ -567,9 +567,9 @@ class CustomerDisputeReadRepositoryIntegrationTest {
             txIds.get(1), "OTHER", "OPEN", null, Instant.parse("2026-10-03T10:00:00Z"), null);
 
     DisputeQuery query = buildQuery(customerId, Map.of("sortDirection", new String[] {"ASC"}));
-    Page<CustomerDisputeListItemDto> result = repository.findOwned(query);
+    Page<CustomerDisputeListItemResponse> result = repository.findOwned(query);
 
-    List<UUID> ids = result.getContent().stream().map(CustomerDisputeListItemDto::id).toList();
+    List<UUID> ids = result.getContent().stream().map(CustomerDisputeListItemResponse::id).toList();
     assertThat(ids).containsExactly(d1, d2);
   }
 
@@ -595,7 +595,7 @@ class CustomerDisputeReadRepositoryIntegrationTest {
         buildQuery(
             customerId,
             Map.of("sortBy", new String[] {"status"}, "sortDirection", new String[] {"ASC"}));
-    Page<CustomerDisputeListItemDto> result = repository.findOwned(query);
+    Page<CustomerDisputeListItemResponse> result = repository.findOwned(query);
 
     // ACCEPTED < OPEN alphabetically
     assertThat(result.getContent().get(0).status()).isEqualTo("ACCEPTED");
@@ -628,7 +628,7 @@ class CustomerDisputeReadRepositoryIntegrationTest {
     // Request page 999 — beyond result set
     DisputeQuery query =
         buildQuery(customerId, Map.of("page", new String[] {"999"}, "size", new String[] {"20"}));
-    Page<CustomerDisputeListItemDto> result = repository.findOwned(query);
+    Page<CustomerDisputeListItemResponse> result = repository.findOwned(query);
 
     assertThat(result.getTotalElements()).isEqualTo(3);
     assertThat(result.getContent()).isEmpty();
@@ -656,12 +656,12 @@ class CustomerDisputeReadRepositoryIntegrationTest {
             Instant.parse("2026-10-01T10:00:00Z"),
             null);
 
-    Optional<CustomerDisputeDetailDto> owned = repository.findOwnedById(disputeId, customerId);
+    Optional<CustomerDisputeDetailResponse> owned = repository.findOwnedById(disputeId, customerId);
     assertThat(owned).isPresent();
     assertThat(owned.get().id()).isEqualTo(disputeId);
     assertThat(owned.get().reason()).isEqualTo("DUPLICATE_CHARGE");
 
-    Optional<CustomerDisputeDetailDto> nonOwned =
+    Optional<CustomerDisputeDetailResponse> nonOwned =
         repository.findOwnedById(disputeId, otherCustomerId);
     assertThat(nonOwned).isEmpty();
   }

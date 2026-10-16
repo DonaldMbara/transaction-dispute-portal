@@ -5,7 +5,7 @@ import com.assessment.disputeportal.dispute.exception.DisputeApiException;
 import com.assessment.disputeportal.dispute.model.Dispute;
 import com.assessment.disputeportal.dispute.model.DisputeEvent;
 import com.assessment.disputeportal.dispute.model.DisputeStatus;
-import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailDto;
+import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailResponse;
 import com.assessment.disputeportal.dispute.repository.AgentDisputeReadRepository;
 import com.assessment.disputeportal.dispute.repository.AgentDisputeWriteRepository;
 import java.time.Instant;
@@ -22,7 +22,7 @@ public class AgentDisputeCommandService {
   private final AgentDisputeReadRepository reads;
 
   @Transactional
-  public AgentDisputeDetailDto claim(
+  public AgentDisputeDetailResponse claim(
       UUID id, UUID agentId, UUID ifMatchDisputeId, long expectedVersion) {
     return transition(
         id,
@@ -36,7 +36,7 @@ public class AgentDisputeCommandService {
   }
 
   @Transactional
-  public AgentDisputeDetailDto release(
+  public AgentDisputeDetailResponse release(
       UUID id, UUID agentId, UUID ifMatchDisputeId, long expectedVersion, String reason) {
     return transition(
         id,
@@ -50,7 +50,7 @@ public class AgentDisputeCommandService {
   }
 
   @Transactional
-  public AgentDisputeDetailDto resolve(
+  public AgentDisputeDetailResponse resolve(
       UUID id,
       UUID agentId,
       UUID ifMatchDisputeId,
@@ -75,7 +75,7 @@ public class AgentDisputeCommandService {
         String::strip);
   }
 
-  private AgentDisputeDetailDto transition(
+  private AgentDisputeDetailResponse transition(
       UUID id,
       UUID agentId,
       UUID ifMatchDisputeId,

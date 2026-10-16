@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 /** Customer-safe transaction summary embedded in dispute responses. */
-public record CustomerTransactionSummary(
+public record CustomerTransactionResponse(
     UUID id,
     String merchant,
     String reference,
@@ -13,4 +13,4 @@ public record CustomerTransactionSummary(
     String currency,
     String direction,
     Instant occurredAt,
-    CustomerAccountSummary account) {}
+    CustomerAccountResponse account) {}

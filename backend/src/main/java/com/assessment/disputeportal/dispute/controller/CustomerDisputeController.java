@@ -3,8 +3,8 @@ package com.assessment.disputeportal.dispute.controller;
 import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.common.api.PageResponse;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
-import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailDto;
-import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemDto;
+import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailResponse;
+import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemResponse;
 import com.assessment.disputeportal.dispute.model.dto.SubmitDisputeRequest;
 import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
 import com.assessment.disputeportal.dispute.service.DisputeQueryService;
@@ -59,7 +59,7 @@ public final class CustomerDisputeController {
     UUID customerId = principal.accountId();
     Map<String, String[]> parameterMap = request.getParameterMap();
     DisputeQuery query = queryParser.parse(parameterMap, customerId);
-    Page<CustomerDisputeListItemDto> page = queryService.getCustomerDisputePage(query);
+    Page<CustomerDisputeListItemResponse> page = queryService.getCustomerDisputePage(query);
     var pageResponse =
         new PageResponse<>(
             page.getTotalElements(),
@@ -92,7 +92,8 @@ public final class CustomerDisputeController {
       throw new InvalidRequestException("Dispute ID must be a valid UUID.");
     }
     UUID customerId = principal.accountId();
-    CustomerDisputeDetailDto detail = queryService.getCustomerDisputeDetail(disputeId, customerId);
+    CustomerDisputeDetailResponse detail =
+        queryService.getCustomerDisputeDetail(disputeId, customerId);
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
         .body(ApiEnvelope.success(detail));

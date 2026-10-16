@@ -3,7 +3,7 @@ package com.assessment.disputeportal.dispute.model.dto;
 import java.time.Instant;
 import java.util.UUID;
 
-public record AgentDisputeListItemDto(
+public record AgentDisputeListItemResponse(
     UUID id,
     String reference,
     String merchant,
@@ -15,5 +15,5 @@ public record AgentDisputeListItemDto(
     Instant createdAt,
     Instant updatedAt,
     Instant resolvedAt,
-    AgentIdentitySummary assignedAgent,
+    AgentIdentityResponse assignedAgent,
     long version) {}

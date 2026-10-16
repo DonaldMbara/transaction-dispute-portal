@@ -2,10 +2,10 @@ package com.assessment.disputeportal.dispute.repository;
 
 import com.assessment.disputeportal.account.mapper.AccountNumberMask;
 import com.assessment.disputeportal.account.model.AccountType;
-import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailDto;
-import com.assessment.disputeportal.dispute.model.dto.AgentDisputeEventDto;
-import com.assessment.disputeportal.dispute.model.dto.AgentDisputeListItemDto;
-import com.assessment.disputeportal.dispute.model.dto.AgentIdentitySummary;
+import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailResponse;
+import com.assessment.disputeportal.dispute.model.dto.AgentDisputeEventResponse;
+import com.assessment.disputeportal.dispute.model.dto.AgentDisputeListItemResponse;
+import com.assessment.disputeportal.dispute.model.dto.AgentIdentityResponse;
 import com.assessment.disputeportal.dispute.model.query.AgentDisputeQuery;
 import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
 import com.assessment.disputeportal.dispute.model.query.StatusPredicate;
@@ -32,7 +32,7 @@ public class JdbcAgentDisputeReadRepository implements AgentDisputeReadRepositor
   private final NamedParameterJdbcTemplate jdbc;
 
   @Override
-  public Page<AgentDisputeListItemDto> find(AgentDisputeQuery query) {
+  public Page<AgentDisputeListItemResponse> find(AgentDisputeQuery query) {
     DisputeQuery filters = query.filters();
     MapSqlParameterSource params = new MapSqlParameterSource("agentId", query.agentId());
     StringBuilder fromWhere =
@@ -58,7 +58,7 @@ public class JdbcAgentDisputeReadRepository implements AgentDisputeReadRepositor
     String sort = SORT_FIELDS.getOrDefault(filters.sortField(), "d.created_at");
     params.addValue("limit", filters.pageRequest().getPageSize());
     params.addValue("offset", filters.pageRequest().getOffset());
-    List<AgentDisputeListItemDto> items =
+    List<AgentDisputeListItemResponse> items =
         jdbc.query(
             """
                 SELECT d.id, d.reason, d.status, d.created_at, d.updated_at, d.resolved_at, d.version,
@@ -78,8 +78,8 @@ public class JdbcAgentDisputeReadRepository implements AgentDisputeReadRepositor
   }
 
   @Override
-  public Optional<AgentDisputeDetailDto> findById(UUID disputeId) {
-    List<AgentDisputeDetailDto> rows =
+  public Optional<AgentDisputeDetailResponse> findById(UUID disputeId) {
+    List<AgentDisputeDetailResponse> rows =
         jdbc.query(
             """
                 SELECT d.id, d.transaction_id, d.reason, d.description, d.status,
@@ -98,7 +98,7 @@ public class JdbcAgentDisputeReadRepository implements AgentDisputeReadRepositor
             Map.of("id", disputeId),
             (rs, row) -> mapDetail(rs, List.of()));
     if (rows.isEmpty()) return Optional.empty();
-    List<AgentDisputeEventDto> events =
+    List<AgentDisputeEventResponse> events =
         jdbc.query(
             """
                 SELECT id, dispute_version, event_type, actor_id, from_status, to_status,
@@ -108,9 +108,9 @@ public class JdbcAgentDisputeReadRepository implements AgentDisputeReadRepositor
                 """,
             Map.of("id", disputeId),
             (rs, row) -> mapEvent(rs));
-    AgentDisputeDetailDto row = rows.get(0);
+    AgentDisputeDetailResponse row = rows.get(0);
     return Optional.of(
-        new AgentDisputeDetailDto(
+        new AgentDisputeDetailResponse(
             row.id(),
             row.reference(),
             row.transactionId(),
@@ -169,10 +169,10 @@ public class JdbcAgentDisputeReadRepository implements AgentDisputeReadRepositor
     }
   }
 
-  private AgentDisputeListItemDto mapListItem(ResultSet rs, int row) throws SQLException {
+  private AgentDisputeListItemResponse mapListItem(ResultSet rs, int row) throws SQLException {
     UUID id = rs.getObject("id", UUID.class);
     UUID agentId = rs.getObject("agent_id", UUID.class);
-    return new AgentDisputeListItemDto(
+    return new AgentDisputeListItemResponse(
         id,
         disputeReference(id),
         rs.getString("merchant"),
@@ -184,11 +184,11 @@ public class JdbcAgentDisputeReadRepository implements AgentDisputeReadRepositor
         instant(rs, "created_at"),
         instant(rs, "updated_at"),
         instant(rs, "resolved_at"),
-        agentId == null ? null : new AgentIdentitySummary(agentId, rs.getString("agent_email")),
+        agentId == null ? null : new AgentIdentityResponse(agentId, rs.getString("agent_email")),
         rs.getLong("version"));
   }
 
-  private AgentDisputeDetailDto mapDetail(ResultSet rs, List<AgentDisputeEventDto> events)
+  private AgentDisputeDetailResponse mapDetail(ResultSet rs, List<AgentDisputeEventResponse> events)
       throws SQLException {
     UUID id = rs.getObject("id", UUID.class);
     UUID agentId = rs.getObject("assigned_agent_id", UUID.class);
@@ -199,7 +199,7 @@ public class JdbcAgentDisputeReadRepository implements AgentDisputeReadRepositor
     } catch (IllegalArgumentException ignored) {
       displayName = type;
     }
-    return new AgentDisputeDetailDto(
+    return new AgentDisputeDetailResponse(
         id,
         disputeReference(id),
         rs.getObject("transaction_id", UUID.class),
@@ -219,15 +219,15 @@ public class JdbcAgentDisputeReadRepository implements AgentDisputeReadRepositor
         instant(rs, "updated_at"),
         instant(rs, "assigned_at"),
         instant(rs, "resolved_at"),
-        agentId == null ? null : new AgentIdentitySummary(agentId, rs.getString("agent_email")),
+        agentId == null ? null : new AgentIdentityResponse(agentId, rs.getString("agent_email")),
         rs.getString("internal_resolution_notes"),
         rs.getString("customer_resolution_message"),
         rs.getLong("version"),
         events);
   }
 
-  private AgentDisputeEventDto mapEvent(ResultSet rs) throws SQLException {
-    return new AgentDisputeEventDto(
+  private AgentDisputeEventResponse mapEvent(ResultSet rs) throws SQLException {
+    return new AgentDisputeEventResponse(
         rs.getObject("id", UUID.class),
         rs.getLong("dispute_version"),
         rs.getString("event_type"),
