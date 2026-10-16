@@ -25,7 +25,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import com.assessment.disputeportal.auth.service.AccountAdministrationService;
+import com.assessment.disputeportal.auth.cli.AccountAdministrationService;
 import com.assessment.disputeportal.auth.validation.EmailNormalizer;
 import com.assessment.disputeportal.auth.model.AccountIdentity;
 import com.assessment.disputeportal.auth.model.AccountRole;

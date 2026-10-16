@@ -3,7 +3,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import com.assessment.disputeportal.auth.service.AccountAdministrationService;
+import com.assessment.disputeportal.auth.cli.AccountAdministrationService;
 import com.assessment.disputeportal.auth.validation.EmailNormalizer;
 import com.assessment.disputeportal.auth.repository.AccountRepository;
 import com.assessment.disputeportal.security.authentication.VersionedPasswordEncoder;

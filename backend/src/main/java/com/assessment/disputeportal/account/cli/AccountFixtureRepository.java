@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.account.repository;
+package com.assessment.disputeportal.account.cli;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;

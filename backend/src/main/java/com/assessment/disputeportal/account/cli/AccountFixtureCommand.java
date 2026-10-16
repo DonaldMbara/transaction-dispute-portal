@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
-import com.assessment.disputeportal.account.service.AccountFixtureService;
+import com.assessment.disputeportal.account.cli.AccountFixtureService;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;

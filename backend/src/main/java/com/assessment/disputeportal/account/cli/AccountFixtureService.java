@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.account.service;
+package com.assessment.disputeportal.account.cli;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -12,9 +12,9 @@ import java.util.UUID;
 
 import com.assessment.disputeportal.account.mapper.AccountNumberMask;
 import com.assessment.disputeportal.account.model.AccountType;
-import com.assessment.disputeportal.account.port.AccountFixturePort;
-import com.assessment.disputeportal.account.repository.AccountFixtureRepository;
-import com.assessment.disputeportal.account.repository.AccountFixtureRepository.FixtureRow;
+import com.assessment.disputeportal.account.cli.AccountFixturePort;
+import com.assessment.disputeportal.account.cli.AccountFixtureRepository;
+import com.assessment.disputeportal.account.cli.AccountFixtureRepository.FixtureRow;
 import com.assessment.disputeportal.auth.model.AccountIdentity;
 import com.assessment.disputeportal.auth.model.AccountRole;
 import com.assessment.disputeportal.auth.repository.AccountLookup;
@@ -118,7 +118,7 @@ public class AccountFixtureService implements AccountFixturePort {
         return UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8));
     }
 
-    static String syntheticNumber(UUID customerId, AccountType type, long probe) {
+    public static String syntheticNumber(UUID customerId, AccountType type, long probe) {
         String input = NUMBER_NAMESPACE + ":" + customerId + ":" + type.name() + ":" + probe;
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256").digest(input.getBytes(StandardCharsets.UTF_8));

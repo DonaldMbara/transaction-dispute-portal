@@ -1,9 +1,9 @@
 package com.assessment.disputeportal.dispute;
 
-import com.assessment.disputeportal.account.service.AccountFixtureService;
+import com.assessment.disputeportal.account.cli.AccountFixtureService;
 import com.assessment.disputeportal.dispute.repository.CustomerDisputeReadRepository;
 import com.assessment.disputeportal.security.authentication.VersionedPasswordEncoder;
-import com.assessment.disputeportal.transaction.service.TransactionFixtureService;
+import com.assessment.disputeportal.transaction.cli.TransactionFixtureService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;

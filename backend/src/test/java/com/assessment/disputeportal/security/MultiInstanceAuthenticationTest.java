@@ -1,7 +1,7 @@
 package com.assessment.disputeportal.security;
 import org.junit.jupiter.api.Test;
 
-import com.assessment.disputeportal.auth.service.AccountAdministrationService;
+import com.assessment.disputeportal.auth.cli.AccountAdministrationService;
 
 import static org.assertj.core.api.Assertions.*;
 class MultiInstanceAuthenticationTest extends MultiInstanceSupport {

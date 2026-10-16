@@ -2,7 +2,7 @@ package com.assessment.disputeportal.transaction.cli;
 
 import java.util.Arrays;
 
-import com.assessment.disputeportal.transaction.service.TransactionFixtureService;
+import com.assessment.disputeportal.transaction.cli.TransactionFixtureService;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;

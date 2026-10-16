@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import com.assessment.disputeportal.auth.service.AccountAdministrationService;
+import com.assessment.disputeportal.auth.cli.AccountAdministrationService;
 import com.assessment.disputeportal.auth.repository.AccountRepository;
 import com.assessment.disputeportal.auth.repository.JpaAccountRepository;
 import com.assessment.disputeportal.auth.mapper.AccountMapper;

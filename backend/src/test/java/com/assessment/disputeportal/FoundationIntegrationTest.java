@@ -75,7 +75,7 @@ class FoundationIntegrationTest {
 
         @Test
     void operationalProvisioningIsInactiveAndUnreachableFromPortalHttp() {
-        assertThat(context.getBeansOfType(com.assessment.disputeportal.auth.service.AccountAdministrationService.class)).isEmpty();
+        assertThat(context.getBeansOfType(com.assessment.disputeportal.auth.cli.AccountAdministrationService.class)).isEmpty();
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM app_users", Integer.class)).isZero();
         for (String path : new String[]{"/api/v1/auth/provision", "/provision"}) {
             assertThat(http.getForEntity(path, String.class).getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);

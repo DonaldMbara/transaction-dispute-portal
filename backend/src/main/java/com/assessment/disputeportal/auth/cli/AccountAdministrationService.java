@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.auth.service;
+package com.assessment.disputeportal.auth.cli;
 
 import java.time.Instant;
 import java.util.Objects;

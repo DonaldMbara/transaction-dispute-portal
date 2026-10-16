@@ -3,7 +3,7 @@ package com.assessment.disputeportal.auth.cli;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 
-import com.assessment.disputeportal.auth.service.AccountAdministrationService;
+import com.assessment.disputeportal.auth.cli.AccountAdministrationService;
 import com.assessment.disputeportal.auth.model.AccountIdentity;
 import com.assessment.disputeportal.auth.model.AccountRole;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;

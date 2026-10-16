@@ -1,11 +1,11 @@
 package com.assessment.disputeportal.transaction.cli;
 
-import com.assessment.disputeportal.account.repository.AccountFixtureRepository;
-import com.assessment.disputeportal.account.service.AccountFixtureService;
+import com.assessment.disputeportal.account.cli.AccountFixtureRepository;
+import com.assessment.disputeportal.account.cli.AccountFixtureService;
 import com.assessment.disputeportal.auth.repository.JpaAccountLookup;
 import com.assessment.disputeportal.auth.validation.EmailNormalizer;
-import com.assessment.disputeportal.transaction.repository.TransactionFixtureRepository;
-import com.assessment.disputeportal.transaction.service.TransactionFixtureService;
+import com.assessment.disputeportal.transaction.cli.TransactionFixtureRepository;
+import com.assessment.disputeportal.transaction.cli.TransactionFixtureService;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;

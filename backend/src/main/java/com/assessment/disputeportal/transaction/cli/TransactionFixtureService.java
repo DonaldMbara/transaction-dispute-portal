@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.transaction.service;
+package com.assessment.disputeportal.transaction.cli;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.assessment.disputeportal.account.port.AccountFixturePort;
+import com.assessment.disputeportal.account.cli.AccountFixturePort;
 import com.assessment.disputeportal.transaction.model.TransactionDirection;
 import com.assessment.disputeportal.transaction.model.TransactionStatus;
-import com.assessment.disputeportal.transaction.repository.TransactionFixtureRepository;
-import com.assessment.disputeportal.transaction.repository.TransactionFixtureRepository.FixtureRow;
+import com.assessment.disputeportal.transaction.cli.TransactionFixtureRepository;
+import com.assessment.disputeportal.transaction.cli.TransactionFixtureRepository.FixtureRow;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

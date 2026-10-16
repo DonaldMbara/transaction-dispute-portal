@@ -13,7 +13,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.assessment.disputeportal.account.model.AccountType;
-import com.assessment.disputeportal.account.port.AccountFixturePort;
+import com.assessment.disputeportal.account.cli.AccountFixturePort;
+import com.assessment.disputeportal.account.cli.AccountFixtureException;
+import com.assessment.disputeportal.account.cli.AccountFixtureService;
 import com.assessment.disputeportal.account.repository.AccountReadRepository;
 import com.assessment.disputeportal.security.authentication.VersionedPasswordEncoder;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -1,7 +1,7 @@
 package com.assessment.disputeportal.security;
 
 import com.assessment.disputeportal.DisputePortalApplication;
-import com.assessment.disputeportal.auth.service.AccountAdministrationService;
+import com.assessment.disputeportal.auth.cli.AccountAdministrationService;
 import com.assessment.disputeportal.auth.service.AccountAdministrationTestConfiguration;
 import com.assessment.disputeportal.auth.model.AccountIdentity;
 import com.fasterxml.jackson.databind.*;

@@ -1,6 +1,6 @@
 package com.assessment.disputeportal.dispute.controller;
 
-import com.assessment.disputeportal.account.service.AccountFixtureService;
+import com.assessment.disputeportal.account.cli.AccountFixtureService;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;
 import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailDto;
@@ -10,7 +10,7 @@ import com.assessment.disputeportal.dispute.model.projection.EventProjection;
 import com.assessment.disputeportal.dispute.model.query.StatusPredicate;
 import com.assessment.disputeportal.dispute.repository.CustomerDisputeReadRepository;
 import com.assessment.disputeportal.security.authentication.VersionedPasswordEncoder;
-import com.assessment.disputeportal.transaction.service.TransactionFixtureService;
+import com.assessment.disputeportal.transaction.cli.TransactionFixtureService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

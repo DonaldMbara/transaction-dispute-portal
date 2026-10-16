@@ -15,9 +15,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.assessment.disputeportal.account.port.AccountFixturePort;
-import com.assessment.disputeportal.account.service.AccountFixtureService;
+import com.assessment.disputeportal.account.cli.AccountFixturePort;
+import com.assessment.disputeportal.account.cli.AccountFixtureService;
 import com.assessment.disputeportal.security.authentication.VersionedPasswordEncoder;
+import com.assessment.disputeportal.transaction.cli.TransactionFixtureService;
 import com.assessment.disputeportal.transaction.repository.TransactionReadRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

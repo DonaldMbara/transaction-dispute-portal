@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.account.port;
+package com.assessment.disputeportal.account.cli;
 
 import java.util.Map;
 import java.util.UUID;
