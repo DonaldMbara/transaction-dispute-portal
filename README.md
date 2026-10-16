@@ -27,6 +27,8 @@ docker compose up -d --wait
 
 The Compose stack starts PostgreSQL, the backend and the nginx-served frontend. Open http://localhost:8081 (override with `PORTAL_PORT`); if host port 5432 is occupied, set `POSTGRES_PORT` to an available port for local database clients. Containers communicate over Compose networking, so changing the published host database port does not change the backend connection.
 
+For synthetic demo accounts and transactions, follow [the opt-in demo data instructions](docs/operations/demo-data.md). The seed script requires an interactive terminal and runs only when explicitly invoked; default Compose startup creates no accounts or fixtures.
+
 The ignored .env uses shell-compatible assignments. Quote special characters and load only your trusted local file. Do not print expanded Compose configuration containing secrets. Compose reads .env for interpolation; it does not export variables to native backend processes. IDE run configurations must receive the same DB_URL, DB_USERNAME, DB_PASSWORD and SPRING_PROFILES_ACTIVE values.
 
 Backend terminal: load the root .env as above, then:

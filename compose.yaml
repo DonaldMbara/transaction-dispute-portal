@@ -44,5 +44,17 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+  demo-cli:
+    profiles: ["demo"]
+    build:
+      context: ./backend
+    entrypoint: ["java", "-jar", "/app/app.jar"]
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/dispute_portal
+      DB_USERNAME: ${DB_USERNAME:?Set DB_USERNAME in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
 volumes:
   postgres_data:
