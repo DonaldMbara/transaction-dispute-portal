@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public final class CsrfController {
-    @GetMapping("/api/v1/auth/csrf")
-    ApiEnvelope bootstrap(CsrfToken token) {
-        return ApiEnvelope.success(new CsrfBootstrapResponse(token.getToken(), token.getHeaderName()));
-    }
+  @GetMapping("/api/v1/auth/csrf")
+  ApiEnvelope bootstrap(CsrfToken token) {
+    return ApiEnvelope.success(new CsrfBootstrapResponse(token.getToken(), token.getHeaderName()));
+  }
 }

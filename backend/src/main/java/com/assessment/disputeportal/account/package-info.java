@@ -1,4 +1,2 @@
-/**
- * Future customer account ownership boundary.
- */
+/** Future customer account ownership boundary. */
 package com.assessment.disputeportal.account;
