@@ -13,7 +13,7 @@ public final class ApiErrorWriter {
 
   private final ObjectMapper json;
 
-  public void write(HttpServletResponse response, int status, ApiEnvelope envelope)
+  public void write(HttpServletResponse response, int status, ApiEnvelope<?> envelope)
       throws IOException {
     response.setStatus(status);
     response.setContentType("application/json");

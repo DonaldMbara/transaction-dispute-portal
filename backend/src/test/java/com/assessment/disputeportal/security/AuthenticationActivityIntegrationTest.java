@@ -477,7 +477,7 @@ class AuthenticationActivityIntegrationTest extends SessionIntegrationSupport {
 
     @AuthenticatedActivity
     @GetMapping("/api/v1/test/eligible")
-    ResponseEntity<ApiEnvelope> eligible(
+    ResponseEntity<ApiEnvelope<?>> eligible(
         @RequestParam(defaultValue = "200") int status,
         jakarta.servlet.http.HttpServletRequest request) {
       calls.incrementAndGet();
@@ -501,13 +501,13 @@ class AuthenticationActivityIntegrationTest extends SessionIntegrationSupport {
 
     @AuthenticatedActivity
     @PostMapping("/api/v1/test/eligible")
-    ApiEnvelope validation(@Valid @RequestBody RequiredBody input) {
+    ApiEnvelope<?> validation(@Valid @RequestBody RequiredBody input) {
       calls.incrementAndGet();
       return ApiEnvelope.success("fixture");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    ResponseEntity<ApiEnvelope> validationError() {
+    ResponseEntity<ApiEnvelope<?>> validationError() {
       return ResponseEntity.badRequest()
           .body(
               ApiEnvelope.failure(
@@ -515,13 +515,13 @@ class AuthenticationActivityIntegrationTest extends SessionIntegrationSupport {
     }
 
     @GetMapping("/api/v1/test/poll")
-    ApiEnvelope poll() {
+    ApiEnvelope<?> poll() {
       return ApiEnvelope.success("fixture");
     }
 
     @AuthenticatedActivity
     @GetMapping("/api/v1/test/agent")
-    ApiEnvelope agent() {
+    ApiEnvelope<?> agent() {
       return ApiEnvelope.success("fixture");
     }
   }

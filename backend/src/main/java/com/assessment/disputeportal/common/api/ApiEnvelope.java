@@ -2,21 +2,21 @@ package com.assessment.disputeportal.common.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-public record ApiEnvelope(
+public record ApiEnvelope<T>(
     boolean status,
-    Object data,
+    T data,
     int error_code,
     @JsonInclude(JsonInclude.Include.NON_NULL) ApiError error) {
 
-  public static ApiEnvelope success(Object data) {
-    return new ApiEnvelope(true, data, 0, null);
+  public static <T> ApiEnvelope<T> success(T data) {
+    return new ApiEnvelope<>(true, data, 0, null);
   }
 
-  public static ApiEnvelope failure(int code, String type, String title, String detail) {
-    return new ApiEnvelope(false, null, code, new ApiError("/problems/" + type, title, detail));
+  public static ApiEnvelope<Void> failure(int code, String type, String title, String detail) {
+    return new ApiEnvelope<>(false, null, code, new ApiError("/problems/" + type, title, detail));
   }
 
-  public static ApiEnvelope unavailable() {
+  public static ApiEnvelope<Void> unavailable() {
     return failure(
         3002,
         "service-unavailable",

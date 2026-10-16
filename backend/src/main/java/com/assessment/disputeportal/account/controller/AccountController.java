@@ -1,9 +1,9 @@
 package com.assessment.disputeportal.account.controller;
 
 import com.assessment.disputeportal.account.mapper.AccountResponseMapper;
-import com.assessment.disputeportal.account.model.dto.AccountPageResponse;
 import com.assessment.disputeportal.account.service.AccountQueryService;
 import com.assessment.disputeportal.common.api.ApiEnvelope;
+import com.assessment.disputeportal.common.api.PageResponse;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.security.web.AuthenticatedActivity;
@@ -14,10 +14,12 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/accounts")
 public final class AccountController {
   private static final Set<String> ALLOWED_PARAMETERS = Set.of("page", "size");
   private static final int DEFAULT_PAGE = 1;
@@ -27,16 +29,16 @@ public final class AccountController {
   private final AccountQueryService accounts;
   private final AccountResponseMapper mapper;
 
-  @GetMapping("/api/v1/accounts")
+  @GetMapping
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope> list(
+  public ResponseEntity<ApiEnvelope<?>> list(
       @AuthenticationPrincipal SessionPrincipal principal, HttpServletRequest request) {
     rejectUnknownParameters(request);
     int page = parameter(request, "page", DEFAULT_PAGE, Integer.MAX_VALUE);
     int size = parameter(request, "size", DEFAULT_SIZE, MAX_SIZE);
     var result = accounts.findOwnedAccounts(principal.accountId(), page, size);
     var data =
-        new AccountPageResponse(
+        new PageResponse<>(
             result.total(),
             result.page(),
             result.size(),

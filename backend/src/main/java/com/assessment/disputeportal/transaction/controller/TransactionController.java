@@ -1,11 +1,11 @@
 package com.assessment.disputeportal.transaction.controller;
 
 import com.assessment.disputeportal.common.api.ApiEnvelope;
+import com.assessment.disputeportal.common.api.PageResponse;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.security.web.AuthenticatedActivity;
 import com.assessment.disputeportal.transaction.mapper.TransactionResponseMapper;
-import com.assessment.disputeportal.transaction.model.dto.TransactionPageResponse;
 import com.assessment.disputeportal.transaction.service.TransactionQueryService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -18,23 +18,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/transactions")
 public final class TransactionController {
   private final TransactionQueryParser parser;
   private final TransactionQueryService transactions;
   private final TransactionResponseMapper mapper;
 
-  @GetMapping("/api/v1/transactions")
+  @GetMapping
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope> list(
+  public ResponseEntity<ApiEnvelope<?>> list(
       @AuthenticationPrincipal SessionPrincipal principal, HttpServletRequest request) {
     var query = parser.parse(queryParameters(request));
     var page = transactions.list(principal.accountId(), query);
     var response =
-        new TransactionPageResponse(
+        new PageResponse<>(
             page.total(),
             page.page(),
             page.size(),
@@ -44,9 +46,9 @@ public final class TransactionController {
         .body(ApiEnvelope.success(response));
   }
 
-  @GetMapping("/api/v1/transactions/{id}")
+  @GetMapping("/{id}")
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope> get(
+  public ResponseEntity<ApiEnvelope<?>> get(
       @AuthenticationPrincipal SessionPrincipal principal,
       @PathVariable String id,
       HttpServletRequest request) {

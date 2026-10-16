@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j(topic = "application.error")
 public final class ApiExceptionHandler {
   @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
-  ResponseEntity<ApiEnvelope> unauthenticated(jakarta.servlet.http.HttpServletRequest request) {
+  ResponseEntity<ApiEnvelope<?>> unauthenticated(jakarta.servlet.http.HttpServletRequest request) {
     return ResponseEntity.status(401)
         .body(
             ApiEnvelope.failure(
@@ -34,7 +34,7 @@ public final class ApiExceptionHandler {
     InvalidRequestException.class,
     org.springframework.http.converter.HttpMessageNotReadableException.class
   })
-  ResponseEntity<ApiEnvelope> malformed() {
+  ResponseEntity<ApiEnvelope<?>> malformed() {
     return ResponseEntity.badRequest()
         .body(
             ApiEnvelope.failure(
@@ -42,7 +42,7 @@ public final class ApiExceptionHandler {
   }
 
   @ExceptionHandler(ResourceNotFoundException.class)
-  ResponseEntity<ApiEnvelope> notFound() {
+  ResponseEntity<ApiEnvelope<?>> notFound() {
     return ResponseEntity.status(404)
         .body(
             ApiEnvelope.failure(
@@ -50,7 +50,7 @@ public final class ApiExceptionHandler {
   }
 
   @ExceptionHandler(BusinessConflictException.class)
-  ResponseEntity<ApiEnvelope> conflict() {
+  ResponseEntity<ApiEnvelope<?>> conflict() {
     return ResponseEntity.status(409)
         .body(
             ApiEnvelope.failure(
@@ -61,7 +61,7 @@ public final class ApiExceptionHandler {
   }
 
   @ExceptionHandler(DisputeApiException.class)
-  ResponseEntity<ApiEnvelope> disputeFailure(DisputeApiException failure) {
+  ResponseEntity<ApiEnvelope<?>> disputeFailure(DisputeApiException failure) {
     var response =
         ResponseEntity.status(failure.status())
             .cacheControl(org.springframework.http.CacheControl.noStore());
@@ -72,7 +72,7 @@ public final class ApiExceptionHandler {
   }
 
   @ExceptionHandler(org.springframework.web.HttpMediaTypeNotSupportedException.class)
-  ResponseEntity<ApiEnvelope> unsupportedMedia() {
+  ResponseEntity<ApiEnvelope<?>> unsupportedMedia() {
     return ResponseEntity.status(415)
         .body(
             ApiEnvelope.failure(
@@ -83,7 +83,7 @@ public final class ApiExceptionHandler {
   }
 
   @ExceptionHandler(org.springframework.web.HttpMediaTypeNotAcceptableException.class)
-  ResponseEntity<ApiEnvelope> unacceptableMedia() {
+  ResponseEntity<ApiEnvelope<?>> unacceptableMedia() {
     return ResponseEntity.status(406)
         .body(
             ApiEnvelope.failure(
@@ -91,7 +91,7 @@ public final class ApiExceptionHandler {
   }
 
   @ExceptionHandler(Exception.class)
-  ResponseEntity<ApiEnvelope> unexpected(jakarta.servlet.http.HttpServletResponse response) {
+  ResponseEntity<ApiEnvelope<?>> unexpected(jakarta.servlet.http.HttpServletResponse response) {
     log.warn("Unexpected request failure correlation={}", response.getHeader("X-Correlation-ID"));
     return ResponseEntity.status(500)
         .body(
@@ -103,14 +103,14 @@ public final class ApiExceptionHandler {
   }
 
   @ExceptionHandler({DataAccessException.class, TransactionException.class})
-  ResponseEntity<ApiEnvelope> unavailable() {
+  ResponseEntity<ApiEnvelope<?>> unavailable() {
     return ResponseEntity.status(503)
         .header("Cache-Control", "no-store")
         .body(ApiEnvelope.unavailable());
   }
 
   @ExceptionHandler(RateLimitedException.class)
-  ResponseEntity<ApiEnvelope> rateLimited(RateLimitedException failure) {
+  ResponseEntity<ApiEnvelope<?>> rateLimited(RateLimitedException failure) {
     long retryAfter = Math.max(1, (failure.retryAfter().toMillis() + 999) / 1000);
     return ResponseEntity.status(429)
         .header("Retry-After", Long.toString(retryAfter))
@@ -124,7 +124,7 @@ public final class ApiExceptionHandler {
   }
 
   @ExceptionHandler(InvalidSessionAccessTimeException.class)
-  ResponseEntity<ApiEnvelope> invalidSessionAccessTime() {
+  ResponseEntity<ApiEnvelope<?>> invalidSessionAccessTime() {
     return ResponseEntity.status(500)
         .body(
             ApiEnvelope.failure(

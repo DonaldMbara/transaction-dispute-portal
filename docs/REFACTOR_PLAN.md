@@ -54,7 +54,7 @@ Source of the findings: the repository inventory (architecture, conventions, sco
 - [x] **R-9 Lombok pass.** Replace manual `LoggerFactory` with `@Slf4j(topic = "...")` (keep the audit logger names exactly). Replace hand-written constructors that only assign fields. Add `@Builder(toBuilder = true)` to `Dispute` and `DisputeEvent` and rewrite `claim` / `release` / `resolve` with `toBuilder()`. Keep records and compact-constructor validation.
   *Accept:* `Dispute` unit tests unchanged and green; no 13-argument constructor calls remain.
 - [x] **R-10 `final` audit.** R-0 found no `final` class that Spring must proxy. Nothing to change; the ArchUnit rule in R-20 keeps it that way.
-- [ ] **R-11 Controller cleanup.**
+- [x] **R-11 Controller cleanup.**
   - Class-level `@RequestMapping` everywhere; methods use sub-paths only (URLs identical).
   - Merge `DisputeSubmissionController` into `CustomerDisputeController`; merge the two agent controllers if it reads cleanly.
   - `LogoutController` is merged into `AuthController` (the earlier report said package-private, the placement audit says public; the merge makes it moot).
