@@ -6,7 +6,7 @@ import com.assessment.disputeportal.auth.repository.AccountCredentialsRepository
 import com.assessment.disputeportal.auth.validation.PasswordPolicy;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import java.util.List;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j(topic = "authentication.audit")
 public final class AccountAuthenticationProvider implements AuthenticationProvider {
 
   private final AccountCredentialsRepository credentials;
@@ -48,15 +49,13 @@ public final class AccountAuthenticationProvider implements AuthenticationProvid
       }
     }
     if (!matches || account == null || !account.enabled() || role == null) {
-      LoggerFactory.getLogger("authentication.audit")
-          .info(
-              "timestamp={} operation=login outcome=rejected account={} correlation={}",
-              java.time.Instant.now(),
-              account == null ? null : account.id(),
-              input.getDetails() instanceof String reference
-                      && reference.matches("[A-Za-z0-9_-]{1,64}")
-                  ? reference
-                  : null);
+      log.info(
+          "timestamp={} operation=login outcome=rejected account={} correlation={}",
+          java.time.Instant.now(),
+          account == null ? null : account.id(),
+          input.getDetails() instanceof String reference && reference.matches("[A-Za-z0-9_-]{1,64}")
+              ? reference
+              : null);
       throw new BadCredentialsException("Unable to sign in with these credentials.");
     }
 

@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,9 +27,8 @@ import org.springframework.stereotype.Service;
 
 /** Coordinates credential verification and establishment of an authenticated session. */
 @Service
+@Slf4j(topic = "authentication.audit")
 public final class LoginService {
-
-  private static final org.slf4j.Logger AUDIT = LoggerFactory.getLogger("authentication.audit");
 
   private final AuthenticationManager authManager;
   private final CompositeSessionAuthenticationStrategy sessionStrategy;
@@ -113,7 +112,7 @@ public final class LoginService {
       }
       loginAttempts.recordSuccess(clientAddress, email);
 
-      AUDIT.info(
+      log.info(
           "timestamp={} operation=login outcome=success account={} correlation={}",
           Instant.now(),
           account.id(),
@@ -122,7 +121,7 @@ public final class LoginService {
       return account;
 
     } catch (RuntimeException failure) {
-      AUDIT.info(
+      log.info(
           "timestamp={} operation=login outcome=activation-failed account={} correlation={}",
           Instant.now(),
           account.id(),
@@ -140,7 +139,7 @@ public final class LoginService {
   private void throwRateLimited(Duration retryAfter, String correlationId) {
     long seconds = Math.max(1, (retryAfter.toMillis() + 999) / 1000);
     meters.counter("portal.auth.login.rate_limited").increment();
-    AUDIT.info(
+    log.info(
         "timestamp={} operation=login outcome=rate-limited retryAfter={} correlation={}",
         Instant.now(),
         seconds,

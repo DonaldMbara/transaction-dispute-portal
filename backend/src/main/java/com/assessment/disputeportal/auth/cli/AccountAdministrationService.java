@@ -15,17 +15,15 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /** Host-operated service, deliberately not an HTTP controller or startup runner. */
+@Slf4j(topic = "account.administration.audit")
 public final class AccountAdministrationService {
-
-  private static final Logger AUDIT = LoggerFactory.getLogger("account.administration.audit");
 
   private final AccountRepository accounts;
   private final EmailNormalizer emails;
@@ -139,7 +137,7 @@ public final class AccountAdministrationService {
       String action, UUID account, String operator, UUID correlation, String outcome) {
     String actor =
         operator != null && operator.matches("[A-Za-z0-9_.@-]{1,64}") ? operator : "host-operator";
-    AUDIT.info(
+    log.info(
         "timestamp={} operator={} action={} account={} outcome={} correlation={}",
         Instant.now(),
         actor,

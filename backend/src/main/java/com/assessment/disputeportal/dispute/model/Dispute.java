@@ -3,8 +3,10 @@ package com.assessment.disputeportal.dispute.model;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+import lombok.Builder;
 
 /** Immutable dispute aggregate. Each successful lifecycle transition returns a new version. */
+@Builder(toBuilder = true)
 public record Dispute(
     UUID id,
     UUID transactionId,
@@ -95,40 +97,32 @@ public record Dispute(
         status == DisputeStatus.OPEN && assignedAgentId == null,
         "Only an open unassigned dispute can be claimed.");
     require(!now.isBefore(updatedAt), "Transition time cannot precede the previous update.");
-    return new Dispute(
-        id,
-        transactionId,
-        reason,
-        description,
-        DisputeStatus.UNDER_REVIEW,
-        createdAt,
-        now,
-        nextVersion(),
-        agentId,
-        now,
-        null,
-        null,
-        null);
+    return toBuilder()
+        .status(DisputeStatus.UNDER_REVIEW)
+        .updatedAt(now)
+        .version(nextVersion())
+        .assignedAgentId(agentId)
+        .assignedAt(now)
+        .resolvedAt(null)
+        .internalResolutionNotes(null)
+        .customerResolutionMessage(null)
+        .build();
   }
 
   public Dispute release(UUID agentId, String reason, Instant now) {
     requireAssignedUnderReview(agentId);
     normalizeReleaseReason(reason);
     require(!now.isBefore(updatedAt), "Transition time cannot precede the previous update.");
-    return new Dispute(
-        id,
-        transactionId,
-        this.reason,
-        description,
-        DisputeStatus.OPEN,
-        createdAt,
-        now,
-        nextVersion(),
-        null,
-        null,
-        null,
-        null,
-        null);
+    return toBuilder()
+        .status(DisputeStatus.OPEN)
+        .updatedAt(now)
+        .version(nextVersion())
+        .assignedAgentId(null)
+        .assignedAt(null)
+        .resolvedAt(null)
+        .internalResolutionNotes(null)
+        .customerResolutionMessage(null)
+        .build();
   }
 
   public static String normalizeReleaseReason(String reason) {
@@ -151,20 +145,14 @@ public record Dispute(
         requiredText(customerMessage, MAX_CUSTOMER_MESSAGE, "Customer resolution message");
     Objects.requireNonNull(now);
     require(!now.isBefore(updatedAt), "Transition time cannot precede the previous update.");
-    return new Dispute(
-        id,
-        transactionId,
-        reason,
-        description,
-        decision,
-        createdAt,
-        now,
-        nextVersion(),
-        assignedAgentId,
-        assignedAt,
-        now,
-        normalizedNotes,
-        normalizedMessage);
+    return toBuilder()
+        .status(decision)
+        .updatedAt(now)
+        .version(nextVersion())
+        .resolvedAt(now)
+        .internalResolutionNotes(normalizedNotes)
+        .customerResolutionMessage(normalizedMessage)
+        .build();
   }
 
   private void requireAssignedUnderReview(UUID agentId) {

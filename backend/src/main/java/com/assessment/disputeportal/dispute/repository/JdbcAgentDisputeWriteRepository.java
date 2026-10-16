@@ -91,20 +91,21 @@ public class JdbcAgentDisputeWriteRepository implements AgentDisputeWriteReposit
   }
 
   private Dispute map(ResultSet rs, int row) throws SQLException {
-    return new Dispute(
-        rs.getObject("id", UUID.class),
-        rs.getObject("transaction_id", UUID.class),
-        DisputeReason.valueOf(rs.getString("reason")),
-        rs.getString("description"),
-        DisputeStatus.valueOf(rs.getString("status")),
-        instant(rs, "created_at"),
-        instant(rs, "updated_at"),
-        rs.getLong("version"),
-        rs.getObject("assigned_agent_id", UUID.class),
-        instant(rs, "assigned_at"),
-        instant(rs, "resolved_at"),
-        rs.getString("internal_resolution_notes"),
-        rs.getString("customer_resolution_message"));
+    return Dispute.builder()
+        .id(rs.getObject("id", UUID.class))
+        .transactionId(rs.getObject("transaction_id", UUID.class))
+        .reason(DisputeReason.valueOf(rs.getString("reason")))
+        .description(rs.getString("description"))
+        .status(DisputeStatus.valueOf(rs.getString("status")))
+        .createdAt(instant(rs, "created_at"))
+        .updatedAt(instant(rs, "updated_at"))
+        .version(rs.getLong("version"))
+        .assignedAgentId(rs.getObject("assigned_agent_id", UUID.class))
+        .assignedAt(instant(rs, "assigned_at"))
+        .resolvedAt(instant(rs, "resolved_at"))
+        .internalResolutionNotes(rs.getString("internal_resolution_notes"))
+        .customerResolutionMessage(rs.getString("customer_resolution_message"))
+        .build();
   }
 
   private static Instant instant(ResultSet rs, String name) throws SQLException {

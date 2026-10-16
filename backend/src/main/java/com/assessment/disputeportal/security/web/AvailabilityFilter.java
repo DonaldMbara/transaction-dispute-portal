@@ -10,15 +10,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /** Outer servlet filter: handles only uncommitted failures, without custom response buffering. */
+@Slf4j
 @RequiredArgsConstructor
 public final class AvailabilityFilter extends OncePerRequestFilter {
-  private static final Logger LOG = LoggerFactory.getLogger(AvailabilityFilter.class);
   private final ApiErrorWriter errors;
 
   @Override
@@ -37,7 +36,7 @@ public final class AvailabilityFilter extends OncePerRequestFilter {
       chain.doFilter(request, response);
     } catch (ServletException | RuntimeException failure) {
       if (!StoreFailureClassifier.isStoreFailure(failure)) throw failure;
-      LOG.warn(
+      log.warn(
           "Store operation failed correlation={} committed={}",
           correlation,
           response.isCommitted());

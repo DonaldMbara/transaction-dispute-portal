@@ -7,6 +7,7 @@ import com.assessment.disputeportal.common.exception.InvalidSessionAccessTimeExc
 import com.assessment.disputeportal.common.exception.RateLimitedException;
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;
 import com.assessment.disputeportal.dispute.exception.DisputeApiException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.TransactionException;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@Slf4j(topic = "application.error")
 public final class ApiExceptionHandler {
   @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
   ResponseEntity<ApiEnvelope> unauthenticated(jakarta.servlet.http.HttpServletRequest request) {
@@ -90,8 +92,7 @@ public final class ApiExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   ResponseEntity<ApiEnvelope> unexpected(jakarta.servlet.http.HttpServletResponse response) {
-    org.slf4j.LoggerFactory.getLogger("application.error")
-        .warn("Unexpected request failure correlation={}", response.getHeader("X-Correlation-ID"));
+    log.warn("Unexpected request failure correlation={}", response.getHeader("X-Correlation-ID"));
     return ResponseEntity.status(500)
         .body(
             ApiEnvelope.failure(

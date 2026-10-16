@@ -3,8 +3,10 @@ package com.assessment.disputeportal.dispute.model;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+import lombok.Builder;
 
 /** Immutable audit fact corresponding to one committed aggregate version. */
+@Builder(toBuilder = true)
 public record DisputeEvent(
     UUID id,
     UUID disputeId,
