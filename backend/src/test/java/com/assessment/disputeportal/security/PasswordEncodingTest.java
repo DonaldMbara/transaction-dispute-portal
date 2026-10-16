@@ -3,7 +3,7 @@ package com.assessment.disputeportal.security;
 import com.assessment.disputeportal.auth.model.AccountIdentity;
 import com.assessment.disputeportal.auth.model.Account;
 import com.assessment.disputeportal.auth.model.AccountRole;
-import com.assessment.disputeportal.auth.model.AppUser;
+import com.assessment.disputeportal.auth.model.entity.AppUser;
 import com.assessment.disputeportal.common.exception.DomainInvariantException;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.security.authentication.VersionedPasswordEncoder;

@@ -3,6 +3,7 @@ package com.assessment.disputeportal.account.repository;
 import org.springframework.stereotype.Component;
 
 import com.assessment.disputeportal.account.model.BankAccount;
+import com.assessment.disputeportal.account.model.entity.BankAccountEntity;
 
 @Component
 final class BankAccountMapper {

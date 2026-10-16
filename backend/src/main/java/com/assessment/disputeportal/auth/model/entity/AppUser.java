@@ -1,5 +1,6 @@
-package com.assessment.disputeportal.auth.model;
+package com.assessment.disputeportal.auth.model.entity;
 
+import com.assessment.disputeportal.auth.model.AccountRole;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -3,7 +3,7 @@ package com.assessment.disputeportal.auth.mapper;
 import org.springframework.stereotype.Component;
 
 import com.assessment.disputeportal.auth.model.Account;
-import com.assessment.disputeportal.auth.model.AppUser;
+import com.assessment.disputeportal.auth.model.entity.AppUser;
 
 @Component
 public final class AccountMapper {

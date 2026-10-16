@@ -13,6 +13,7 @@ import org.springframework.boot.actuate.health.HealthEndpointGroups;
 import org.springframework.core.io.ClassPathResource;
 import java.nio.charset.StandardCharsets;
 import javax.sql.DataSource;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -55,9 +56,24 @@ class FoundationIntegrationTest {
     DataSource dataSource;
 
     @Autowired
+    EntityManagerFactory entityManagerFactory;
+
+    @Autowired
     org.springframework.context.ApplicationContext context;
 
-    @Test
+        @Test
+        void allFeatureEntitiesArePresentInTheJpaMetamodel() {
+        var entityClassNames = entityManagerFactory.getMetamodel().getEntities().stream()
+            .map(entity -> entity.getJavaType().getName())
+            .collect(java.util.stream.Collectors.toSet());
+
+        assertThat(entityClassNames).contains(
+            "com.assessment.disputeportal.auth.model.entity.AppUser",
+            "com.assessment.disputeportal.account.model.entity.BankAccountEntity",
+            "com.assessment.disputeportal.transaction.model.entity.BankTransactionEntity");
+        }
+
+        @Test
     void operationalProvisioningIsInactiveAndUnreachableFromPortalHttp() {
         assertThat(context.getBeansOfType(com.assessment.disputeportal.auth.service.AccountAdministrationService.class)).isEmpty();
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM app_users", Integer.class)).isZero();

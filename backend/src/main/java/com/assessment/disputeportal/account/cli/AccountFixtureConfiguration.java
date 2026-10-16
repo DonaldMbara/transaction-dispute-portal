@@ -1,7 +1,7 @@
 package com.assessment.disputeportal.account.cli;
 
 import com.assessment.disputeportal.account.model.AccountType;
-import com.assessment.disputeportal.auth.model.AppUser;
+import com.assessment.disputeportal.auth.model.entity.AppUser;
 import com.assessment.disputeportal.auth.repository.AppUserRepository;
 import com.assessment.disputeportal.auth.repository.JpaAccountLookup;
 import com.assessment.disputeportal.auth.validation.EmailNormalizer;
@@ -20,8 +20,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Profile("account-fixture")
 @EnableAutoConfiguration(exclude = UserDetailsServiceAutoConfiguration.class)
 @EntityScan(basePackages = {
-        "com.assessment.disputeportal.auth.model",
-        "com.assessment.disputeportal.account.repository"
+        "com.assessment.disputeportal.auth.model.entity",
+        "com.assessment.disputeportal.account.model.entity"
 })
 @EnableJpaRepositories(basePackages = {
         "com.assessment.disputeportal.auth.repository",

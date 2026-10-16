@@ -24,7 +24,7 @@ import com.assessment.disputeportal.auth.repository.AccountLookup;
 import com.assessment.disputeportal.auth.validation.EmailNormalizer;
 import com.assessment.disputeportal.auth.model.AccountIdentity;
 import com.assessment.disputeportal.auth.model.AccountRole;
-import com.assessment.disputeportal.auth.model.AppUser;
+import com.assessment.disputeportal.auth.model.entity.AppUser;
 import com.assessment.disputeportal.auth.repository.AppUserRepository;
 import com.assessment.disputeportal.auth.repository.JpaAccountLookup;
 import com.assessment.disputeportal.security.authentication.VersionedPasswordEncoder;

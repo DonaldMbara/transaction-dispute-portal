@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.assessment.disputeportal.auth.model.AccountIdentity;
-import com.assessment.disputeportal.auth.model.AppUser;
+import com.assessment.disputeportal.auth.model.entity.AppUser;
 
 import java.util.Optional;
 import java.util.UUID;

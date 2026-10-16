@@ -17,8 +17,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Configuration(proxyBeanMethods = false)
 @Profile("transaction-fixture")
 @EnableAutoConfiguration(exclude = UserDetailsServiceAutoConfiguration.class)
-@EntityScan(basePackages = {"com.assessment.disputeportal.auth.model", "com.assessment.disputeportal.account.repository",
-        "com.assessment.disputeportal.transaction.repository"})
+@EntityScan(basePackages = {"com.assessment.disputeportal.auth.model.entity", "com.assessment.disputeportal.account.model.entity",
+        "com.assessment.disputeportal.transaction.model.entity"})
 @EnableJpaRepositories(basePackages = {"com.assessment.disputeportal.auth.repository", "com.assessment.disputeportal.account.repository"})
 @Import({EmailNormalizer.class, JpaAccountLookup.class, AccountFixtureRepository.class, AccountFixtureService.class,
         TransactionFixtureRepository.class, TransactionFixtureService.class})

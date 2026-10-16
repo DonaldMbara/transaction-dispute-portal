@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.account.repository;
+package com.assessment.disputeportal.account.model.entity;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "accounts")
 @Getter
 @NoArgsConstructor
-class BankAccountEntity {
+public class BankAccountEntity {
     @Id
     @Column(nullable = false, updatable = false)
     private UUID id;
