@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import com.assessment.disputeportal.transaction.model.TransactionStatus;
 import com.assessment.disputeportal.transaction.port.DisputeTransactionPort;
+import com.assessment.disputeportal.transaction.port.SubmissionTransaction;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;

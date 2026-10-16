@@ -9,5 +9,4 @@ public interface DisputeIdempotencyRepository {
     Optional<IdempotencyResult> find(UUID userId, String operation, String key);
     void save(UUID userId, String operation, String key, String hash, JsonNode responseBody);
 
-    record IdempotencyResult(String hash, JsonNode responseBody) {}
 }

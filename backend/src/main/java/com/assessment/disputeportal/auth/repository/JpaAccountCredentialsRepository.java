@@ -2,6 +2,7 @@ package com.assessment.disputeportal.auth.repository;
 
 import java.util.Optional;
 
+import com.assessment.disputeportal.auth.model.projection.Credentials;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
