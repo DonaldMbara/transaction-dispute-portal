@@ -68,7 +68,7 @@ Source of the findings: the repository inventory (architecture, conventions, sco
 
 - [x] **R-12 Naming.** Dispute `*Dto` → `*Response`; align `Summary` / `Entry` / `Result` names; one canonical suffix scheme (`AGENTS.md` §2.5). IDE-safe renames only.
 - [x] **R-13 Placement pass.** DONE: batches B1 to B8, commits `3347be2` to `6788665`, 217 tests green, exit checks pass, CLI commands verified.
-- [ ] **R-14 Entities to `model/entity`.** `AppUser`, `BankAccountEntity`, `BankTransactionEntity`. Update `@EntityScan` / `@EnableJpaRepositories` (including the CLI configuration classes). Enforce with ArchUnit (R-20) that only `repository` and `mapper` use entities.
+- [x] **R-14 Entities to `model/entity`.** `AppUser`, `BankAccountEntity`, `BankTransactionEntity`. Update `@EntityScan` / `@EnableJpaRepositories` (including the CLI configuration classes). Enforce with ArchUnit (R-20) that only `repository` and `mapper` use entities.
 - [ ] **R-15 Dead and duplicate models.** Decide for each, with tests: `BankTransaction` (used only by fixtures — merge with `TransactionReadRow` or move to the fixture package); `DisputeSubmissionResult` (wrapper around `JsonNode` — use a typed record); account feature Entity → Domain → DTO three-step (flatten only if it removes code without changing behavior).
 - [ ] **R-16 Request validation.** Convert `SubmitDisputeRequest`, `LoginRequest` and the agent command bodies to records with Bean Validation; enable global `fail-on-unknown-properties`; delete the `@JsonAnySetter` traps and manual body checks; add the handler mapping to `400 / 1004`.
   *Accept:* every existing validation test passes **unchanged**, including unknown-field and malformed-body cases; error codes and messages identical.
