@@ -1,31 +1,45 @@
 package com.assessment.disputeportal.transaction.mapper;
 
-import com.assessment.disputeportal.account.AccountNumberMask;
+import com.assessment.disputeportal.account.mapper.AccountNumberMask;
 import com.assessment.disputeportal.transaction.model.TransactionStatus;
 import com.assessment.disputeportal.transaction.model.dto.TransactionResponse;
-import com.assessment.disputeportal.transaction.repository.TransactionReadRow;
+import com.assessment.disputeportal.transaction.model.projection.TransactionReadRow;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public final class TransactionResponseMapper {
-    public TransactionResponse toResponse(TransactionReadRow row) {
-        var transaction = row.transaction();
-        String number = row.accountNumber();
-        if (AccountNumberMask.isMalformedPersistedValue(number)) {
-            log.warn("Malformed stored account number accountId={} reason={}", transaction.accountId(),
-                    AccountNumberMask.malformedReason(number));
-        }
-        boolean completed = transaction.status() == TransactionStatus.COMPLETED;
-        boolean outgoing = transaction.direction() == com.assessment.disputeportal.transaction.model.TransactionDirection.OUT;
-        boolean eligible = completed && outgoing && row.disputeId() == null;
-        String reason = row.disputeId() != null ? "ALREADY_DISPUTED"
-                : (!completed ? "NOT_COMPLETED" : (!outgoing ? "NOT_OUTGOING" : null));
-        var dispute = new TransactionResponse.DisputeEligibility(row.disputeId(), eligible, reason);
-        return new TransactionResponse(transaction.id(), transaction.reference(), transaction.merchant(),
-                transaction.amount().toPlainString(), transaction.currency(), transaction.direction(), transaction.status(),
-                transaction.occurredAt(), new TransactionResponse.AccountSummary(transaction.accountId(), AccountNumberMask.mask(number)),
-                dispute);
+  public TransactionResponse toResponse(TransactionReadRow row) {
+    var transaction = row.transaction();
+    String number = row.accountNumber();
+    if (AccountNumberMask.isMalformedPersistedValue(number)) {
+      log.warn(
+          "Malformed stored account number accountId={} reason={}",
+          transaction.accountId(),
+          AccountNumberMask.malformedReason(number));
     }
+    boolean completed = transaction.status() == TransactionStatus.COMPLETED;
+    boolean outgoing =
+        transaction.direction()
+            == com.assessment.disputeportal.transaction.model.TransactionDirection.OUT;
+    boolean eligible = completed && outgoing && row.disputeId() == null;
+    String reason =
+        row.disputeId() != null
+            ? "ALREADY_DISPUTED"
+            : (!completed ? "NOT_COMPLETED" : (!outgoing ? "NOT_OUTGOING" : null));
+    var dispute = new TransactionResponse.DisputeEligibility(row.disputeId(), eligible, reason);
+    return new TransactionResponse(
+        transaction.id(),
+        transaction.reference(),
+        transaction.merchant(),
+        transaction.amount().toPlainString(),
+        transaction.currency(),
+        transaction.direction(),
+        transaction.status(),
+        transaction.occurredAt(),
+        new TransactionResponse.AccountSummary(
+            transaction.accountId(), AccountNumberMask.mask(number)),
+        dispute);
+  }
 }

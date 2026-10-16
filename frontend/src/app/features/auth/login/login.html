@@ -1,7 +1,10 @@
 <header class="login-header">
   <div class="login-header__content">
     <div class="brand-mark" aria-hidden="true">
-      <svg viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 4.7-2.9 8-7 10-4.1-2-7-5.3-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+      <svg viewBox="0 0 24 24">
+        <path d="M12 3 19 6v5c0 4.7-2.9 8-7 10-4.1-2-7-5.3-7-10V6l7-3Z" />
+        <path d="m9 12 2 2 4-4" />
+      </svg>
     </div>
     <span>Transaction Dispute Portal</span>
   </div>
@@ -9,25 +12,66 @@
 <main class="login-page">
   <div class="login-content">
     <section class="login-card" aria-labelledby="login-heading">
-      <div class="login-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 15v2"/></svg></div>
+      <div class="login-symbol" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <rect x="4" y="10" width="16" height="11" rx="2" />
+          <path d="M8 10V7a4 4 0 0 1 8 0v3M12 15v2" />
+        </svg>
+      </div>
       <h1 id="login-heading">Welcome back</h1>
-      <p class="login-card__intro">Sign in to view your accounts and raise a transaction dispute.</p>
+      <p class="login-card__intro">
+        Sign in to view your accounts and raise a transaction dispute.
+      </p>
       @if (!confirmed()) {
         <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="pending()" novalidate>
           <label for="login-email">Email</label>
-          <input id="login-email" type="email" autocomplete="username" formControlName="email" placeholder="Enter your email address" [readOnly]="pending()"
-            [class.input--invalid]="fieldInvalid('email')" [attr.aria-invalid]="fieldInvalid('email')" [attr.aria-describedby]="fieldInvalid('email') ? 'email-error' : null" />
-          @if (fieldInvalid('email')) { <p id="email-error" class="field-error">Enter a valid email address.</p> }
+          <input
+            id="login-email"
+            type="email"
+            autocomplete="username"
+            formControlName="email"
+            placeholder="Enter your email address"
+            [readOnly]="pending()"
+            [class.input--invalid]="fieldInvalid('email')"
+            [attr.aria-invalid]="fieldInvalid('email')"
+            [attr.aria-describedby]="fieldInvalid('email') ? 'email-error' : null"
+          />
+          @if (fieldInvalid('email')) {
+            <p id="email-error" class="field-error">Enter a valid email address.</p>
+          }
           <label for="login-password">Password</label>
           <div class="password-control">
-            <input id="login-password" [type]="passwordVisible() ? 'text' : 'password'" autocomplete="current-password" formControlName="password" placeholder="Enter your password" [readOnly]="pending()"
-              [class.input--invalid]="fieldInvalid('password')" [attr.aria-invalid]="fieldInvalid('password')" [attr.aria-describedby]="fieldInvalid('password') ? 'password-error' : null" />
-            <button type="button" class="password-control__toggle" (click)="togglePassword()" [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.7 10.7 0 0 1 12 5c5 0 8.5 5 8.5 7a8.6 8.6 0 0 1-2.1 3.1M6.2 6.2C4.5 7.5 3.5 9.2 3.5 12c0 2 3.5 7 8.5 7 1.2 0 2.3-.3 3.3-.8"/></svg>
+            <input
+              id="login-password"
+              [type]="passwordVisible() ? 'text' : 'password'"
+              autocomplete="current-password"
+              formControlName="password"
+              placeholder="Enter your password"
+              [readOnly]="pending()"
+              [class.input--invalid]="fieldInvalid('password')"
+              [attr.aria-invalid]="fieldInvalid('password')"
+              [attr.aria-describedby]="fieldInvalid('password') ? 'password-error' : null"
+            />
+            <button
+              type="button"
+              class="password-control__toggle"
+              (click)="togglePassword()"
+              [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.7 10.7 0 0 1 12 5c5 0 8.5 5 8.5 7a8.6 8.6 0 0 1-2.1 3.1M6.2 6.2C4.5 7.5 3.5 9.2 3.5 12c0 2 3.5 7 8.5 7 1.2 0 2.3-.3 3.3-.8"
+                />
+              </svg>
             </button>
           </div>
-          @if (fieldInvalid('password')) { <p id="password-error" class="field-error">Enter your password.</p> }
-          <button class="sign-in-button" appButton="primary" type="submit" [disabled]="pending()"><span>{{ pending() ? 'Signing in…' : 'Sign in' }}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          @if (fieldInvalid('password')) {
+            <p id="password-error" class="field-error">Enter your password.</p>
+          }
+          <button class="sign-in-button" appButton="primary" type="submit" [disabled]="pending()">
+            <span>{{ pending() ? 'Signing in…' : 'Sign in' }}</span
+            ><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </button>
         </form>
       }
       @if (message()) {
@@ -36,10 +80,22 @@
         <p class="message" role="status" aria-live="polite">{{ auth.state.notice() }}</p>
       }
       @if (recoveryRequired()) {
-        <button appButton="secondary" type="button" [disabled]="pending()" (click)="retrySecurity()">Try again</button>
+        <button
+          appButton="secondary"
+          type="button"
+          [disabled]="pending()"
+          (click)="retrySecurity()"
+        >
+          Try again
+        </button>
       }
     </section>
-    <p class="privacy-reassurance"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5c0 4.7-2.9 8-7 10-4.1-2-7-5.3-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg>Your account details stay private.</p>
+    <p class="privacy-reassurance">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3 19 6v5c0 4.7-2.9 8-7 10-4.1-2-7-5.3-7-10V6l7-3Z" />
+        <path d="m9 12 2 2 4-4" /></svg
+      >Your account details stay private.
+    </p>
   </div>
 </main>
 <footer class="login-footer">Assessment portal · Synthetic data only</footer>

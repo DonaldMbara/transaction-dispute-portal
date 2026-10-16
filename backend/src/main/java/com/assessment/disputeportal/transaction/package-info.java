@@ -1,4 +1,2 @@
-/**
- * Future transaction query and eligibility boundary.
- */
+/** Future transaction query and eligibility boundary. */
 package com.assessment.disputeportal.transaction;

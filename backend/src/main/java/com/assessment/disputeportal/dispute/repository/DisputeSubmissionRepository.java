@@ -1,13 +1,13 @@
 package com.assessment.disputeportal.dispute.repository;
 
-import java.time.Instant;
-import java.util.UUID;
-
 import com.assessment.disputeportal.dispute.model.Dispute;
 import com.assessment.disputeportal.dispute.model.DisputeEvent;
+import java.util.UUID;
 
 public interface DisputeSubmissionRepository {
-    boolean existsForTransaction(UUID transactionId);
-    void insert(Dispute dispute);
-    void appendCreated(DisputeEvent event);
+  boolean existsForTransaction(UUID transactionId);
+
+  void insert(Dispute dispute);
+
+  void appendCreated(DisputeEvent event);
 }

@@ -4,6 +4,10 @@ fileMatchPattern: ["frontend/**/*.ts", "frontend/**/*.html", "frontend/**/*.scss
 ---
 # Angular / TypeScript standards
 - Standalone components, lazy feature routes, strict TypeScript, typed Reactive Forms, typed API interfaces, no `any` without justification.
+- Keep every frontend source file under `frontend/src` (TypeScript, HTML, SCSS/CSS, specs, models, helpers) at or below 250 lines. `npm run lint` and CI enforce the limit; refactor responsibilities instead of compressing or arbitrarily moving code.
+- Actively decompose bloated components, templates, tests, and styles into cohesive feature-specific modules. Extract helpers for repeated or complex formatting, validation, date/query rules, and transformations; extract child components for substantial UI sections. Do not leave obvious clutter untouched.
+- Keep code readable with logical blank-line separation after blocks, control flow, multiline declarations, and returns. Follow repository Prettier/ESLint settings.
+- Before finishing, audit affected feature files and all source line counts, then run lint/line-limit, build, and relevant tests.
 - Prefer signals for local synchronous state and RxJS/HttpClient for HTTP. Avoid adding a global state library for this assessment.
 - Use `inject()`, OnPush where suitable, modern Angular control flow, `track` in repeated templates; follow installed Angular version's official style guide.
 - Organize feature pages, reusable presentational components and data-access services by feature. Keep templates readable and avoid business rules duplicated from backend.

@@ -1,20 +1,34 @@
 <span class="account-card" [class.account-card--highlighted]="highlighted()">
   <span class="account-icon" aria-hidden="true">
-    <svg viewBox="0 0 24 24" focusable="false"><path [attr.d]="iconPath(account().accountType)" /></svg>
+    <svg viewBox="0 0 24 24" focusable="false">
+      <path [attr.d]="iconPath(account().accountType)" />
+    </svg>
   </span>
   <span class="account-info">
     <span class="account-title">
       <strong>{{ account().displayName }}</strong>
-      @if (account().primary) { <span class="primary-badge">Primary</span> }
+      @if (account().primary) {
+        <span class="primary-badge">Primary</span>
+      }
     </span>
-    @if (account().accountNumber !== null) { <span class="full-number">{{ account().accountNumber }}</span> }
+    @if (account().accountNumber !== null) {
+      <span class="full-number">{{ account().accountNumber }}</span>
+    }
   </span>
   <span class="account-balance">
     <span class="balance-label">Available balance</span>
     <strong class="balance">{{ formatBalance(account().balance) }}</strong>
   </span>
   @if (trailing() === 'chevron') {
-    <svg class="chevron" [class.chevron--expanded]="expanded()" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6" /></svg>
+    <svg
+      class="chevron"
+      [class.chevron--expanded]="expanded()"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="m9 18 6-6-6-6" />
+    </svg>
   } @else if (trailing() === 'selected') {
     <span class="selected-mark" aria-hidden="true">✓</span>
   } @else {

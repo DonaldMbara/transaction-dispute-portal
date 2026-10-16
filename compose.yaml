@@ -6,7 +6,9 @@ services:
       POSTGRES_USER: ${DB_USERNAME:?Set DB_USERNAME in .env}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - portal
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -14,5 +16,60 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/dispute_portal
+      DB_USERNAME: ${DB_USERNAME:?Set DB_USERNAME in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      SPRING_PROFILES_ACTIVE: local
+      LOGIN_RATE_LIMIT_TRUSTED_PROXY: 172.30.255.10
+    networks:
+      - portal
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/actuator/health/liveness"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 45s
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "127.0.0.1:${PORTAL_PORT:-8081}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      portal:
+        ipv4_address: 172.30.255.10
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+  demo-cli:
+    profiles: ["demo"]
+    build:
+      context: ./backend
+    entrypoint: ["java", "-jar", "/app/app.jar"]
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/dispute_portal
+      DB_USERNAME: ${DB_USERNAME:?Set DB_USERNAME in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - portal
 volumes:
   postgres_data:
+networks:
+  portal:
+    ipam:
+      config:
+        - subnet: 172.30.255.0/24

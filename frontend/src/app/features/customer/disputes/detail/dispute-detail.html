@@ -1,0 +1,134 @@
+@if (state() === 'loading') {
+  <div class="loading" aria-busy="true">
+    <app-loading-spinner label="Loading dispute details" />
+  </div>
+} @else if (state() === 'not-found') {
+  <section class="state-card" role="alert">
+    <h1>Dispute not found</h1>
+    <p>This dispute may have been removed or is not available to your account.</p>
+    <a appButton="secondary" routerLink="/customer/disputes">Back to disputes</a>
+  </section>
+} @else if (state() === 'error') {
+  <section class="state-card" role="alert">
+    <h1>We couldn't load this dispute</h1>
+    <p>Please try again.</p>
+    <button appButton="secondary" type="button" (click)="retry()">Try again</button>
+  </section>
+} @else if (dispute(); as item) {
+  <section class="detail-page" aria-labelledby="detail-title">
+    <a class="back-link" [routerLink]="backLink()">← Back to disputes</a>
+    @if (item.status === 'ACCEPTED' || item.status === 'REJECTED') {
+      <section
+        class="outcome"
+        role="status"
+        [class.outcome--accepted]="item.status === 'ACCEPTED'"
+        [class.outcome--rejected]="item.status === 'REJECTED'"
+      >
+        <span class="outcome-chip">{{
+          item.status === 'ACCEPTED' ? '✓ Accepted' : '⊗ Rejected'
+        }}</span>
+        <h2>
+          {{
+            item.status === 'ACCEPTED'
+              ? 'Your dispute has been accepted'
+              : 'Your dispute was not accepted'
+          }}
+        </h2>
+        @if (item.decision?.message) {
+          <p>{{ item.decision?.message }}</p>
+        }
+        @if (item.resolvedAt) {
+          <time>{{ item.resolvedAt | date: 'dd MMM yyyy, HH:mm' : 'Africa/Johannesburg' }}</time>
+        }
+        @if (item.status === 'ACCEPTED') {
+          <p class="no-refund">
+            This decision applies to your dispute only and does not automatically result in a
+            payment or refund.
+          </p>
+        }
+      </section>
+    }
+    <header class="detail-heading">
+      <p class="reference">{{ displayRef() }}</p>
+      <h1 id="detail-title">Dispute details</h1>
+      <p>Review the transaction and updates to your case.</p>
+    </header>
+    <div class="detail-grid">
+      <section class="transaction-card" aria-label="Disputed transaction">
+        <p class="card-eyebrow">DISPUTED TRANSACTION</p>
+        <h2>{{ item.transaction.merchant }}</h2>
+        <p class="amount">
+          {{ formatAmount(item.transaction.amount, item.transaction.direction) }}
+        </p>
+        <span
+          class="status-chip"
+          [class]="'status-chip status-chip--' + item.status.toLowerCase()"
+          >{{ statusLabel(item.status) }}</span
+        >
+        <dl>
+          <div>
+            <dt>Account</dt>
+            <dd>
+              {{ item.transaction.account.displayName }} ·
+              {{ item.transaction.account.maskedNumber }}
+            </dd>
+          </div>
+          <div>
+            <dt>Transaction date and time</dt>
+            <dd>
+              {{ item.transaction.occurredAt | date: 'dd MMM yyyy, HH:mm' : 'Africa/Johannesburg' }}
+            </dd>
+          </div>
+          <div>
+            <dt>Reason for dispute</dt>
+            <dd>{{ reasonLabel(item.reason) }}</dd>
+          </div>
+          <div>
+            <dt>Submitted</dt>
+            <dd>{{ item.createdAt | date: 'dd MMM yyyy, HH:mm' : 'Africa/Johannesburg' }}</dd>
+          </div>
+          <div>
+            <dt>What you told us</dt>
+            <dd class="description">{{ item.description }}</dd>
+          </div>
+        </dl>
+      </section>
+      <section class="timeline-card" aria-labelledby="timeline-title">
+        <h2 id="timeline-title">Case timeline</h2>
+        <ol class="timeline">
+          @for (entry of item.timeline; track entry.occurredAt + entry.type; let index = $index) {
+            <li>
+              <span class="timeline-icon" aria-hidden="true">{{
+                entry.type === 'SUBMITTED'
+                  ? '▣'
+                  : entry.type === 'IN_REVIEW'
+                    ? '◷'
+                    : entry.type === 'RETURNED_TO_QUEUE'
+                      ? '↻'
+                      : item.status === 'ACCEPTED'
+                        ? '✓'
+                        : '⊗'
+              }}</span>
+              <div>
+                <h3>{{ timelineLabel(entry, index, item.timeline) }}</h3>
+                <time>{{
+                  entry.occurredAt | date: 'dd MMM yyyy, HH:mm' : 'Africa/Johannesburg'
+                }}</time>
+                <p>{{ entry.message }}</p>
+              </div>
+            </li>
+          }
+        </ol>
+        @if (item.status === 'ACCEPTED' || item.status === 'REJECTED') {
+          <p class="timeline-note">
+            <span aria-hidden="true">▣</span>This case is a locked record of your completed dispute.
+          </p>
+        } @else {
+          <p class="timeline-note">
+            <span aria-hidden="true">ⓘ</span>We’ll update this timeline as your dispute progresses.
+          </p>
+        }
+      </section>
+    </div>
+  </section>
+}

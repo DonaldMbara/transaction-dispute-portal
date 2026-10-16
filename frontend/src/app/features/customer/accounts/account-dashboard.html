@@ -20,13 +20,28 @@
       <p>Your accounts will appear here when they are available.</p>
     </section>
   } @else {
-    <div class="dashboard-columns" [attr.aria-busy]="state() === 'busy'" [class.refreshing]="state() === 'busy'">
-      @if (state() === 'busy') { <app-loading-spinner class="refresh-indicator" label="Refreshing accounts" size="small" /> }
-        <div class="account-list" aria-label="Your accounts">
+    <div
+      class="dashboard-columns"
+      [attr.aria-busy]="state() === 'busy'"
+      [class.refreshing]="state() === 'busy'"
+    >
+      @if (state() === 'busy') {
+        <app-loading-spinner class="refresh-indicator" label="Refreshing accounts" size="small" />
+      }
+      <div class="account-list" aria-label="Your accounts">
         @for (account of accounts(); track account.id) {
-          <a class="account-row" [routerLink]="['/customer/transactions']" [queryParams]="{ accountId: account.id }"
+          <a
+            class="account-row"
+            [routerLink]="['/customer/transactions']"
+            [queryParams]="{ accountId: account.id }"
             (keydown)="openTransactions($event, account.id)"
-            [attr.aria-label]="account.displayName + (account.accountNumber !== null ? ', account number ' + account.accountNumber : '') + ', available balance ' + formatBalance(account.balance)">
+            [attr.aria-label]="
+              account.displayName +
+              (account.accountNumber !== null ? ', account number ' + account.accountNumber : '') +
+              ', available balance ' +
+              formatBalance(account.balance)
+            "
+          >
             <app-account-card [account]="account" />
           </a>
         }
@@ -35,8 +50,17 @@
         <nav class="quick-links" aria-label="Quick links">
           @for (link of quickLinks(); track link.label) {
             <h2>{{ link.label }}</h2>
-            <p>{{ link.label === 'View transactions' ? 'Browse payments and find a transaction.' : 'Track the progress and outcome of your cases.' }}</p>
-            <a [routerLink]="link.routerLink" [queryParams]="link.queryParams"><span>{{ link.label }}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+            <p>
+              {{
+                link.label === 'View transactions'
+                  ? 'Browse payments and find a transaction.'
+                  : 'Track the progress and outcome of your cases.'
+              }}
+            </p>
+            <a [routerLink]="link.routerLink" [queryParams]="link.queryParams"
+              ><span>{{ link.label }}</span
+              ><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg
+            ></a>
           }
         </nav>
       }

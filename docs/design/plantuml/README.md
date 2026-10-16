@@ -1,4 +1,4 @@
-# PlantUML Diagram Catalogue
+lantUML Diagram Catalogue
 
 **Status:** Customer Accounts alignment v0.8 — 2026-10-11. Diagrams distinguish implemented authentication from approved future business design; no deployed/production-ready claim.
 

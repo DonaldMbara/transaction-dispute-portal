@@ -28,6 +28,20 @@ jobs:
         run: docker info --format '{{.ServerVersion}}'
       - name: Build and test
         run: mvn --batch-mode clean verify
+      - name: Publish JaCoCo report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: backend-jacoco-report
+          path: backend/target/site/jacoco/
+          if-no-files-found: warn
+      - name: Publish OpenAPI specification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: openapi-specification
+          path: backend/target/openapi/openapi.json
+          if-no-files-found: warn
 
   frontend:
     runs-on: ubuntu-24.04
@@ -54,5 +68,48 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Lint
+        run: npm run lint
+      - name: Enforce frontend source size
+        run: npm run check:lines
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
       - name: Test
         run: npm run test:ci
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start application and seed E2E customer
+        env:
+          DB_USERNAME: portal_e2e
+          E2E_CUSTOMER_EMAIL: e2e.customer@example.test
+        run: |
+          cd ..
+          DB_PASSWORD="$(openssl rand -hex 24)"
+          E2E_CUSTOMER_PASSWORD="$(openssl rand -hex 16)"
+          echo "::add-mask::$DB_PASSWORD"
+          echo "::add-mask::$E2E_CUSTOMER_PASSWORD"
+          {
+            printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD"
+            printf 'DB_USERNAME=%s\n' "$DB_USERNAME"
+            printf 'E2E_BASE_URL=http://localhost:8081\n'
+            printf 'E2E_CUSTOMER_EMAIL=%s\n' "$E2E_CUSTOMER_EMAIL"
+            printf 'E2E_CUSTOMER_PASSWORD=%s\n' "$E2E_CUSTOMER_PASSWORD"
+          } >> "$GITHUB_ENV"
+          export DB_PASSWORD E2E_CUSTOMER_PASSWORD
+          docker compose up --build -d --wait
+          printf '%s\n%s\n' "$E2E_CUSTOMER_PASSWORD" "$E2E_CUSTOMER_PASSWORD" \
+            | script -qefc "stty -echo; docker compose --profile demo run --rm --no-deps -it demo-cli account-admin create --email $E2E_CUSTOMER_EMAIL --role CUSTOMER --enabled true" /dev/null
+          docker compose --profile demo run --rm --no-deps -T demo-cli account-fixture --email "$E2E_CUSTOMER_EMAIL"
+          docker compose --profile demo run --rm --no-deps -T demo-cli transaction-fixture --email "$E2E_CUSTOMER_EMAIL"
+      - name: Browser journey
+        run: npm run test:e2e
+      - name: Publish frontend coverage report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: frontend-coverage-report
+          path: frontend/coverage/
+          if-no-files-found: warn
+      - name: Stop E2E application
+        if: always()
+        run: docker compose -f ../compose.yaml down --volumes

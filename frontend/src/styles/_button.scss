@@ -1,19 +1,48 @@
 .app-button {
   min-height: 3rem;
-  padding: .65rem 1rem;
+  padding: 0.65rem 1rem;
   border: 1px solid var(--color-primary);
   border-radius: var(--radius-control);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
 }
 
-.app-button--primary { background: var(--color-primary); color: var(--color-on-primary); }
-.app-button--primary:hover:not(:disabled) { background: var(--color-primary-hover); }
-.app-button--secondary { background: var(--color-surface); color: var(--color-primary); }
-.app-button--secondary:hover:not(:disabled) { background: var(--color-primary-soft); }
-.app-button--tertiary { min-height: 2.25rem; border-color: transparent; background: transparent; color: var(--color-primary); padding-inline: 0; text-decoration: underline; }
-.app-button--tertiary:hover:not(:disabled) { background: transparent; color: var(--color-primary-hover); }
-.app-button:disabled { opacity: .65; cursor: wait; }
-.app-button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+.app-button--primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.app-button--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+.app-button--secondary {
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+.app-button--secondary:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+}
+.app-button--tertiary {
+  min-height: 2.25rem;
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-primary);
+  padding-inline: 0;
+  text-decoration: underline;
+}
+.app-button--tertiary:hover:not(:disabled) {
+  background: transparent;
+  color: var(--color-primary-hover);
+}
+.app-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.app-button:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}

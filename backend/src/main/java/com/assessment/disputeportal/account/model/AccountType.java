@@ -1,16 +1,16 @@
 package com.assessment.disputeportal.account.model;
 
 public enum AccountType {
-    MAIN("Main Account"),
-    SAVINGS("Savings Account");
+  MAIN("Main Account"),
+  SAVINGS("Savings Account");
 
-    private final String displayName;
+  private final String displayName;
 
-    AccountType(String displayName) {
-        this.displayName = displayName;
-    }
+  AccountType(String displayName) {
+    this.displayName = displayName;
+  }
 
-    public String displayName() {
-        return displayName;
-    }
+  public String displayName() {
+    return displayName;
+  }
 }

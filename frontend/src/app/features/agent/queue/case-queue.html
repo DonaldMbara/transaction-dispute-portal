@@ -1,0 +1,118 @@
+<section class="case-queue page-shell" aria-labelledby="queue-title">
+  <header class="page-heading">
+    <p class="eyebrow">Agent workspace · {{ identity()?.email }}</p>
+    <h1 id="queue-title">Case queue</h1>
+    <p class="intro">Find a case, take ownership and keep reviews moving.</p>
+  </header>
+
+  <div class="queue-tabs" role="tablist" aria-label="Case queue">
+    @for (tab of queues; track tab.value) {
+      <button
+        type="button"
+        role="tab"
+        appButton="secondary"
+        [attr.aria-selected]="queue() === tab.value"
+        [class.is-selected]="queue() === tab.value"
+        (click)="setQueue(tab.value)"
+      >
+        {{ tab.label }}
+        @if (counts()[tab.value] !== null) {
+          <span> · {{ counts()[tab.value] }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  <section class="filter-panel" aria-label="Filter cases">
+    <label class="field search-field"
+      ><span>Search cases</span>
+      <span class="search-control"
+        ><input
+          [formControl]="search"
+          type="search"
+          placeholder="Case ID or merchant"
+          autocomplete="off"
+        />
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <circle cx="10.8" cy="10.8" r="6.8" />
+          <path d="m16 16 5 5" />
+        </svg>
+      </span>
+    </label>
+    <label class="field"
+      ><span>Status</span
+      ><select [formControl]="status" (change)="updateFilters()">
+        <option value="ALL">All statuses</option>
+        <option value="OPEN">Received</option>
+        <option value="UNDER_REVIEW">Under review</option>
+        <option value="ACCEPTED">Accepted</option>
+        <option value="REJECTED">Rejected</option>
+      </select></label
+    >
+    <label class="field"
+      ><span>Reason</span
+      ><select [formControl]="reason" (change)="updateFilters()">
+        <option value="ALL">All reasons</option>
+        @for (option of reasons; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select></label
+    >
+    <label class="field"
+      ><span>From date</span
+      ><input
+        [formControl]="fromDate"
+        type="date"
+        [attr.aria-invalid]="dateError() ? 'true' : null"
+        (change)="updateFilters()"
+    /></label>
+    <label class="field"
+      ><span>To date</span
+      ><input
+        [formControl]="toDate"
+        type="date"
+        [attr.aria-invalid]="dateError() ? 'true' : null"
+        (change)="updateFilters()"
+    /></label>
+    @if (dateError()) {
+      <p class="filter-error" role="alert">{{ dateError() }}</p>
+    }
+    <div class="filter-actions">
+      <button type="button" appButton="tertiary" (click)="resetFilters()">Reset filters</button>
+    </div>
+  </section>
+
+  @if (loading()) {
+    <app-loading-spinner label="Loading cases" />
+  } @else if (error()) {
+    <div class="state-panel" role="alert">
+      <p>Cases could not be loaded.</p>
+      <button appButton="secondary" type="button" (click)="load()">Try again</button>
+    </div>
+  } @else if (!items().length) {
+    <div class="state-panel">
+      <h2>No cases found</h2>
+      <p>Try changing your search or filters.</p>
+    </div>
+  } @else {
+    <app-case-queue-results
+      [items]="items()"
+      [queue]="queue()"
+      [identityId]="identity()?.id"
+      [detailQueryParams]="detailQueryParams()"
+      [presentation]="presentation"
+      [page]="page()"
+      [pageSize]="pageSize"
+      [total]="total()"
+      [totalPages]="totalPages()"
+      [sortBy]="sortBy()"
+      [sortDirection]="sortDirection()"
+      (sortChange)="setSortField($event)"
+      (pageChange)="changePage($event)"
+    />
+  }
+  <p class="queue-note">
+    Claim unassigned cases. Only the assigned agent can release or resolve a case. Resolved cases
+    remain read-only.
+  </p>
+</section>

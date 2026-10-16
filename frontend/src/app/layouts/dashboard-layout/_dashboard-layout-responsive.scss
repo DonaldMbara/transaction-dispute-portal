@@ -1,0 +1,98 @@
+@media (max-width: 48rem) {
+  .application-header,
+  main,
+  .application-footer {
+    padding: 1rem;
+  }
+  .header-start {
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+  .customer-shell {
+    height: 128px;
+    padding: 0 20px;
+  }
+  .customer-shell .header-content {
+    position: relative;
+    height: 128px;
+    align-content: start;
+    align-items: start;
+  }
+  .customer-shell .header-start {
+    display: contents;
+  }
+  .customer-shell .brand {
+    position: absolute;
+    top: 17px;
+    left: 0;
+    max-width: 190px;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+  .customer-shell .brand > span:last-child {
+    max-width: 120px;
+    white-space: normal;
+  }
+  .customer-shell .sign-out {
+    position: absolute;
+    top: 16px;
+    right: 0;
+    font-size: 14px;
+  }
+  .customer-shell .portal-navigation {
+    top: 80px;
+    right: 0;
+    left: 0;
+    height: 48px;
+    transform: none;
+    gap: 8px;
+  }
+  .customer-shell .portal-navigation a {
+    min-width: 0;
+    height: 48px;
+    flex: 1 1 0;
+  }
+  .agent-shell {
+    min-height: 118px;
+    padding: 1rem;
+  }
+  .agent-shell .header-content {
+    position: relative;
+    align-items: start;
+    min-height: 84px;
+  }
+  .agent-shell .header-start {
+    display: contents;
+  }
+  .agent-shell .brand {
+    position: absolute;
+    top: 0;
+    left: 0;
+    max-width: 220px;
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+  .agent-shell .sign-out {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  .agent-shell .portal-navigation {
+    top: 70px;
+    right: 0;
+    left: 0;
+    height: 48px;
+    transform: none;
+    justify-content: center;
+  }
+  .agent-shell .portal-navigation a.is-active {
+    width: 100%;
+    justify-content: center;
+  }
+  main.customer-main {
+    padding: 0;
+  }
+  .customer-footer {
+    padding: 24px 20px;
+  }
+}

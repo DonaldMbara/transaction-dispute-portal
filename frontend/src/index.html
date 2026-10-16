@@ -1,21 +1,63 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>DisputePortal</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="preload" href="/fonts/NunitoSans[YTLC,opsz,wdth,wght].ttf" as="font" type="font/ttf" crossorigin>
-  <style>
-    #startup-status { position: fixed; z-index: 10000; inset: 0 0 auto; min-height: 3px; color: #17324d; background: #eaf1ff; font: 600 14px/1.4 system-ui, sans-serif; }
-    #startup-status::before { content: ''; display: block; width: 35%; height: 3px; background: #2f70ef; animation: startup-progress 1s ease-in-out infinite alternate; }
-    #startup-status span { display: block; padding: 12px 20px; }
-    @keyframes startup-progress { from { transform: translateX(-10%); } to { transform: translateX(210%); } }
-    @media (prefers-reduced-motion: reduce) { #startup-status::before { width: 100%; animation: none; } }
-  </style>
-</head>
-<body>
-  <app-root><div id="startup-status" role="status" aria-live="polite"><span>Checking your session…</span></div></app-root>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>DisputePortal</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link
+      rel="preload"
+      href="/fonts/NunitoSans[YTLC,opsz,wdth,wght].ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <style>
+      #startup-status {
+        position: fixed;
+        z-index: 10000;
+        inset: 0 0 auto;
+        min-height: 3px;
+        color: #17324d;
+        background: #eaf1ff;
+        font:
+          600 14px/1.4 system-ui,
+          sans-serif;
+      }
+      #startup-status::before {
+        content: '';
+        display: block;
+        width: 35%;
+        height: 3px;
+        background: #2f70ef;
+        animation: startup-progress 1s ease-in-out infinite alternate;
+      }
+      #startup-status span {
+        display: block;
+        padding: 12px 20px;
+      }
+      @keyframes startup-progress {
+        from {
+          transform: translateX(-10%);
+        }
+        to {
+          transform: translateX(210%);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #startup-status::before {
+          width: 100%;
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <app-root
+      ><div id="startup-status" role="status" aria-live="polite">
+        <span>Checking your session…</span>
+      </div></app-root
+    >
+  </body>
 </html>

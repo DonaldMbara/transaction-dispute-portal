@@ -1,7 +1,8 @@
 package com.assessment.disputeportal.auth.repository;
 
+import com.assessment.disputeportal.auth.model.projection.Credentials;
+import com.assessment.disputeportal.auth.port.AuthenticationCredentialsLookup;
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,14 +10,23 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class JpaAccountCredentialsRepository implements AccountCredentialsRepository {
+public class JpaAccountCredentialsRepository
+    implements AccountCredentialsRepository, AuthenticationCredentialsLookup {
 
-    private final AppUserRepository repository;
+  private final AppUserRepository repository;
 
-    @Override
-    public Optional<Credentials> findByEmail(String canonicalEmail) {
-        return repository.findByEmail(canonicalEmail).map(account -> new Credentials(
-                account.getId(), account.getEmail(), account.getPasswordHash(), account.getRole().name(),
-                account.isEnabled(), account.getAuthVersion()));
-    }
+  @Override
+  public Optional<Credentials> findByEmail(String canonicalEmail) {
+    return repository
+        .findByEmail(canonicalEmail)
+        .map(
+            account ->
+                new Credentials(
+                    account.getId(),
+                    account.getEmail(),
+                    account.getPasswordHash(),
+                    account.getRole().name(),
+                    account.isEnabled(),
+                    account.getAuthVersion()));
+  }
 }

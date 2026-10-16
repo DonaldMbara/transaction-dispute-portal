@@ -1,0 +1,112 @@
+:host {
+  display: block;
+}
+.detail-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 3rem;
+  color: var(--color-text);
+}
+.detail-page h1 {
+  color: var(--color-text);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+}
+.back-link {
+  min-height: 2.75rem;
+  border: 0;
+  padding: 0.25rem;
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.detail-card {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding: clamp(1rem, 4vw, 2rem);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+}
+.detail-card h2,
+.detail-card p {
+  margin: 0;
+}
+.merchant {
+  color: var(--color-text);
+  font-size: 1.3rem;
+  font-weight: 750;
+}
+.amount {
+  font-size: clamp(1.5rem, 5vw, 2.1rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+dl {
+  display: grid;
+  margin: 0;
+}
+dl > div {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.7fr) minmax(0, 1.3fr);
+  gap: 0.75rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+dt {
+  font-weight: 700;
+}
+dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.advisory {
+  color: var(--color-text);
+}
+.detail-card a {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+/* #5A5A5A on #FFFFFF = 7.0:1; #5C6B7A on #FFFFFF = 5.1:1 */
+.amount-failed {
+  color: #5a5a5a;
+  text-decoration: line-through;
+}
+.amount-pending {
+  color: #5c6b7a;
+}
+.status-note {
+  margin: 0;
+  font-size: 0.9rem;
+}
+.status-note--failed {
+  color: #76241c;
+  font-weight: 700;
+}
+.status-note--pending {
+  color: #5c6b7a;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 540px) {
+  dl > div {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+}

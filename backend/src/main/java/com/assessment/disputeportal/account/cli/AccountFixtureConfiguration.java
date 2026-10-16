@@ -1,12 +1,7 @@
 package com.assessment.disputeportal.account.cli;
 
-import com.assessment.disputeportal.account.model.AccountType;
-import com.assessment.disputeportal.auth.model.AppUser;
-import com.assessment.disputeportal.auth.repository.AppUserRepository;
 import com.assessment.disputeportal.auth.repository.JpaAccountLookup;
 import com.assessment.disputeportal.auth.validation.EmailNormalizer;
-import com.assessment.disputeportal.account.repository.AccountFixtureRepository;
-import com.assessment.disputeportal.account.service.AccountFixtureService;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
@@ -19,13 +14,20 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Configuration(proxyBeanMethods = false)
 @Profile("account-fixture")
 @EnableAutoConfiguration(exclude = UserDetailsServiceAutoConfiguration.class)
-@EntityScan(basePackages = {
-        "com.assessment.disputeportal.auth.model",
-        "com.assessment.disputeportal.account.repository"
+@EntityScan(
+    basePackages = {
+      "com.assessment.disputeportal.auth.model.entity",
+      "com.assessment.disputeportal.account.model.entity"
+    })
+@EnableJpaRepositories(
+    basePackages = {
+      "com.assessment.disputeportal.auth.repository",
+      "com.assessment.disputeportal.account.repository"
+    })
+@Import({
+  EmailNormalizer.class,
+  JpaAccountLookup.class,
+  AccountFixtureRepository.class,
+  AccountFixtureService.class
 })
-@EnableJpaRepositories(basePackages = {
-        "com.assessment.disputeportal.auth.repository",
-        "com.assessment.disputeportal.account.repository"
-})
-@Import({EmailNormalizer.class, JpaAccountLookup.class, AccountFixtureRepository.class, AccountFixtureService.class})
 class AccountFixtureConfiguration {}

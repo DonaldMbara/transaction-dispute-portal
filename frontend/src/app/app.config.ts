@@ -1,4 +1,10 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, provideAppInitializer, inject } from '@angular/core';
+import {
+  ApplicationConfig,
+  provideBrowserGlobalErrorListeners,
+  provideZoneChangeDetection,
+  provideAppInitializer,
+  inject,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors, withNoXsrfProtection } from '@angular/common/http';
 
@@ -13,7 +19,15 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withNoXsrfProtection(), withInterceptors([httpProgressInterceptor, authResponseInterceptor, apiErrorInterceptor, csrfInterceptor])),
-    provideAppInitializer(() => inject(AuthService).initialize())
-  ]
+    provideHttpClient(
+      withNoXsrfProtection(),
+      withInterceptors([
+        httpProgressInterceptor,
+        authResponseInterceptor,
+        apiErrorInterceptor,
+        csrfInterceptor,
+      ]),
+    ),
+    provideAppInitializer(() => inject(AuthService).initialize()),
+  ],
 };

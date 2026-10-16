@@ -1,13 +1,26 @@
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, input, output, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  input,
+  output,
+  ViewChild,
+} from '@angular/core';
 import { AccountSummary } from '../../models/account-summary';
 import { AccountCard } from '../account-card/account-card';
 
 @Component({
-  selector: 'app-account-selector', standalone: true, imports: [AccountCard],
-  templateUrl: './account-selector.html', styleUrl: './account-selector.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-account-selector',
+  standalone: true,
+  imports: [AccountCard],
+  templateUrl: './account-selector.html',
+  styleUrl: './account-selector.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountSelector {
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly accounts = input.required<readonly AccountSummary[]>();
   readonly selectedAccountId = input.required<string | null>();
   /** When true, prepends an "All your accounts" option that emits null on selection. */
@@ -21,7 +34,7 @@ export class AccountSelector {
   @ViewChild('listbox') private listbox?: ElementRef<HTMLElement>;
 
   get selected(): AccountSummary | undefined {
-    return this.accounts().find(account => account.id === this.selectedAccountId());
+    return this.accounts().find((account) => account.id === this.selectedAccountId());
   }
 
   get isAllAccountsSelected(): boolean {
@@ -40,12 +53,18 @@ export class AccountSelector {
 
   get selectedIndex(): number {
     if (this.showAllAccounts() && this.selectedAccountId() === null) return 0;
-    const accountIndex = this.accounts().findIndex(account => account.id === this.selectedAccountId());
-    return Math.max(this.accountOffset, accountIndex < 0 ? this.accountOffset : accountIndex + this.accountOffset);
+    const accountIndex = this.accounts().findIndex(
+      (account) => account.id === this.selectedAccountId(),
+    );
+    return Math.max(
+      this.accountOffset,
+      accountIndex < 0 ? this.accountOffset : accountIndex + this.accountOffset,
+    );
   }
 
   toggle(): void {
-    this.isOpen ? this.close(true) : this.open();
+    if (this.isOpen) this.close(true);
+    else this.open();
   }
 
   open(): void {
@@ -116,8 +135,6 @@ export class AccountSelector {
     if (this.isOpen && !this.element.nativeElement.contains(event.target as Node)) this.close();
   }
 
-  constructor(private readonly element: ElementRef<HTMLElement>) {}
-
   private move(delta: number): void {
     const length = this.totalOptions;
     if (!length) return;
@@ -126,6 +143,8 @@ export class AccountSelector {
   }
 
   private focusOption(index: number): void {
-    this.listbox?.nativeElement.querySelector<HTMLElement>(`[data-option-index="${index}"]`)?.focus();
+    this.listbox?.nativeElement
+      .querySelector<HTMLElement>(`[data-option-index="${index}"]`)
+      ?.focus();
   }
 }

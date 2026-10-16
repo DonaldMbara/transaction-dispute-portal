@@ -1,6 +1,12 @@
 server:
   port: 8080
+  shutdown: graceful
 spring:
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
   mvc:
     publish-request-handled-events: false
   datasource:
@@ -17,7 +23,7 @@ spring:
     template:
       query-timeout: 5s
   session:
-    timeout: 1800s
+    timeout: ${portal.session.idle-timeout:30m}
     jdbc:
       flush-mode: immediate
       save-mode: on-set-attribute
@@ -48,8 +54,21 @@ management:
         liveness:
           include: livenessState
 
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  pattern:
+    level: "%5p [correlation=%X{correlationId:-}]"
+
 portal:
   auth:
     cleanup-cron: ${AUTH_ACTIVITY_CLEANUP_CRON:0 * * * * *}
+    rate-limit:
+      trusted-proxy: ${LOGIN_RATE_LIMIT_TRUSTED_PROXY:}
   session:
+    idle-timeout: 30m
     cookie-secure: true

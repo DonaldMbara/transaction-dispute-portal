@@ -1,0 +1,1 @@
+export type AccountCardTrailing = 'chevron' | 'selected' | 'none';
