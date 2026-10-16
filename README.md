@@ -56,10 +56,10 @@ transaction-dispute-portal/
 - Docker Engine and Docker Compose (v2.20+ with `up --wait` support).
 - Ports `8081` (frontend / nginx proxy) and `5432` (PostgreSQL) available on `127.0.0.1`.
 
-### 1. Launch the Stack
+### 1. Configure & Launch the Stack
 ```sh
 cp .env.example .env
-# Optional: customize DB_USERNAME / DB_PASSWORD in .env
+# Set your local database credentials in .env (e.g. DB_USERNAME=portal_dev, DB_PASSWORD=dev_secret_password)
 docker compose config --quiet
 docker compose up --build -d --wait
 ```
@@ -80,6 +80,7 @@ This script provisions:
 - Synthetic banking accounts, categorized transactions, and seeded disputes across `OPEN`, `UNDER_REVIEW`, `ACCEPTED`, and `REJECTED` states.
 
 Open [http://localhost:8081](http://localhost:8081) to access the portal.
+OpenAPI v3 JSON Specification [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html).
 
 ---
 
@@ -153,7 +154,33 @@ npm run test:e2e
 - **Response Envelope:** All responses follow a standardized JSON envelope:
   - Success: `{ "status": true, "data": { ... }, "error_code": 0 }`
   - Error: `{ "status": false, "data": null, "error_code": 1004, "error": { "type": "...", "title": "...", "detail": "..." } }`
-- **Interactive Swagger UI:** Available in `local` development profile at [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html).
+- **Interactive Swagger UI:** Available in `local` and `test` profiles at [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html) (or redirect alias [http://localhost:8081/swagger-ui.html](http://localhost:8081/swagger-ui.html)).
+- **OpenAPI v3 JSON Specification:** [http://localhost:8081/v3/api-docs](http://localhost:8081/v3/api-docs).
+- *Note:* In Docker Compose, Nginx automatically proxies Swagger and OpenAPI endpoints directly to Spring Boot without requiring port 8080 exposure. In `local` profile mode, these endpoints bypass session authentication (`permitAll()`) for friction-free API inspection.
+
+---
+
+## Troubleshooting & Common Issues
+
+### Port 5432 Host Collision (`bind: address already in use`)
+If a local PostgreSQL instance is already bound to port 5432 on your host machine:
+- **Option A (Remap Published Port - Recommended):** Set `POSTGRES_PORT=5433` in `.env` and run `docker compose up -d`. (Internal container networking remains unaffected).
+- **Option B (Stop Host Service):** Run `sudo systemctl stop postgresql` (or `sudo service postgresql stop`) and relaunch.
+
+### Database Authentication Failure on Startup (`FATAL: password authentication failed`)
+PostgreSQL initializes database credentials only on the very first startup of an empty data volume. If credentials in `.env` were configured or changed after an initial startup attempt:
+```sh
+# Purge stale volumes and reinitialize cleanly:
+docker compose down --volumes
+docker compose up --build -d --wait
+./scripts/demo-seed.sh
+```
+
+### Complete Environment Reset to Clean Slate
+To reset the portal back to a completely clean baseline with fresh seeded demo fixtures:
+```sh
+docker compose down --volumes && docker compose up --build -d --wait && ./scripts/demo-seed.sh
+```
 
 ---
 
