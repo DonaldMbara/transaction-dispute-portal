@@ -124,6 +124,6 @@ public final class CustomerDisputeController {
     return ResponseEntity.status(HttpStatus.CREATED)
         .location(java.net.URI.create("/api/v1/disputes/" + result.disputeId()))
         .cacheControl(CacheControl.noStore())
-        .body(result.envelope());
+        .body(ApiEnvelope.success(result.data()));
   }
 }

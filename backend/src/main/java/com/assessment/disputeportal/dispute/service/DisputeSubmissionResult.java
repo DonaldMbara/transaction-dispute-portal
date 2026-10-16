@@ -1,9 +1,9 @@
 package com.assessment.disputeportal.dispute.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.assessment.disputeportal.dispute.model.dto.DisputeSubmissionResponse;
 
-public record DisputeSubmissionResult(JsonNode envelope) {
+public record DisputeSubmissionResult(DisputeSubmissionResponse data) {
   public String disputeId() {
-    return envelope.path("data").path("id").asText();
+    return data.id().toString();
   }
 }

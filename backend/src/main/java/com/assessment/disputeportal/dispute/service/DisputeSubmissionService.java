@@ -58,7 +58,8 @@ public class DisputeSubmissionService {
     try {
       JsonNode response =
           tx.execute(status -> create(customerId, transactionId, reason, description, key, hash));
-      return new DisputeSubmissionResult(response);
+      return new DisputeSubmissionResult(
+          json.convertValue(response.path("data"), DisputeSubmissionResponse.class));
     } catch (DataIntegrityViolationException failure) {
       if (!isExpectedUniqueConstraint(failure)) throw failure;
       // Read after rollback: PostgreSQL marks the failed transaction as aborted.
@@ -82,7 +83,8 @@ public class DisputeSubmissionService {
     jdbc.execute("SET LOCAL lock_timeout = '5s'");
     jdbc.execute("SET LOCAL statement_timeout = '8s'");
     Optional<IdempotencyResult> afterLockWait = idempotency.find(customerId, OPERATION, key);
-    if (afterLockWait.isPresent()) return replay(afterLockWait.get(), hash).envelope();
+    if (afterLockWait.isPresent())
+      return responseEnvelope(replay(afterLockWait.get(), hash).data());
 
     SubmissionTransaction transaction =
         transactions
@@ -95,7 +97,7 @@ public class DisputeSubmissionService {
     Optional<IdempotencyResult> committedWhileWaiting =
         idempotency.find(customerId, OPERATION, key);
     if (committedWhileWaiting.isPresent())
-      return replay(committedWhileWaiting.get(), hash).envelope();
+      return responseEnvelope(replay(committedWhileWaiting.get(), hash).data());
     if (transaction.status() != TransactionStatus.COMPLETED) throw DisputeApiException.ineligible();
     if (!"OUT".equals(transaction.direction())) throw DisputeApiException.ineligible();
     if (disputes.existsForTransaction(transactionId)) throw DisputeApiException.alreadyExists();
@@ -163,7 +165,12 @@ public class DisputeSubmissionService {
 
   private DisputeSubmissionResult replay(IdempotencyResult prior, String hash) {
     if (!prior.hash().equals(hash)) throw DisputeApiException.keyReused();
-    return new DisputeSubmissionResult(prior.responseBody());
+    return new DisputeSubmissionResult(
+        json.convertValue(prior.responseBody().path("data"), DisputeSubmissionResponse.class));
+  }
+
+  private JsonNode responseEnvelope(DisputeSubmissionResponse data) {
+    return json.valueToTree(ApiEnvelope.success(data));
   }
 
   private static boolean isExpectedUniqueConstraint(Throwable failure) {
