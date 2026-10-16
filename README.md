@@ -1,91 +1,169 @@
 # Transaction Dispute Portal
 
-A Java 21, Spring Boot and Angular application for synthetic transaction disputes. Customers can review their accounts and transactions, submit disputes, and follow status changes. Agents can work an assigned queue, claim or release cases, and resolve disputes. This project uses synthetic data only and does not connect to a bank, move money, or issue refunds.
+A Java 21, Spring Boot 3.5, and Angular 20 application for synthetic transaction dispute management. The portal provides an authenticated self-service experience for banking customers to review accounts and transactions, submit disputes with idempotency guarantees, and track lifecycle status changes. It also provides an operational workspace for dispute agents to triage, claim, release, investigate, and resolve disputes with optimistic concurrency locking.
 
-## Stack and prerequisites
+This system is built as a production-minded modular monolith using synthetic banking data (it does not connect to real financial rails, move money, or issue actual refunds).
 
-- Docker Engine and Docker Compose with `up --wait` support (recommended for running the full app).
-- Java 21 and Maven 3.9+ for local backend development and verification.
-- Node 22.23.3 from [`frontend/.nvmrc`](frontend/.nvmrc) for local frontend development and verification.
-- Chrome or Chromium for the Angular Karma tests.
+---
 
-## Run the application with Compose
+## Key Features & Architecture Highlights
 
+- **Modular Monolith:** Clean feature-first encapsulation (`auth`, `account`, `transaction`, `dispute`, `idempotency`, `security`) with zero distributed network overhead.
+- **Server-Side Session Authentication:** Opaque `HttpOnly`, `SameSite=Lax` cookies backed by Spring Session JDBC in PostgreSQL. Immediate session revocation upon password/role changes via `auth_version` tracking and a strict 30-minute server-side idle timeout.
+- **CSRF Defense:** Session-bound masked token material (`X-CSRF-TOKEN`) required on all mutating API calls including login and logout.
+- **Optimistic Concurrency Control:** Strong HTTP `ETag` and `If-Match` headers for agent case management (`claim`, `release`, `resolve`) preventing lost updates.
+- **Durable Idempotency:** Dispute submissions use an `Idempotency-Key` header with atomic database persistence (`idempotency_records`) of the committed 201 response payload.
+- **Strict Data Isolation:** Customer identity is derived exclusively from the authenticated server-side principal; unowned resource requests return `404 Not Found` to prevent ID enumeration.
+- **Immutable Lifecycle Audit:** State transitions are committed atomically with versioned audit rows in `dispute_events`.
+- **Modern Angular Frontend:** Standalone components, reactive Angular Signals for local state, RxJS streams, functional route guards, and accessible design inspired by Capitec web design tokens (`#2F70EF` primary blue).
+
+---
+
+## Repository Structure
+
+```text
+transaction-dispute-portal/
+├── backend/                             # Java 21 & Spring Boot 3.5 Modular Monolith
+│   ├── src/main/java/com/assessment/disputeportal/
+│   │   ├── account/                     # Bank accounts, masking, CLI fixtures
+│   │   ├── auth/                        # Session auth, PBKDF2 encoding, CLI admin
+│   │   ├── common/                      # Unified JSON API envelopes & exceptions
+│   │   ├── dispute/                     # Dispute domain, state machine, audit events
+│   │   ├── idempotency/                 # Request deduplication & replay store
+│   │   ├── security/                    # Spring Security, CSRF, rate limiter
+│   │   └── transaction/                 # Transaction history & eligibility rules
+│   └── src/test/java/                   # Integration, concurrency, & Testcontainers suites
+├── frontend/                            # Angular 20 Standalone Application
+│   ├── src/app/
+│   │   ├── core/                        # Session & CSRF auth services, guards, interceptors
+│   │   ├── features/                    # Feature slices: auth, customer, agent, welcome
+│   │   └── shared/                      # UI primitives, formatters (ZAR currency), layout
+│   └── src/tests/                       # Karma unit tests & Playwright E2E suites
+├── docs/                                # Architectural & Domain Specifications
+│   ├── business-rules.md                # Dispute lifecycle & domain invariants
+│   └── design/                          # API contract, DB schema, session ADR, PlantUML
+├── scripts/                             # Operational automation
+│   └── demo-seed.sh                     # Interactive demo data provisioner
+├── compose.yaml                         # Production-grade multi-service Compose definition
+└── README.md                            # Primary project documentation
+```
+
+---
+
+## Quick Start with Docker Compose
+
+### Prerequisites
+- Docker Engine and Docker Compose (v2.20+ with `up --wait` support).
+- Ports `8081` (frontend / nginx proxy) and `5432` (PostgreSQL) available on `127.0.0.1`.
+
+### 1. Launch the Stack
 ```sh
 cp .env.example .env
-# Edit .env and set DB_USERNAME and DB_PASSWORD for your local database.
+# Optional: customize DB_USERNAME / DB_PASSWORD in .env
 docker compose config --quiet
 docker compose up --build -d --wait
 ```
 
-Open [http://localhost:8081](http://localhost:8081). The stack runs PostgreSQL, the Spring Boot backend, and an nginx frontend that serves the Angular app and proxies `/api/` to the backend. The backend runs as a non-root user. No application accounts or fixtures are created during normal startup.
+The stack launches:
+- **PostgreSQL 17** (published on `127.0.0.1:5432`)
+- **Spring Boot 3.5 Backend** (running on port `8080` internally as a non-root user)
+- **Nginx & Angular 20 Frontend** (published on `http://localhost:8081`, reverse-proxying `/api/` to backend)
 
-PostgreSQL is published on `127.0.0.1:5432`; the frontend is published on `127.0.0.1:8081`. If either port is busy, set `POSTGRES_PORT` or `PORTAL_PORT` in `.env` to an available port. The backend connects to PostgreSQL through the Compose network, independent of the published host port. `.env` is ignored by Git; keep real credentials out of source files and command history.
+### 2. Seed Demo Accounts & Synthetic Fixtures
+Run the interactive demo script in a terminal:
+```sh
+./scripts/demo-seed.sh
+```
+This script provisions:
+- Customer account: `demo.customer@example.test`
+- Agent account: `demo.agent@example.test`
+- Synthetic banking accounts, categorized transactions, and seeded disputes across `OPEN`, `UNDER_REVIEW`, `ACCEPTED`, and `REJECTED` states.
 
-For a browser demo with sample accounts, transactions, and disputes, follow the [opt-in demo data instructions](docs/operations/demo-data.md). The script requires a terminal and creates demo-only accounts only when explicitly invoked.
+Open [http://localhost:8081](http://localhost:8081) to access the portal.
 
-## Build and test
+---
 
-Run from the repository root:
+## Role Matrix & Capabilities
 
+| Role | Routes & Operations | Security & Data Visibility |
+|---|---|---|
+| **CUSTOMER** | • `/customer/accounts`: View owned bank accounts and balances.<br>• `/customer/transactions`: Search & filter transactions by date, amount, account, direction.<br>• `/customer/disputes/new`: Submit dispute for completed outgoing (`OUT`) transactions.<br>• `/customer/disputes`: Track status (`OPEN`, `UNDER_REVIEW`, `ACCEPTED`, `REJECTED`) and timeline. | Identity derived from server session. Unowned records return 404. Masked account numbers (`****6789`). Internal agent notes and agent identities are strictly withheld. |
+| **AGENT** | • `/agent/disputes`: Triage dispute queue across tabs (`Unassigned`, `Mine`, `All`).<br>• `claim` / `release`: Manage case assignments.<br>• `resolve`: Accept or reject dispute with mandatory internal investigation notes and customer-facing message. | Requires AGENT role and active case assignment for resolution. Strong ETag optimistic locking prevents race conditions. |
+
+---
+
+## Developer Guide & CLI Tools
+
+### Non-Web Operator Commands
+Account provisioning and test fixture generation are explicit CLI operations executed via the `demo-cli` profile:
+
+```sh
+# Provision a new account with masked password input:
+docker compose --profile demo run --rm --no-deps -it demo-cli account-admin create --email user@example.test --role CUSTOMER --enabled true
+
+# Generate synthetic bank accounts for a customer:
+docker compose --profile demo run --rm --no-deps -T demo-cli account-fixture --email user@example.test
+
+# Generate synthetic transaction history for a customer:
+docker compose --profile demo run --rm --no-deps -T demo-cli transaction-fixture --email user@example.test
+
+# Manage existing account state:
+docker compose --profile demo run --rm --no-deps -it demo-cli account-admin disable --id <UUID> --version <V>
+docker compose --profile demo run --rm --no-deps -it demo-cli account-admin replace-password --id <UUID> --version <V>
+```
+
+---
+
+## Build, Test & Quality Verification
+
+### Backend Verification (Java 21 + Maven)
+Run unit tests, integration tests, Spotless formatting, and isolated PostgreSQL Testcontainers:
 ```sh
 cd backend
 mvn --batch-mode clean verify
 ```
 
-The backend suite uses isolated PostgreSQL Testcontainers and does not use the Compose database or `.env`. `verify` also checks Java formatting with Spotless.
-
-In another terminal:
-
+### Frontend Verification (Node 22 + Angular CLI)
+Run ESLint, production dependency audit, production build, and Karma unit tests in headless Chrome:
 ```sh
 cd frontend
 npm ci
-npm run build
 npm run lint
 npm audit --omit=dev --audit-level=high
+npm run build
 npm run test:ci
 ```
 
-The frontend test command runs Karma/Jasmine in ChromeHeadless. Set `CHROME_BIN` if Chrome is installed at a nonstandard path. GitHub Actions runs backend verification and frontend install, build, lint, production audit, unit tests, and one seeded Playwright journey on pushes and pull requests; it publishes coverage reports but does not publish images or deploy the application.
+### End-to-End Testing (Playwright)
+Run the full browser journey (login, account view, transaction selection, dispute submission, history verification) against a running stack:
+```sh
+cd frontend
+export E2E_BASE_URL="http://localhost:8081"
+export E2E_CUSTOMER_EMAIL="demo.customer@example.test"
+export E2E_CUSTOMER_PASSWORD="YourPasswordHere"
+npx playwright install chromium
+npm run test:e2e
+```
 
-CI also runs `npm run test:e2e` against a disposable Compose stack. It provisions an E2E-only customer using the existing demo CLI and fixtures, then verifies login, transaction selection, dispute submission, and dispute history. Locally, set `E2E_BASE_URL`, `E2E_CUSTOMER_EMAIL`, and `E2E_CUSTOMER_PASSWORD` after provisioning a customer and fixtures with the documented demo path, then run `npx playwright install chromium` and `npm run test:e2e`.
+---
 
-The full development dependency tree currently has six high-severity advisories confined to test/build tooling: `@angular/build`, `braces`, `chokidar`, `karma`, `karma-jasmine`, and `karma-jasmine-html-reporter`. They are accepted only as development dependencies; CI rejects high-severity findings in production dependencies.
+## API & OpenAPI Documentation
 
-## API and access
+- **Base URL:** `/api/v1`
+- **Response Envelope:** All responses follow a standardized JSON envelope:
+  - Success: `{ "status": true, "data": { ... }, "error_code": 0 }`
+  - Error: `{ "status": false, "data": null, "error_code": 1004, "error": { "type": "...", "title": "...", "detail": "..." } }`
+- **Interactive Swagger UI:** Available in `local` development profile at [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html).
 
-The API is same-origin under `/api/v1`; the full request, response, header, pagination, and error-code contract is in [`docs/design/api-contract.md`](docs/design/api-contract.md).
+---
 
-| Role | Main operations |
-| --- | --- |
-| CUSTOMER | Read owned accounts and transactions; submit and view owned disputes. |
-| AGENT | View the dispute queue and detail; claim, release, and resolve disputes with the required strong ETag. |
+## Design Specifications & Reference Documents
 
-Login, CSRF bootstrap, identity, and logout are also under `/api/v1/auth`. Authorization and ownership checks are enforced by the backend. Unimplemented routes are denied. Customer responses do not expose internal notes, release reasons, or actor identifiers.
-
-The code-generated OpenAPI document and Swagger UI are enabled only with the `local` profile. With Compose, open [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html); the UI and `/v3/api-docs` are proxied through nginx. They are disabled in the default profile. CI validates the documented route/method and request contract against the API and publishes `openapi.json` as an artifact.
-
-## Architecture and important choices
-
-- The backend is a feature-first modular monolith. Controllers handle HTTP, services own use cases and transaction boundaries, repositories perform data access, and feature-to-feature access uses narrow ports.
-- Flyway owns the database schema. Applied migrations are immutable; Hibernate validates entity mappings. Account and transaction reads, dispute lifecycle operations, idempotency, and session activity use JDBC where they need ownership predicates, locking, or purpose-built SQL. JPA is used for straightforward account CRUD.
-- Dispute state changes and their audit events commit in the same transaction. Submission uses a durable idempotency key; agent commands use a versioned strong ETag to prevent stale writes.
-- Records represent immutable requests, responses, projections, and domain values. The `Dispute` aggregate owns legal state transitions and validation.
-- Authentication uses opaque HttpOnly PostgreSQL-backed sessions, CSRF protection for unsafe requests, server-side account/role/version checks, and a 30-minute idle timeout. Cookies are Secure by default; the explicit `local` profile disables Secure for local HTTP development only. There are no bearer tokens or browser-storage auth tokens.
-
-### Login rate limiting
-
-Login failures use a bounded Caffeine cache in each backend process. The limiter tracks client IP, normalized email, and the IP/email pair separately, then applies an increasing temporary delay; successful login clears the pair counter. Throttle responses use the same generic authentication wording for known and unknown emails, return `429 / 1005` with `Retry-After`, and emit an `authentication.audit` event and a Micrometer counter. Passwords and full email addresses are never written to throttle logs.
-
-Compose runs one backend instance, so this limiter is per instance. With N backend instances, an attacker can get roughly N times the allowance. Production should enforce limits at the WAF or gateway, or replace this interface with shared storage such as Redis. The Compose backend trusts `X-Real-IP` only when the direct peer is the fixed nginx address on its private Docker network; it ignores forwarded client addresses from other peers. Deployments with another proxy must set `LOGIN_RATE_LIMIT_TRUSTED_PROXY` to that proxy's exact address.
-- Operator account provisioning and fixture creation are explicit non-web CLI commands. They do not run at application startup and are not exposed as portal endpoints. See the [account provisioning](docs/operations/account-provisioning.md), [account fixture](docs/operations/customer-account-fixtures.md), and [transaction fixture](docs/operations/customer-transaction-fixtures.md) runbooks.
-
-The displayed `accounts.balance` is a synthetic fixture value. It is not calculated from transactions and does not represent a real or settled bank balance. Transaction and dispute data are synthetic and read-only apart from the documented dispute workflow.
-
-## Design references
-
-- [API contract](docs/design/api-contract.md)
-- [Session architecture decision](docs/design/session-architecture-decision.md)
-- [Authentication operations](docs/operations/authentication.md)
-
-`backend/README.md` and `frontend/README.md` point back to this file so there is one authoritative setup and behavior guide.
+- [Candidate Interview Preparation Guide](INTERVIEW_PREP.md) — Comprehensive technical review guide, architecture breakdown, trade-off analyses, and interview Q&A.
+- [API Contract Specification](docs/design/api-contract.md) — Endpoint specifications, JSON envelopes, pagination, and error codes.
+- [Session Architecture Decision](docs/design/session-architecture-decision.md) — In-depth rationale for Spring Session JDBC, HttpOnly cookies, and CSRF token handling.
+- [Business Rules Document](docs/business-rules.md) — Domain invariants, dispute lifecycle transitions, and eligibility criteria.
+- [Database Design & Schema](docs/design/database-design.md) — Schema breakdown, indexes, and locking semantics.
+- [UI Flows & Design Tokens](docs/design/ui-flows.md) — Responsive UI layouts, design tokens, and user journeys.
+- [PlantUML Architecture Diagrams](docs/design/plantuml/README.md) — System context, component architecture, sequence diagrams, and ERDs.
+- [Figma Prototype](https://www.figma.com/proto/L9AXnbjX8li5ggpmH2pBnr/Transaction-Dispute?t=AuwTn2Eub8fVwpPY-0&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1&node-id=3-5301) — Visual design and interaction prototype.
