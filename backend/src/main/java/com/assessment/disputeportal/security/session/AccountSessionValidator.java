@@ -1,10 +1,10 @@
 package com.assessment.disputeportal.security.session;
 
-import com.assessment.disputeportal.auth.model.AccountRole;
-import com.assessment.disputeportal.common.exception.InvalidRequestException;
-import com.assessment.disputeportal.security.activity.SessionActivityStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import com.assessment.disputeportal.auth.model.AccountRole;
+import com.assessment.disputeportal.common.exception.InvalidRequestException;
 
 import java.util.Optional;
 

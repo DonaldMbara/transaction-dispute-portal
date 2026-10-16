@@ -4,7 +4,7 @@ import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailDto;
 import com.assessment.disputeportal.dispute.service.AgentDisputeCommandService;
-import com.assessment.disputeportal.security.activity.AuthenticatedActivity;
+import com.assessment.disputeportal.security.web.AuthenticatedActivity;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;

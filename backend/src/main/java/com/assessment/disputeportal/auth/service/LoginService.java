@@ -19,7 +19,7 @@ import com.assessment.disputeportal.auth.model.AccountIdentity;
 import com.assessment.disputeportal.auth.repository.AccountLookup;
 import com.assessment.disputeportal.auth.validation.PasswordPolicy;
 import com.assessment.disputeportal.auth.validation.EmailNormalizer;
-import com.assessment.disputeportal.security.activity.SessionActivityStore;
+import com.assessment.disputeportal.security.session.SessionActivityStore;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 
 import jakarta.servlet.http.HttpServletRequest;

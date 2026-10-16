@@ -2,7 +2,7 @@ package com.assessment.disputeportal.security;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.assessment.disputeportal.security.activity.AuthenticationCleanup;
+import com.assessment.disputeportal.security.session.AuthenticationCleanup;
 
 import java.util.concurrent.*;
 import static org.assertj.core.api.Assertions.*;

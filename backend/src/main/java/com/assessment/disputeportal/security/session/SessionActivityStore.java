@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.security.activity;
+package com.assessment.disputeportal.security.session;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -9,11 +9,7 @@ import com.assessment.disputeportal.auth.model.AccountRole;
 /** Session activity metadata. No entity, hash or mutable Spring Session object crosses this boundary. */
 public interface SessionActivityStore {
     long IDLE_MILLIS = 1_800_000L;
-    record Snapshot(UUID accountId, long capturedVersion, long currentVersion, boolean enabled,
-                    String role, long lastActivity, long databaseTime) {
-        public boolean unexpired() { return lastActivity > databaseTime - IDLE_MILLIS; }
-    }
-    Optional<Snapshot> inspect(String publicSessionId);
+    Optional<SessionActivitySnapshot> inspect(String publicSessionId);
     /** Returns false when the credential-verified account changed before session activation. */
     boolean activate(String publicSessionId, AccountIdentity account, long accessTime);
     boolean renew(String publicSessionId, UUID accountId, long version, AccountRole role, long accessTime);

@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
-import com.assessment.disputeportal.security.activity.AuthenticatedActivity;
+import com.assessment.disputeportal.security.web.AuthenticatedActivity;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.transaction.mapper.TransactionResponseMapper;
 import com.assessment.disputeportal.transaction.model.dto.TransactionPageResponse;

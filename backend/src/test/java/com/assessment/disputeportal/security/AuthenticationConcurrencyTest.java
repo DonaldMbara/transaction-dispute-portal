@@ -1,9 +1,10 @@
 package com.assessment.disputeportal.security;
 import com.assessment.disputeportal.auth.cli.AccountAdministrationService;
 import com.assessment.disputeportal.auth.service.AccountAdministrationTestConfiguration;
-import com.assessment.disputeportal.security.activity.SessionActivityStore;
+import com.assessment.disputeportal.security.session.SessionActivityStore;
 import com.assessment.disputeportal.auth.model.AccountRole;
-import com.assessment.disputeportal.security.activity.JdbcSessionActivityStore;
+import com.assessment.disputeportal.security.session.JdbcSessionActivityStore;
+import com.assessment.disputeportal.security.session.SessionActivitySnapshot;
 import com.assessment.disputeportal.security.authentication.AccountAuthenticationProvider;
 import com.assessment.disputeportal.auth.model.AccountIdentity;
 
@@ -71,7 +72,7 @@ class AuthenticationConcurrencyTest extends MultiInstanceSupport {
         void armActivation() { activationEntered=new CountDownLatch(1);activationRelease=new CountDownLatch(1);activationArmed.set(true); }
         boolean awaitActivationEntered() throws InterruptedException { return activationEntered.await(5,TimeUnit.SECONDS); }
         void unblockActivation() { activationRelease.countDown(); }
-        public Optional<Snapshot> inspect(String id) { return delegate.inspect(id); }
+        public Optional<SessionActivitySnapshot> inspect(String id) { return delegate.inspect(id); }
         public boolean activate(String id,AccountIdentity account,long access) {
             if(activationArmed.compareAndSet(true,false)) { activationEntered.countDown();try { if(!activationRelease.await(10,TimeUnit.SECONDS))throw new IllegalStateException("Test barrier timeout"); } catch(InterruptedException e) { Thread.currentThread().interrupt();throw new IllegalStateException("Interrupted fixture"); } }
             return delegate.activate(id,account,access);

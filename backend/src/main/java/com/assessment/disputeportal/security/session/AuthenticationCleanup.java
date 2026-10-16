@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.security.activity;
+package com.assessment.disputeportal.security.session;
 
 import lombok.RequiredArgsConstructor;
 

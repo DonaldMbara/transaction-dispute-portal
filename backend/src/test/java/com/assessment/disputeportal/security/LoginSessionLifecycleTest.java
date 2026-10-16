@@ -1,6 +1,6 @@
 package com.assessment.disputeportal.security;
 
-import com.assessment.disputeportal.security.activity.SessionActivityStore;
+import com.assessment.disputeportal.security.session.SessionActivityStore;
 
 import org.junit.jupiter.api.Test;
 import java.util.Map;

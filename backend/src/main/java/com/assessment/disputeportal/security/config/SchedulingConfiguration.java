@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.security.activity;
+package com.assessment.disputeportal.security.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;

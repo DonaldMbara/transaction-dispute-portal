@@ -1,10 +1,10 @@
 package com.assessment.disputeportal.security;
 
-import com.assessment.disputeportal.security.activity.SessionActivityStore;
+import com.assessment.disputeportal.security.session.SessionActivityStore;
 import com.assessment.disputeportal.auth.model.AccountRole;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
-import com.assessment.disputeportal.security.activity.AuthenticatedActivity;
-import com.assessment.disputeportal.security.activity.AuthenticationActivityInterceptor;
+import com.assessment.disputeportal.security.web.AuthenticatedActivity;
+import com.assessment.disputeportal.security.web.AuthenticationActivityInterceptor;
 import com.assessment.disputeportal.security.session.AccountSessionValidator;
 import com.assessment.disputeportal.security.session.ValidatedSession;
 import com.assessment.disputeportal.common.web.ApiErrorWriter;

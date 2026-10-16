@@ -6,7 +6,7 @@ import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailDto;
 import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemDto;
 import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
 import com.assessment.disputeportal.dispute.service.DisputeQueryService;
-import com.assessment.disputeportal.security.activity.AuthenticatedActivity;
+import com.assessment.disputeportal.security.web.AuthenticatedActivity;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

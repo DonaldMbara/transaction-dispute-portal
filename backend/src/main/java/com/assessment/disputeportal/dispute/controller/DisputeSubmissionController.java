@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.dispute.model.dto.SubmitDisputeRequest;
 import com.assessment.disputeportal.dispute.service.DisputeSubmissionService;
-import com.assessment.disputeportal.security.activity.AuthenticatedActivity;
+import com.assessment.disputeportal.security.web.AuthenticatedActivity;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;

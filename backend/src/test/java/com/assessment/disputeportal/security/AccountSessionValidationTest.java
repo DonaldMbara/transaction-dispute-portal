@@ -1,6 +1,7 @@
 package com.assessment.disputeportal.security;
 
-import com.assessment.disputeportal.security.activity.SessionActivityStore;
+import com.assessment.disputeportal.security.session.SessionActivityStore;
+import com.assessment.disputeportal.security.session.SessionActivitySnapshot;
 import com.assessment.disputeportal.auth.model.AccountRole;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.security.session.AccountSessionValidator;
@@ -16,8 +17,8 @@ class AccountSessionValidationTest {
     final UUID account=UUID.randomUUID();
     final SessionActivityStore store=mock(SessionActivityStore.class);
     final AccountSessionValidator validator=new AccountSessionValidator(store);
-    SessionActivityStore.Snapshot snapshot(long last,long now,String role,boolean enabled,long captured,long current) {
-        return new SessionActivityStore.Snapshot(account,captured,current,enabled,role,last,now);
+    SessionActivitySnapshot snapshot(long last,long now,String role,boolean enabled,long captured,long current) {
+        return new SessionActivitySnapshot(account,captured,current,enabled,role,last,now);
     }
     @Test void exactIdleBoundaryExpiresAndJustBeforeBoundaryIsValidForBothRoles() {
         for(String role : new String[]{"CUSTOMER","AGENT"}) {
