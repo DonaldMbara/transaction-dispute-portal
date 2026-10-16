@@ -86,6 +86,8 @@ jobs:
           cd ..
           DB_PASSWORD="$(openssl rand -hex 24)"
           E2E_CUSTOMER_PASSWORD="$(openssl rand -hex 16)"
+          echo "::add-mask::$DB_PASSWORD"
+          echo "::add-mask::$E2E_CUSTOMER_PASSWORD"
           {
             printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD"
             printf 'DB_USERNAME=%s\n' "$DB_USERNAME"
@@ -110,5 +112,4 @@ jobs:
           if-no-files-found: warn
       - name: Stop E2E application
         if: always()
-        working-directory: ..
-        run: docker compose down --volumes
+        run: docker compose -f ../compose.yaml down --volumes
