@@ -1,6 +1,9 @@
 server:
   port: 8080
+  shutdown: graceful
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
   mvc:
     publish-request-handled-events: false
   datasource:
@@ -47,6 +50,10 @@ management:
           include: readinessState,db
         liveness:
           include: livenessState
+
+logging:
+  pattern:
+    level: "%5p [correlation=%X{correlationId:-}]"
 
 portal:
   auth:

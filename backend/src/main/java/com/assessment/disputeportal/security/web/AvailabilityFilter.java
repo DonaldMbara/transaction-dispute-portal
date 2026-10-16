@@ -12,6 +12,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /** Outer servlet filter: handles only uncommitted failures, without custom response buffering. */
@@ -31,6 +32,7 @@ public final class AvailabilityFilter extends OncePerRequestFilter {
             : UUID.randomUUID().toString();
     response.setHeader("X-Correlation-ID", correlation);
     response.setHeader("Cache-Control", "no-store");
+    MDC.put("correlationId", correlation);
     try {
       chain.doFilter(request, response);
     } catch (ServletException | RuntimeException failure) {
@@ -44,6 +46,8 @@ public final class AvailabilityFilter extends OncePerRequestFilter {
       response.reset(); // Includes any pending session-cookie header. Restore safe headers only.
       response.setHeader("X-Correlation-ID", correlation);
       errors.write(response, 503, ApiEnvelope.unavailable());
+    } finally {
+      MDC.remove("correlationId");
     }
   }
 }

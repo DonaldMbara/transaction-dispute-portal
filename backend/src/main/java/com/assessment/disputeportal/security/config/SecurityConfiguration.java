@@ -5,6 +5,8 @@ import com.assessment.disputeportal.common.web.ApiErrorWriter;
 import com.assessment.disputeportal.common.web.StoreFailureClassifier;
 import com.assessment.disputeportal.security.authentication.AccountAuthenticationProvider;
 import com.assessment.disputeportal.security.session.AccountSessionValidationFilter;
+import com.assessment.disputeportal.security.web.JsonRequestSizeLimitFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -19,12 +21,44 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.NullSecurityContextRepository;
 import org.springframework.security.web.csrf.CsrfException;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfiguration {
+  private static final String CONTENT_SECURITY_POLICY =
+      "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; "
+          + "form-action 'self'; img-src 'self' data:; font-src 'self' data:; "
+          + "style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'";
+
+  @Bean
+  JsonRequestSizeLimitFilter jsonRequestSizeLimitFilter(ApiErrorWriter errors) {
+    return new JsonRequestSizeLimitFilter(errors);
+  }
+
+  @Bean
+  FilterRegistrationBean<JsonRequestSizeLimitFilter> jsonRequestSizeLimitRegistration(
+      JsonRequestSizeLimitFilter filter) {
+    var registration = new FilterRegistrationBean<>(filter);
+    registration.setEnabled(false);
+    return registration;
+  }
+
+  private static void configureSecurityHeaders(HttpSecurity http) throws Exception {
+    http.headers(
+        headers ->
+            headers
+                .contentTypeOptions(org.springframework.security.config.Customizer.withDefaults())
+                .frameOptions(frame -> frame.deny())
+                .referrerPolicy(
+                    referrer -> referrer.policy(ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                .contentSecurityPolicy(csp -> csp.policyDirectives(CONTENT_SECURITY_POLICY))
+                .httpStrictTransportSecurity(hsts -> hsts.maxAgeInSeconds(31_536_000)));
+  }
+
   @Bean
   AuthenticationManager authenticationManager(AccountAuthenticationProvider provider) {
     return new ProviderManager(provider);
@@ -41,6 +75,7 @@ public class SecurityConfiguration {
   @Order(1)
   SecurityFilterChain healthSecurity(HttpSecurity http) throws Exception {
     RequestMatcher exactHealth = SecurityConfiguration::isHealthRequest;
+    configureSecurityHeaders(http);
     return http.securityMatcher(exactHealth)
         .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
         .securityContext(
@@ -88,8 +123,10 @@ public class SecurityConfiguration {
       ApiErrorWriter errors,
       HttpSessionCsrfTokenRepository csrf,
       HttpSessionSecurityContextRepository contexts,
-      AccountSessionValidationFilter validator)
+      AccountSessionValidationFilter validator,
+      JsonRequestSizeLimitFilter requestSizeLimit)
       throws Exception {
+    configureSecurityHeaders(http);
     AccessDeniedHandler denied =
         (request, response, failure) -> {
           if (StoreFailureClassifier.isStoreFailure(failure))
@@ -113,7 +150,8 @@ public class SecurityConfiguration {
                     "Access denied",
                     "You do not have permission to perform this operation."));
         };
-    return http.addFilterBefore(
+    return http.addFilterBefore(requestSizeLimit, CsrfFilter.class)
+        .addFilterBefore(
             validator,
             org.springframework.security.web.authentication.AnonymousAuthenticationFilter.class)
         .authorizeHttpRequests(
