@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.transaction.service;
+package com.assessment.disputeportal.transaction.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

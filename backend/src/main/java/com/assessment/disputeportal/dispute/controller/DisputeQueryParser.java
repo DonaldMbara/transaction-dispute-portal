@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.dispute.service;
+package com.assessment.disputeportal.dispute.controller;
 
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * </p>
  */
 @Component
-public class DisputeQueryParser {
+class DisputeQueryParser {
 
     private static final ZoneId JOHANNESBURG = ZoneId.of("Africa/Johannesburg");
     private static final int MAX_SEARCH_LENGTH = 100;

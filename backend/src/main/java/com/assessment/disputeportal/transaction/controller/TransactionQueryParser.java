@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.transaction.service;
+package com.assessment.disputeportal.transaction.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -15,7 +15,7 @@ import com.assessment.disputeportal.transaction.model.TransactionStatus;
 import org.springframework.stereotype.Component;
 
 @Component
-public final class TransactionQueryParser {
+final class TransactionQueryParser {
     private static final Set<String> ALLOWED = Set.of("page", "size", "search", "direction", "status",
             "fromDate", "toDate", "minAmount", "maxAmount", "sortBy", "sortDirection", "accountId");
     private static final int MAX_PAGE_SIZE = 100;

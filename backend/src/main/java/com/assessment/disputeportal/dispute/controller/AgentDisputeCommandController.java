@@ -36,7 +36,9 @@ public final class AgentDisputeCommandController {
         if (body != null && (!body.isObject() || body.size() != 0)) {
             throw new InvalidRequestException("Claim command accepts an empty object only.");
         }
-        AgentDisputeDetailDto result = commands.claim(parseId(id), principal.accountId(), ifMatch(request));
+        AgentIfMatch precondition = ifMatch(request);
+        AgentDisputeDetailDto result = commands.claim(parseId(id), principal.accountId(),
+                precondition.disputeId(), precondition.version());
         return response(result);
     }
 
@@ -46,7 +48,9 @@ public final class AgentDisputeCommandController {
             @PathVariable String id, @RequestBody JsonNode body, HttpServletRequest request) {
         requireFields(body, Set.of("reason"));
         String reason = text(body, "reason");
-        return response(commands.release(parseId(id), principal.accountId(), ifMatch(request), reason));
+        AgentIfMatch precondition = ifMatch(request);
+        return response(commands.release(parseId(id), principal.accountId(),
+            precondition.disputeId(), precondition.version(), reason));
     }
 
     @PostMapping("/api/v1/agent/disputes/{id}/resolve")
@@ -57,12 +61,14 @@ public final class AgentDisputeCommandController {
         String decision = text(body, "decision");
         String internal = text(body, "internalResolutionNotes");
         String customer = text(body, "customerResolutionMessage");
-        return response(commands.resolve(parseId(id), principal.accountId(), ifMatch(request), decision, internal, customer));
+        AgentIfMatch precondition = ifMatch(request);
+        return response(commands.resolve(parseId(id), principal.accountId(),
+            precondition.disputeId(), precondition.version(), decision, internal, customer));
     }
 
     private ResponseEntity<ApiEnvelope> response(AgentDisputeDetailDto detail) {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).header(HttpHeaders.ETAG,
-                "\"dispute-" + detail.id() + "-v" + detail.version() + "\"")
+            AgentIfMatch.format(detail.id(), detail.version()))
                 .body(ApiEnvelope.success(detail));
     }
 
@@ -71,11 +77,11 @@ public final class AgentDisputeCommandController {
         catch (IllegalArgumentException failure) { throw new InvalidRequestException("Dispute ID must be a valid UUID."); }
     }
 
-    private static List<String> ifMatch(HttpServletRequest request) {
+    private static AgentIfMatch ifMatch(HttpServletRequest request) {
         List<String> headers = new ArrayList<>();
         var values = request.getHeaders(HttpHeaders.IF_MATCH);
         while (values.hasMoreElements()) headers.add(values.nextElement());
-        return headers;
+        return AgentIfMatch.parse(headers);
     }
 
     private static void requireFields(JsonNode body, Set<String> expected) {

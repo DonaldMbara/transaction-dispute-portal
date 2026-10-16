@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.dispute.service;
+package com.assessment.disputeportal.dispute.controller;
 
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.dispute.exception.DisputeApiException;
@@ -22,5 +22,9 @@ record AgentIfMatch(UUID disputeId, long version) {
         } catch (IllegalArgumentException failure) {
             throw new InvalidRequestException("If-Match tag is malformed.");
         }
+    }
+
+    static String format(UUID disputeId, long version) {
+        return "\"dispute-" + disputeId + "-v" + version + "\"";
     }
 }

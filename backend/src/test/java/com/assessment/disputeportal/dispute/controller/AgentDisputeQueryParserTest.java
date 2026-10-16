@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.dispute.service;
+package com.assessment.disputeportal.dispute.controller;
 
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.dispute.model.AgentQueue;

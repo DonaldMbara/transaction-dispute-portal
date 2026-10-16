@@ -11,7 +11,6 @@ import com.assessment.disputeportal.security.activity.AuthenticatedActivity;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.transaction.mapper.TransactionResponseMapper;
 import com.assessment.disputeportal.transaction.model.dto.TransactionPageResponse;
-import com.assessment.disputeportal.transaction.service.TransactionQueryParser;
 import com.assessment.disputeportal.transaction.service.TransactionQueryService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

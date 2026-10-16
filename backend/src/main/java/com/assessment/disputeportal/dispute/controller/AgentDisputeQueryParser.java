@@ -1,9 +1,9 @@
-package com.assessment.disputeportal.dispute.service;
+package com.assessment.disputeportal.dispute.controller;
 
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.dispute.model.DisputeReason;
-import com.assessment.disputeportal.dispute.model.query.AgentDisputeQuery;
 import com.assessment.disputeportal.dispute.model.AgentQueue;
+import com.assessment.disputeportal.dispute.model.query.AgentDisputeQuery;
 import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class AgentDisputeQueryParser {
+class AgentDisputeQueryParser {
     private final DisputeQueryParser sharedFilters;
 
     public AgentDisputeQuery parse(Map<String, String[]> parameters, UUID agentId) {

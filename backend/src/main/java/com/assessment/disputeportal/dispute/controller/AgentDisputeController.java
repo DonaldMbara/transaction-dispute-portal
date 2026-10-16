@@ -5,7 +5,6 @@ import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailDto;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeListItemDto;
 import com.assessment.disputeportal.dispute.model.query.AgentDisputeQuery;
-import com.assessment.disputeportal.dispute.service.AgentDisputeQueryParser;
 import com.assessment.disputeportal.dispute.service.AgentDisputeQueryService;
 import com.assessment.disputeportal.security.activity.AuthenticatedActivity;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
@@ -50,7 +49,7 @@ public final class AgentDisputeController {
         try { disputeId = UUID.fromString(id); }
         catch (IllegalArgumentException failure) { throw new InvalidRequestException("Dispute ID must be a valid UUID."); }
         AgentDisputeDetailDto detail = service.detail(disputeId);
-        String etag = "\"dispute-" + detail.id() + "-v" + detail.version() + "\"";
+        String etag = AgentIfMatch.format(detail.id(), detail.version());
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).header(HttpHeaders.ETAG, etag)
                 .body(ApiEnvelope.success(detail));
     }

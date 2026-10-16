@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.dispute.repository;
+package com.assessment.disputeportal.dispute.controller;
 
 import com.assessment.disputeportal.account.service.AccountFixtureService;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
@@ -8,7 +8,7 @@ import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemDto
 import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
 import com.assessment.disputeportal.dispute.model.projection.EventProjection;
 import com.assessment.disputeportal.dispute.model.query.StatusPredicate;
-import com.assessment.disputeportal.dispute.service.DisputeQueryParser;
+import com.assessment.disputeportal.dispute.repository.CustomerDisputeReadRepository;
 import com.assessment.disputeportal.security.authentication.VersionedPasswordEncoder;
 import com.assessment.disputeportal.transaction.service.TransactionFixtureService;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -23,33 +22,34 @@ public class AgentDisputeCommandService {
     private final AgentDisputeReadRepository reads;
 
     @Transactional
-    public AgentDisputeDetailDto claim(UUID id, UUID agentId, List<String> ifMatch) {
-        return transition(id, agentId, ifMatch, d -> d.claim(agentId, Instant.now()), null, null);
+    public AgentDisputeDetailDto claim(UUID id, UUID agentId, UUID ifMatchDisputeId, long expectedVersion) {
+        return transition(id, agentId, ifMatchDisputeId, expectedVersion,
+                d -> d.claim(agentId, Instant.now()), null, null);
     }
 
     @Transactional
-    public AgentDisputeDetailDto release(UUID id, UUID agentId, List<String> ifMatch, String reason) {
-        return transition(id, agentId, ifMatch, d -> d.release(agentId, reason, Instant.now()), reason, null);
+    public AgentDisputeDetailDto release(UUID id, UUID agentId, UUID ifMatchDisputeId, long expectedVersion, String reason) {
+        return transition(id, agentId, ifMatchDisputeId, expectedVersion,
+                d -> d.release(agentId, reason, Instant.now()), reason, null);
     }
 
     @Transactional
-    public AgentDisputeDetailDto resolve(UUID id, UUID agentId, List<String> ifMatch, String decision,
+    public AgentDisputeDetailDto resolve(UUID id, UUID agentId, UUID ifMatchDisputeId, long expectedVersion, String decision,
             String internalNotes, String customerMessage) {
         DisputeStatus status = switch (decision == null ? "" : decision) {
             case "ACCEPT" -> DisputeStatus.ACCEPTED;
             case "REJECT" -> DisputeStatus.REJECTED;
             default -> throw DisputeApiException.invalid();
         };
-        return transition(id, agentId, ifMatch,
+        return transition(id, agentId, ifMatchDisputeId, expectedVersion,
                 d -> d.resolve(agentId, status, internalNotes, customerMessage, Instant.now()),
                 internalNotes, customerMessage);
     }
 
-    private AgentDisputeDetailDto transition(UUID id, UUID agentId, List<String> ifMatch,
+    private AgentDisputeDetailDto transition(UUID id, UUID agentId, UUID ifMatchDisputeId, long expectedVersion,
             java.util.function.Function<Dispute, Dispute> operation, String internalNotes, String customerMessage) {
         Dispute before = writes.lockById(id).orElseThrow(ResourceNotFoundException::new);
-        AgentIfMatch precondition = AgentIfMatch.parse(ifMatch);
-        if (!precondition.disputeId().equals(id) || precondition.version() != before.version()) {
+        if (!ifMatchDisputeId.equals(id) || expectedVersion != before.version()) {
             throw DisputeApiException.staleVersion();
         }
         final Dispute after;
