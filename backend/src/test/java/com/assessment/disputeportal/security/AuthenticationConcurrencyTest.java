@@ -26,8 +26,11 @@ class AuthenticationConcurrencyTest extends MultiInstanceSupport {
   void logoutAndOldInFlightFrameworkSaveCannotResurrectAuthentication() throws Exception {
     create();
     String cookie = login(a, null);
-    org.springframework.session.SessionRepository repository =
-        a.getBean(org.springframework.session.jdbc.JdbcIndexedSessionRepository.class);
+    @SuppressWarnings("unchecked")
+    org.springframework.session.SessionRepository<org.springframework.session.Session> repository =
+        (org.springframework.session.SessionRepository<org.springframework.session.Session>)
+            (org.springframework.session.SessionRepository<?>)
+                a.getBean(org.springframework.session.jdbc.JdbcIndexedSessionRepository.class);
     org.springframework.session.Session stale = repository.findById(sessionId(cookie));
     var gate = a.getBean(Gate.class);
     gate.arm();

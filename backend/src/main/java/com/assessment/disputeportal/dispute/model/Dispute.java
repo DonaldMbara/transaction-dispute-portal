@@ -113,7 +113,7 @@ public record Dispute(
 
   public Dispute release(UUID agentId, String reason, Instant now) {
     requireAssignedUnderReview(agentId);
-    String normalized = requiredText(reason, MAX_RELEASE_REASON, "Release reason");
+    normalizeReleaseReason(reason);
     require(!now.isBefore(updatedAt), "Transition time cannot precede the previous update.");
     return new Dispute(
         id,
@@ -129,6 +129,10 @@ public record Dispute(
         null,
         null,
         null);
+  }
+
+  public static String normalizeReleaseReason(String reason) {
+    return requiredText(reason, MAX_RELEASE_REASON, "Release reason");
   }
 
   public Dispute resolve(

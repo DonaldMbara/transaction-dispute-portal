@@ -10,6 +10,7 @@ import com.assessment.disputeportal.dispute.repository.AgentDisputeReadRepositor
 import com.assessment.disputeportal.dispute.repository.AgentDisputeWriteRepository;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +31,8 @@ public class AgentDisputeCommandService {
         expectedVersion,
         d -> d.claim(agentId, Instant.now()),
         null,
-        null);
+        null,
+        String::strip);
   }
 
   @Transactional
@@ -43,7 +45,8 @@ public class AgentDisputeCommandService {
         expectedVersion,
         d -> d.release(agentId, reason, Instant.now()),
         reason,
-        null);
+        null,
+        Dispute::normalizeReleaseReason);
   }
 
   @Transactional
@@ -68,7 +71,8 @@ public class AgentDisputeCommandService {
         expectedVersion,
         d -> d.resolve(agentId, status, internalNotes, customerMessage, Instant.now()),
         internalNotes,
-        customerMessage);
+        customerMessage,
+        String::strip);
   }
 
   private AgentDisputeDetailDto transition(
@@ -76,16 +80,19 @@ public class AgentDisputeCommandService {
       UUID agentId,
       UUID ifMatchDisputeId,
       long expectedVersion,
-      java.util.function.Function<Dispute, Dispute> operation,
+      Function<Dispute, Dispute> operation,
       String internalNotes,
-      String customerMessage) {
+      String customerMessage,
+      Function<String, String> normalizeNotes) {
     Dispute before = writes.lockById(id).orElseThrow(ResourceNotFoundException::new);
     if (!ifMatchDisputeId.equals(id) || expectedVersion != before.version()) {
       throw DisputeApiException.staleVersion();
     }
     final Dispute after;
+    final String eventNotes;
     try {
       after = operation.apply(before);
+      eventNotes = internalNotes == null ? null : normalizeNotes.apply(internalNotes);
     } catch (IllegalArgumentException failure) {
       throw DisputeApiException.invalid();
     } catch (IllegalStateException failure) {
@@ -98,7 +105,7 @@ public class AgentDisputeCommandService {
             before,
             after,
             agentId,
-            internalNotes == null ? null : internalNotes.strip(),
+            eventNotes,
             customerMessage == null ? null : customerMessage.strip()));
     return reads.findById(id).orElseThrow(ResourceNotFoundException::new);
   }
