@@ -1,6 +1,7 @@
 package com.assessment.disputeportal.auth.repository;
 
 import com.assessment.disputeportal.auth.model.projection.Credentials;
+import com.assessment.disputeportal.auth.port.AuthenticationCredentialsLookup;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -9,7 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class JpaAccountCredentialsRepository implements AccountCredentialsRepository {
+public class JpaAccountCredentialsRepository
+    implements AccountCredentialsRepository, AuthenticationCredentialsLookup {
 
   private final AppUserRepository repository;
 

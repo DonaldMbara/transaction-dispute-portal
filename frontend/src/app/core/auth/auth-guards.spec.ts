@@ -12,33 +12,70 @@ describe('Session route boundaries', () => {
   let initialize: jasmine.Spy;
   beforeEach(() => {
     initialize = jasmine.createSpy('initialize').and.resolveTo();
-    TestBed.configureTestingModule({ providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting(), { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState), initialize }) }] });
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter(routes),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: AuthService,
+          useFactory: () => ({ state: TestBed.inject(SessionState), initialize }),
+        },
+      ],
+    });
     state = TestBed.inject(SessionState);
   });
   it('blocks anonymous protected routes and role content', async () => {
-    state.anonymous();const harness = await RouterTestingHarness.create();await harness.navigateByUrl('/customer');
-    expect(TestBed.inject(Router).url).toBe('/login?returnUrl=%2Fcustomer');expect(harness.routeNativeElement?.querySelector('app-customer')).toBeNull();
+    state.anonymous();
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/customer');
+    expect(TestBed.inject(Router).url).toBe('/login?returnUrl=%2Fcustomer');
+    expect(harness.routeNativeElement?.querySelector('app-customer')).toBeNull();
   });
   it('denies the wrong role before its component loads', async () => {
     state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'CUSTOMER' });
-    const harness = await RouterTestingHarness.create();await harness.navigateByUrl('/agent');expect(TestBed.inject(Router).url).toBe('/access-denied');
-    expect(harness.routeNativeElement?.textContent).toContain('Access denied');expect(harness.routeNativeElement?.querySelector('app-agent') ?? null).toBeNull();
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/agent');
+    expect(TestBed.inject(Router).url).toBe('/access-denied');
+    expect(harness.routeNativeElement?.textContent).toContain('Access denied');
+    expect(harness.routeNativeElement?.querySelector('app-agent') ?? null).toBeNull();
   });
   it('waits for verified identity and restores the correct landing', async () => {
     let resolve!: () => void;
-    initialize.and.returnValue(new Promise<void>(done => { resolve = done; }));
-    const harness = await RouterTestingHarness.create();const navigation = harness.navigateByUrl('/agent');
-    await Promise.resolve();expect(harness.routeNativeElement?.querySelector('app-agent') ?? null).toBeNull();
-    state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'AGENT' });resolve();await navigation;
-    expect(TestBed.inject(Router).url).toBe('/agent/disputes');expect(harness.routeNativeElement?.textContent).toContain('Case queue');
+    initialize.and.returnValue(
+      new Promise<void>((done) => {
+        resolve = done;
+      }),
+    );
+    const harness = await RouterTestingHarness.create();
+    const navigation = harness.navigateByUrl('/agent');
+    await Promise.resolve();
+    expect(harness.routeNativeElement?.querySelector('app-agent') ?? null).toBeNull();
+    state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'AGENT' });
+    resolve();
+    await navigation;
+    expect(TestBed.inject(Router).url).toBe('/agent/disputes');
+    expect(harness.routeNativeElement?.textContent).toContain('Case queue');
   });
   it('renders retryable initialization failure without protected content', async () => {
-    state.unavailable();const harness = await RouterTestingHarness.create();await harness.navigateByUrl('/customer');
-    expect(TestBed.inject(Router).url).toBe('/session-unavailable');expect(harness.routeNativeElement?.textContent).toContain('Try again');
+    state.unavailable();
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/customer');
+    expect(TestBed.inject(Router).url).toBe('/session-unavailable');
+    expect(harness.routeNativeElement?.textContent).toContain('Try again');
   });
   it('allowlists only exact local role landing return URLs', () => {
     for (const role of ['CUSTOMER', 'AGENT'] as const) {
-      for (const candidate of ['https://evil.example', '//evil.example', '/customer/../agent', '/customer?role=AGENT', '/agent', '/customer', '/%2F/evil', null])
+      for (const candidate of [
+        'https://evil.example',
+        '//evil.example',
+        '/customer/../agent',
+        '/customer?role=AGENT',
+        '/agent',
+        '/customer',
+        '/%2F/evil',
+        null,
+      ])
         expect(safeReturnUrl(candidate, role)).toBe(landing(role));
     }
   });

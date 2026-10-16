@@ -1,0 +1,172 @@
+<section class="transactions-page" aria-labelledby="transactions-heading">
+  <header class="page-heading">
+    <h1 id="transactions-heading">Transactions</h1>
+    <p>Find a payment, review its details or raise a dispute.</p>
+  </header>
+
+  @if (accounts().length > 0) {
+    <div class="account-selector-wrap">
+      <app-account-selector
+        [accounts]="accounts()"
+        [selectedAccountId]="selectedAccountId()"
+        (selectionChange)="navigation.onAccountChange($event)"
+      />
+    </div>
+  }
+
+  <form
+    class="query-controls customer-filter-panel"
+    [formGroup]="form"
+    aria-label="Transaction search and filters"
+  >
+    <label class="search-field customer-filter-field"
+      >Search merchant or reference
+      <span class="customer-search-field"
+        ><input
+          class="customer-filter-control"
+          type="search"
+          formControlName="search"
+          autocomplete="off" /><svg
+          class="customer-search-field__icon"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-4-4" /></svg
+      ></span>
+    </label>
+    <fieldset class="direction-control">
+      <legend>Direction</legend>
+      <div>
+        @for (
+          choice of [
+            { value: 'ALL', label: 'All' },
+            { value: 'IN', label: 'Money In' },
+            { value: 'OUT', label: 'Money Out' },
+          ];
+          track choice.value
+        ) {
+          <label
+            class="direction-option"
+            [class.selected]="form.controls.direction.value === choice.value"
+            ><input type="radio" formControlName="direction" [value]="choice.value" />{{
+              choice.label
+            }}</label
+          >
+        }
+      </div>
+    </fieldset>
+    <label class="status-control customer-filter-field"
+      >Status
+      <select class="customer-filter-control" formControlName="status">
+        <option value="ALL">All statuses</option>
+        <option value="PENDING">Pending</option>
+        <option value="COMPLETED">Completed</option>
+        <option value="FAILED">Failed</option>
+      </select>
+    </label>
+    <details class="advanced-filters" [open]="filtersOpen()">
+      <summary (click)="$event.preventDefault(); toggleFilters()">
+        Filters
+        @if (activeFilterCount()) {
+          <span class="filter-count">{{ activeFilterCount() }}</span>
+        }
+      </summary>
+      <div class="filter-grid">
+        <label class="customer-filter-field"
+          >From date<input class="customer-filter-control" type="date" formControlName="fromDate"
+        /></label>
+        <label class="customer-filter-field"
+          >To date<input class="customer-filter-control" type="date" formControlName="toDate"
+        /></label>
+        <label class="customer-filter-field"
+          >Minimum amount<input
+            class="customer-filter-control"
+            inputmode="decimal"
+            formControlName="minAmount"
+        /></label>
+        <label class="customer-filter-field"
+          >Maximum amount<input
+            class="customer-filter-control"
+            inputmode="decimal"
+            formControlName="maxAmount"
+        /></label>
+      </div>
+    </details>
+    <button
+      appButton="tertiary"
+      class="clear-filters customer-filter-reset customer-text-action"
+      type="button"
+      (click)="navigation.clearFilters()"
+    >
+      Reset filters
+    </button>
+  </form>
+  @if (filterError(); as message) {
+    <p class="filter-error" role="alert">{{ message }}</p>
+  }
+
+  <div
+    class="results-region"
+    [attr.aria-busy]="requestPending()"
+    [class.refreshing]="requestPending()"
+  >
+    @if (state() === 'busy') {
+      <app-loading-spinner
+        class="request-spinner"
+        [label]="
+          form.controls.search.value.trim() ? 'Searching transactions' : 'Updating transactions'
+        "
+        size="small"
+      />
+    }
+    @if (state() === 'loading' && page() === null) {
+      <div class="state loading-state" aria-busy="true">
+        <app-loading-spinner label="Loading transactions" />
+      </div>
+    } @else if (state() === 'no-accounts') {
+      <section class="state" role="status">
+        <h2>No accounts available</h2>
+        <p>Transactions will appear when an account is available.</p>
+      </section>
+    } @else if (state() === 'account-unavailable') {
+      <section class="state" role="alert">
+        <h2>Account not available</h2>
+        <p>This account cannot be shown.</p>
+        @if (defaultAccountId(); as defaultId) {
+          <button appButton="secondary" type="button" (click)="navigation.onAccountChange(defaultId)">
+            View default account
+          </button>
+        }
+      </section>
+    } @else if (state() === 'validation') {
+      <section class="state" role="alert">
+        <h2>Check your search and filters</h2>
+        <p>Some values in the address are invalid. Update the filters and try again.</p>
+      </section>
+    } @else if (state() === 'error') {
+      <section class="state" role="alert">
+        <h2>Transactions are unavailable</h2>
+        <p>Please try again.</p>
+        <button appButton="secondary" type="button" (click)="retry()">Try again</button>
+      </section>
+    } @else if (state() === 'none') {
+      <section class="state" role="status">
+        <h2>No transactions found</h2>
+        <p>Try changing your search or filters.</p>
+      </section>
+    } @else {
+      <app-transaction-table
+        [page]="page()!"
+        [pageNumber]="pageNumber()"
+        [size]="form.controls.size.value"
+        [returnTo]="returnTo()"
+        [presentation]="presentation"
+        (sortChange)="navigation.sortBy($event)"
+        (pageSizeChange)="navigation.changePageSize($event)"
+        (previousPage)="navigation.previousPage()"
+        (nextPage)="navigation.nextPage()"
+      />
+    }
+  </div>
+</section>

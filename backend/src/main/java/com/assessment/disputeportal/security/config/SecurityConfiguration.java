@@ -1,6 +1,7 @@
 package com.assessment.disputeportal.security.config;
 
 import com.assessment.disputeportal.common.api.ApiEnvelope;
+import com.assessment.disputeportal.common.api.ErrorCode;
 import com.assessment.disputeportal.common.web.ApiErrorWriter;
 import com.assessment.disputeportal.common.web.StoreFailureClassifier;
 import com.assessment.disputeportal.security.authentication.AccountAuthenticationProvider;
@@ -10,6 +11,8 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
@@ -94,12 +97,14 @@ public class SecurityConfiguration {
   @Bean
   org.springframework.security.web.firewall.RequestRejectedHandler rejectedRequestHandler(
       ApiErrorWriter errors) {
-    return (request, response, failure) ->
-        errors.write(
-            response,
-            400,
-            ApiEnvelope.failure(
-                1004, "validation-failed", "Invalid request", "The request is invalid."));
+    return (request, response, failure) -> {
+      var code = ErrorCode.INVALID_REQUEST;
+      errors.write(
+          response,
+          code.status().value(),
+          ApiEnvelope.failure(
+              code.code(), code.type(), "Invalid request", "The request is invalid."));
+    };
   }
 
   @Bean
@@ -124,75 +129,88 @@ public class SecurityConfiguration {
       HttpSessionCsrfTokenRepository csrf,
       HttpSessionSecurityContextRepository contexts,
       AccountSessionValidationFilter validator,
-      JsonRequestSizeLimitFilter requestSizeLimit)
+      JsonRequestSizeLimitFilter requestSizeLimit,
+      Environment environment)
       throws Exception {
     configureSecurityHeaders(http);
     AccessDeniedHandler denied =
         (request, response, failure) -> {
           if (StoreFailureClassifier.isStoreFailure(failure))
             errors.write(response, 503, ApiEnvelope.unavailable());
-          else if (failure instanceof CsrfException)
+          else if (failure instanceof CsrfException) {
+            var code = ErrorCode.CSRF_REJECTED;
             errors.write(
                 response,
-                403,
+                code.status().value(),
                 ApiEnvelope.failure(
-                    1010,
-                    "csrf-rejected",
+                    code.code(),
+                    code.type(),
                     "Security verification failed",
                     "Security verification failed. Refresh the security token and try again."));
-          else
+          } else {
+            var code = ErrorCode.FORBIDDEN;
             errors.write(
                 response,
-                403,
+                code.status().value(),
                 ApiEnvelope.failure(
-                    1002,
-                    "forbidden",
+                    code.code(),
+                    code.type(),
                     "Access denied",
                     "You do not have permission to perform this operation."));
+          }
         };
     return http.addFilterBefore(requestSizeLimit, CsrfFilter.class)
         .addFilterBefore(
             validator,
             org.springframework.security.web.authentication.AnonymousAuthenticationFilter.class)
         .authorizeHttpRequests(
-            requests ->
+            requests -> {
+              if (environment.acceptsProfiles(Profiles.of("local", "test"))) {
                 requests
-                    .requestMatchers(HttpMethod.GET, "/api/v1/auth/csrf")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/logout")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/auth/me")
-                    .hasAnyRole("CUSTOMER", "AGENT")
-                    .requestMatchers(HttpMethod.GET, "/api/v1/accounts")
-                    .hasRole("CUSTOMER")
                     .requestMatchers(
-                        HttpMethod.GET, "/api/v1/transactions", "/api/v1/transactions/{id}")
-                    .hasRole("CUSTOMER")
-                    .requestMatchers(HttpMethod.POST, "/api/v1/disputes")
-                    .hasRole("CUSTOMER")
-                    .requestMatchers(HttpMethod.GET, "/api/v1/disputes", "/api/v1/disputes/**")
-                    .hasRole("CUSTOMER")
-                    .requestMatchers(
-                        HttpMethod.GET, "/api/v1/agent/disputes", "/api/v1/agent/disputes/**")
-                    .hasRole("AGENT")
-                    .requestMatchers(HttpMethod.POST, "/api/v1/agent/disputes/**")
-                    .hasRole("AGENT")
-                    .anyRequest()
-                    .denyAll())
+                        "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**")
+                    .permitAll();
+              }
+              requests
+                  .requestMatchers(HttpMethod.GET, "/api/v1/auth/csrf")
+                  .permitAll()
+                  .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/logout")
+                  .permitAll()
+                  .requestMatchers(HttpMethod.GET, "/api/v1/auth/me")
+                  .hasAnyRole("CUSTOMER", "AGENT")
+                  .requestMatchers(HttpMethod.GET, "/api/v1/accounts")
+                  .hasRole("CUSTOMER")
+                  .requestMatchers(
+                      HttpMethod.GET, "/api/v1/transactions", "/api/v1/transactions/{id}")
+                  .hasRole("CUSTOMER")
+                  .requestMatchers(HttpMethod.POST, "/api/v1/disputes")
+                  .hasRole("CUSTOMER")
+                  .requestMatchers(HttpMethod.GET, "/api/v1/disputes", "/api/v1/disputes/**")
+                  .hasRole("CUSTOMER")
+                  .requestMatchers(
+                      HttpMethod.GET, "/api/v1/agent/disputes", "/api/v1/agent/disputes/**")
+                  .hasRole("AGENT")
+                  .requestMatchers(HttpMethod.POST, "/api/v1/agent/disputes/**")
+                  .hasRole("AGENT")
+                  .anyRequest()
+                  .denyAll();
+            })
         .exceptionHandling(
             failures ->
                 failures
                     .accessDeniedHandler(denied)
                     .authenticationEntryPoint(
-                        (request, response, failure) ->
-                            errors.write(
-                                response,
-                                401,
-                                ApiEnvelope.failure(
-                                    1001,
-                                    "unauthenticated",
-                                    "Authentication required",
-                                    "Authentication is required."))))
+                        (request, response, failure) -> {
+                          var code = ErrorCode.AUTHENTICATION_REQUIRED;
+                          errors.write(
+                              response,
+                              code.status().value(),
+                              ApiEnvelope.failure(
+                                  code.code(),
+                                  code.type(),
+                                  "Authentication required",
+                                  "Authentication is required."));
+                        }))
         .securityContext(
             context -> context.requireExplicitSave(true).securityContextRepository(contexts))
         .sessionManagement(

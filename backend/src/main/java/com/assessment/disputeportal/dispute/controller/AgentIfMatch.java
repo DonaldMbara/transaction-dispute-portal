@@ -1,7 +1,7 @@
 package com.assessment.disputeportal.dispute.controller;
 
+import com.assessment.disputeportal.common.exception.DisputeApiException;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
-import com.assessment.disputeportal.dispute.exception.DisputeApiException;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;

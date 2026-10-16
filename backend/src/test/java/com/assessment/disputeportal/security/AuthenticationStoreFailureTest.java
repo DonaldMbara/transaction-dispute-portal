@@ -3,14 +3,14 @@ package com.assessment.disputeportal.security;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.assessment.disputeportal.security.authentication.AccountAuthenticationProvider;
+import com.assessment.disputeportal.auth.port.AuthenticationCredentialsLookup;
 import java.util.*;
 import org.junit.jupiter.api.*;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 /** Own isolated container/context; deterministic public-boundary and PostgreSQL fault injection. */
 class AuthenticationStoreFailureTest extends AuthenticationApiIntegrationTest {
-  @MockitoSpyBean AccountAuthenticationProvider provider;
+  @MockitoSpyBean AuthenticationCredentialsLookup credentials;
 
   void fault(String table, String event, String condition) {
     jdbc.execute(
@@ -35,12 +35,12 @@ class AuthenticationStoreFailureTest extends AuthenticationApiIntegrationTest {
     account("CUSTOMER", true);
     var b = request("GET", "/api/v1/auth/csrf", Map.of());
     doThrow(new org.springframework.dao.DataAccessResourceFailureException("private account fault"))
-        .when(provider)
-        .authenticate(any());
+        .when(credentials)
+        .findByEmail(anyString());
     var failed = login(cookie(b), body(b).at("/data/csrfToken").asText());
     assertThat(failed.statusCode()).isEqualTo(503);
     assertThat(body(failed).path("error_code").asInt()).isEqualTo(3002);
-    org.mockito.Mockito.reset(provider);
+    org.mockito.Mockito.reset(credentials);
     doThrow(new org.springframework.dao.DataAccessResourceFailureException("private session fault"))
         .when(sessions)
         .findById(anyString());

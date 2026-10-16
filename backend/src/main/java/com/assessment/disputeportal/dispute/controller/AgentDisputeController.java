@@ -13,6 +13,10 @@ import com.assessment.disputeportal.dispute.service.AgentDisputeCommandService;
 import com.assessment.disputeportal.dispute.service.AgentDisputeQueryService;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.security.web.AuthenticatedActivity;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
@@ -41,7 +45,83 @@ public final class AgentDisputeController {
 
   @GetMapping
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope<?>> list(
+  @Operation(
+      parameters = {
+        @Parameter(
+            name = "queue",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {"unassigned", "mine", "all"},
+                    defaultValue = "unassigned")),
+        @Parameter(
+            name = "page",
+            in = ParameterIn.QUERY,
+            schema = @Schema(type = "integer", minimum = "1", defaultValue = "1")),
+        @Parameter(
+            name = "size",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20")),
+        @Parameter(
+            name = "status",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {
+                      "ALL",
+                      "ACTIVE",
+                      "RESOLVED",
+                      "OPEN",
+                      "UNDER_REVIEW",
+                      "ACCEPTED",
+                      "REJECTED"
+                    },
+                    defaultValue = "ALL")),
+        @Parameter(
+            name = "reason",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {
+                      "ALL",
+                      "UNRECOGNIZED_TRANSACTION",
+                      "DUPLICATE_CHARGE",
+                      "INCORRECT_AMOUNT",
+                      "GOODS_OR_SERVICES_NOT_RECEIVED",
+                      "OTHER"
+                    },
+                    defaultValue = "ALL")),
+        @Parameter(
+            name = "fromDate",
+            in = ParameterIn.QUERY,
+            schema = @Schema(type = "string", format = "date")),
+        @Parameter(
+            name = "toDate",
+            in = ParameterIn.QUERY,
+            schema = @Schema(type = "string", format = "date")),
+        @Parameter(
+            name = "search",
+            in = ParameterIn.QUERY,
+            description =
+                "Literal dispute, description, merchant or reference search, up to 100 characters.",
+            schema = @Schema(maxLength = 100)),
+        @Parameter(
+            name = "sortBy",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {"createdAt", "updatedAt", "status"},
+                    defaultValue = "createdAt")),
+        @Parameter(
+            name = "sortDirection",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {"ASC", "DESC"},
+                    defaultValue = "DESC"))
+      })
+  public ResponseEntity<ApiEnvelope<PageResponse<AgentDisputeListItemResponse>>> list(
       @AuthenticationPrincipal SessionPrincipal principal, HttpServletRequest request) {
     AgentDisputeQuery query = parser.parse(request.getParameterMap(), principal.accountId());
     Page<AgentDisputeListItemResponse> page = service.list(query);
@@ -58,7 +138,7 @@ public final class AgentDisputeController {
 
   @GetMapping("/{id}")
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope<?>> detail(
+  public ResponseEntity<ApiEnvelope<AgentDisputeDetailResponse>> detail(
       @AuthenticationPrincipal SessionPrincipal principal,
       @PathVariable String id,
       HttpServletRequest request) {
@@ -79,8 +159,16 @@ public final class AgentDisputeController {
   }
 
   @PostMapping("/{id}/claim")
+  @Operation(
+      parameters =
+          @Parameter(
+              name = "If-Match",
+              in = ParameterIn.HEADER,
+              required = true,
+              description = "Strong ETag from the parent dispute detail response.",
+              schema = @Schema(pattern = "\"dispute-[0-9a-f-]+-v[0-9]+\"")))
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope<?>> claim(
+  public ResponseEntity<ApiEnvelope<AgentDisputeDetailResponse>> claim(
       @AuthenticationPrincipal SessionPrincipal principal,
       @PathVariable String id,
       @Valid @RequestBody(required = false) ClaimDisputeRequest body,
@@ -93,8 +181,16 @@ public final class AgentDisputeController {
   }
 
   @PostMapping("/{id}/release")
+  @Operation(
+      parameters =
+          @Parameter(
+              name = "If-Match",
+              in = ParameterIn.HEADER,
+              required = true,
+              description = "Strong ETag from the parent dispute detail response.",
+              schema = @Schema(pattern = "\"dispute-[0-9a-f-]+-v[0-9]+\"")))
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope<?>> release(
+  public ResponseEntity<ApiEnvelope<AgentDisputeDetailResponse>> release(
       @AuthenticationPrincipal SessionPrincipal principal,
       @PathVariable String id,
       @Valid @RequestBody ReleaseDisputeRequest body,
@@ -110,8 +206,16 @@ public final class AgentDisputeController {
   }
 
   @PostMapping("/{id}/resolve")
+  @Operation(
+      parameters =
+          @Parameter(
+              name = "If-Match",
+              in = ParameterIn.HEADER,
+              required = true,
+              description = "Strong ETag from the parent dispute detail response.",
+              schema = @Schema(pattern = "\"dispute-[0-9a-f-]+-v[0-9]+\"")))
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope<?>> resolve(
+  public ResponseEntity<ApiEnvelope<AgentDisputeDetailResponse>> resolve(
       @AuthenticationPrincipal SessionPrincipal principal,
       @PathVariable String id,
       @Valid @RequestBody ResolveDisputeRequest body,
@@ -128,7 +232,8 @@ public final class AgentDisputeController {
             body.customerResolutionMessage()));
   }
 
-  private ResponseEntity<ApiEnvelope<?>> response(AgentDisputeDetailResponse detail) {
+  private ResponseEntity<ApiEnvelope<AgentDisputeDetailResponse>> response(
+      AgentDisputeDetailResponse detail) {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
         .header(HttpHeaders.ETAG, AgentIfMatch.format(detail.id(), detail.version()))

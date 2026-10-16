@@ -41,10 +41,16 @@ In another terminal:
 cd frontend
 npm ci
 npm run build
+npm run lint
+npm audit --omit=dev --audit-level=high
 npm run test:ci
 ```
 
-The frontend test command runs Karma/Jasmine in ChromeHeadless. Set `CHROME_BIN` if Chrome is installed at a nonstandard path. The current GitHub Actions workflow runs the backend verify job and the frontend install/build/test job on pushes and pull requests; it does not publish images or deploy the application.
+The frontend test command runs Karma/Jasmine in ChromeHeadless. Set `CHROME_BIN` if Chrome is installed at a nonstandard path. GitHub Actions runs backend verification and frontend install, build, lint, production audit, unit tests, and one seeded Playwright journey on pushes and pull requests; it publishes coverage reports but does not publish images or deploy the application.
+
+CI also runs `npm run test:e2e` against a disposable Compose stack. It provisions an E2E-only customer using the existing demo CLI and fixtures, then verifies login, transaction selection, dispute submission, and dispute history. Locally, set `E2E_BASE_URL`, `E2E_CUSTOMER_EMAIL`, and `E2E_CUSTOMER_PASSWORD` after provisioning a customer and fixtures with the documented demo path, then run `npx playwright install chromium` and `npm run test:e2e`.
+
+The full development dependency tree currently has six high-severity advisories confined to test/build tooling: `@angular/build`, `braces`, `chokidar`, `karma`, `karma-jasmine`, and `karma-jasmine-html-reporter`. They are accepted only as development dependencies; CI rejects high-severity findings in production dependencies.
 
 ## API and access
 
@@ -56,6 +62,8 @@ The API is same-origin under `/api/v1`; the full request, response, header, pagi
 | AGENT | View the dispute queue and detail; claim, release, and resolve disputes with the required strong ETag. |
 
 Login, CSRF bootstrap, identity, and logout are also under `/api/v1/auth`. Authorization and ownership checks are enforced by the backend. Unimplemented routes are denied. Customer responses do not expose internal notes, release reasons, or actor identifiers.
+
+The code-generated OpenAPI document and Swagger UI are enabled only with the `local` profile. With Compose, open [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html); the UI and `/v3/api-docs` are proxied through nginx. They are disabled in the default profile. CI validates the documented route/method and request contract against the API and publishes `openapi.json` as an artifact.
 
 ## Architecture and important choices
 
@@ -79,7 +87,5 @@ The displayed `accounts.balance` is a synthetic fixture value. It is not calcula
 - [API contract](docs/design/api-contract.md)
 - [Session architecture decision](docs/design/session-architecture-decision.md)
 - [Authentication operations](docs/operations/authentication.md)
-- [Opt-in demo data](docs/operations/demo-data.md)
-- [Refactor work plan](docs/REFACTOR_PLAN.md)
 
 `backend/README.md` and `frontend/README.md` point back to this file so there is one authoritative setup and behavior guide.

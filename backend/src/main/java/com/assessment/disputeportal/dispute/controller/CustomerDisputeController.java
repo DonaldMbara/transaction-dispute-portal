@@ -5,12 +5,18 @@ import com.assessment.disputeportal.common.api.PageResponse;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeDetailResponse;
 import com.assessment.disputeportal.dispute.model.dto.CustomerDisputeListItemResponse;
+import com.assessment.disputeportal.dispute.model.dto.DisputeSubmissionResponse;
 import com.assessment.disputeportal.dispute.model.dto.SubmitDisputeRequest;
 import com.assessment.disputeportal.dispute.model.query.DisputeQuery;
 import com.assessment.disputeportal.dispute.service.DisputeQueryService;
 import com.assessment.disputeportal.dispute.service.DisputeSubmissionService;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.security.web.AuthenticatedActivity;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.Map;
@@ -55,7 +61,81 @@ public final class CustomerDisputeController {
    */
   @GetMapping
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope<?>> listDisputes(
+  @Operation(
+      parameters = {
+        @Parameter(
+            name = "page",
+            in = ParameterIn.QUERY,
+            schema = @Schema(type = "integer", minimum = "1", defaultValue = "1")),
+        @Parameter(
+            name = "size",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20")),
+        @Parameter(
+            name = "accountId",
+            in = ParameterIn.QUERY,
+            description = "Optional owned account selector.",
+            schema = @Schema(format = "uuid")),
+        @Parameter(
+            name = "status",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {
+                      "ALL",
+                      "ACTIVE",
+                      "RESOLVED",
+                      "OPEN",
+                      "UNDER_REVIEW",
+                      "ACCEPTED",
+                      "REJECTED"
+                    },
+                    defaultValue = "ALL")),
+        @Parameter(
+            name = "reason",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {
+                      "ALL",
+                      "UNRECOGNIZED_TRANSACTION",
+                      "DUPLICATE_CHARGE",
+                      "INCORRECT_AMOUNT",
+                      "GOODS_OR_SERVICES_NOT_RECEIVED",
+                      "OTHER"
+                    },
+                    defaultValue = "ALL")),
+        @Parameter(
+            name = "fromDate",
+            in = ParameterIn.QUERY,
+            schema = @Schema(type = "string", format = "date")),
+        @Parameter(
+            name = "toDate",
+            in = ParameterIn.QUERY,
+            schema = @Schema(type = "string", format = "date")),
+        @Parameter(
+            name = "search",
+            in = ParameterIn.QUERY,
+            description =
+                "Literal dispute, description, merchant or reference search, up to 100 characters.",
+            schema = @Schema(maxLength = 100)),
+        @Parameter(
+            name = "sortBy",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {"createdAt", "updatedAt", "status"},
+                    defaultValue = "createdAt")),
+        @Parameter(
+            name = "sortDirection",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {"ASC", "DESC"},
+                    defaultValue = "DESC"))
+      })
+  public ResponseEntity<ApiEnvelope<PageResponse<CustomerDisputeListItemResponse>>> listDisputes(
       @AuthenticationPrincipal SessionPrincipal principal, HttpServletRequest request) {
     UUID customerId = principal.accountId();
     Map<String, String[]> parameterMap = request.getParameterMap();
@@ -78,7 +158,7 @@ public final class CustomerDisputeController {
    */
   @GetMapping("/{id}")
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope<?>> getDispute(
+  public ResponseEntity<ApiEnvelope<CustomerDisputeDetailResponse>> getDispute(
       @AuthenticationPrincipal SessionPrincipal principal,
       @PathVariable String id,
       HttpServletRequest request) {
@@ -101,10 +181,18 @@ public final class CustomerDisputeController {
   }
 
   @PostMapping
+  @ApiResponse(responseCode = "201", description = "Dispute created or successful replay.")
   @AuthenticatedActivity
-  public ResponseEntity<Object> submit(
+  public ResponseEntity<ApiEnvelope<DisputeSubmissionResponse>> submit(
       @AuthenticationPrincipal SessionPrincipal principal,
-      @RequestHeader(value = "Idempotency-Key", required = false) String key,
+      @Parameter(
+              name = "Idempotency-Key",
+              in = ParameterIn.HEADER,
+              required = true,
+              description = "Required idempotency key for safe submission replay.",
+              schema = @Schema(pattern = "[A-Za-z0-9_-]{1,128}", maxLength = 128))
+          @RequestHeader(value = "Idempotency-Key", required = false)
+          String key,
       @Valid @RequestBody SubmitDisputeRequest body) {
     if (key == null || !IDEMPOTENCY_KEY.matcher(key).matches()) {
       throw new InvalidRequestException("Invalid dispute submission.");

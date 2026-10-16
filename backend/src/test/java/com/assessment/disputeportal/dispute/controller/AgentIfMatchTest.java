@@ -3,8 +3,8 @@ package com.assessment.disputeportal.dispute.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.assessment.disputeportal.common.exception.DisputeApiException;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
-import com.assessment.disputeportal.dispute.exception.DisputeApiException;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

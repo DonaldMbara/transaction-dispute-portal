@@ -1,7 +1,9 @@
 package com.assessment.disputeportal.dispute.service;
 
+import com.assessment.disputeportal.common.exception.DisputeApiException;
+import com.assessment.disputeportal.common.exception.InvalidOperationException;
+import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;
-import com.assessment.disputeportal.dispute.exception.DisputeApiException;
 import com.assessment.disputeportal.dispute.model.Dispute;
 import com.assessment.disputeportal.dispute.model.DisputeEvent;
 import com.assessment.disputeportal.dispute.model.DisputeStatus;
@@ -93,9 +95,9 @@ public class AgentDisputeCommandService {
     try {
       after = operation.apply(before);
       eventNotes = internalNotes == null ? null : normalizeNotes.apply(internalNotes);
-    } catch (IllegalArgumentException failure) {
+    } catch (InvalidRequestException failure) {
       throw DisputeApiException.invalid();
-    } catch (IllegalStateException failure) {
+    } catch (InvalidOperationException failure) {
       throw DisputeApiException.stateConflict();
     }
     if (!writes.update(before, after)) throw DisputeApiException.staleVersion();

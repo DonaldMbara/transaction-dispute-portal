@@ -3,6 +3,9 @@ package com.assessment.disputeportal.dispute.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.assessment.disputeportal.common.exception.DomainInvariantException;
+import com.assessment.disputeportal.common.exception.InvalidOperationException;
+import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -65,20 +68,20 @@ class DisputeLifecycleTest {
   void rejectsInvalidStateAndWrongAgentTransitions() {
     Dispute open = open();
     assertThatThrownBy(() -> open.release(AGENT, "reason", CREATED.plusSeconds(1)))
-        .isInstanceOf(IllegalStateException.class);
+        .isInstanceOf(InvalidOperationException.class);
     assertThatThrownBy(
             () ->
                 open.resolve(
                     AGENT, DisputeStatus.REJECTED, "note", "message", CREATED.plusSeconds(1)))
-        .isInstanceOf(IllegalStateException.class);
+        .isInstanceOf(InvalidOperationException.class);
     Dispute claimed = open.claim(AGENT, CREATED.plusSeconds(1));
     assertThatThrownBy(() -> claimed.release(UUID.randomUUID(), "reason", CREATED.plusSeconds(2)))
-        .isInstanceOf(IllegalStateException.class);
+        .isInstanceOf(InvalidOperationException.class);
     assertThatThrownBy(
             () ->
                 claimed.resolve(
                     AGENT, DisputeStatus.OPEN, "note", "message", CREATED.plusSeconds(2)))
-        .isInstanceOf(IllegalStateException.class);
+        .isInstanceOf(InvalidOperationException.class);
   }
 
   @Test
@@ -95,12 +98,12 @@ class DisputeLifecycleTest {
     assertThat(resolved.customerResolutionMessage()).isEqualTo("Decision message");
     assertThatThrownBy(
             () -> resolved.resolve(AGENT, DisputeStatus.ACCEPTED, "n", "m", CREATED.plusSeconds(3)))
-        .isInstanceOf(IllegalStateException.class);
+        .isInstanceOf(InvalidOperationException.class);
     assertThatThrownBy(() -> claimed.release(AGENT, " ", CREATED.plusSeconds(2)))
-        .isInstanceOf(IllegalArgumentException.class);
+        .isInstanceOf(InvalidRequestException.class);
     assertThatThrownBy(
             () -> claimed.resolve(AGENT, DisputeStatus.ACCEPTED, "n", " ", CREATED.plusSeconds(2)))
-        .isInstanceOf(IllegalArgumentException.class);
+        .isInstanceOf(InvalidRequestException.class);
   }
 
   @Test
@@ -127,6 +130,6 @@ class DisputeLifecycleTest {
             .claim(AGENT, CREATED.plusSeconds(2));
     assertThatThrownBy(
             () -> DisputeEvent.transitioned(UUID.randomUUID(), before, other, AGENT, null, null))
-        .isInstanceOf(IllegalArgumentException.class);
+        .isInstanceOf(DomainInvariantException.class);
   }
 }

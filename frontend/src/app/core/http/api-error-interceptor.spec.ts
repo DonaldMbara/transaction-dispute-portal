@@ -10,10 +10,12 @@ describe('API error interceptor', () => {
   let notifications: NotificationService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [
-      provideHttpClient(withInterceptors([apiErrorInterceptor])),
-      provideHttpClientTesting()
-    ] });
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptors([apiErrorInterceptor])),
+        provideHttpClientTesting(),
+      ],
+    });
     http = TestBed.inject(HttpClient);
     testing = TestBed.inject(HttpTestingController);
     notifications = TestBed.inject(NotificationService);
@@ -22,9 +24,13 @@ describe('API error interceptor', () => {
 
   it('shows a safe error toast for server failures without exposing response details', () => {
     http.get('/api/v1/accounts').subscribe({ error: () => undefined });
-    testing.expectOne('/api/v1/accounts').flush({ detail: 'database password leaked' }, { status: 503, statusText: 'Unavailable' });
+    testing
+      .expectOne('/api/v1/accounts')
+      .flush({ detail: 'database password leaked' }, { status: 503, statusText: 'Unavailable' });
     expect(notifications.current()?.tone).toBe('error');
-    expect(notifications.current()?.message).toBe('The service is temporarily unavailable. Please try again.');
+    expect(notifications.current()?.message).toBe(
+      'The service is temporarily unavailable. Please try again.',
+    );
     expect(notifications.current()?.message).not.toContain('database password');
   });
 
@@ -36,7 +42,11 @@ describe('API error interceptor', () => {
 
   it('uses a safe forbidden message for API authorization failures', () => {
     http.get('/api/v1/transactions').subscribe({ error: () => undefined });
-    testing.expectOne('/api/v1/transactions').flush({ error_code: 1002 }, { status: 403, statusText: 'Forbidden' });
-    expect(notifications.current()?.message).toBe('You do not have permission to perform this operation.');
+    testing
+      .expectOne('/api/v1/transactions')
+      .flush({ error_code: 1002 }, { status: 403, statusText: 'Forbidden' });
+    expect(notifications.current()?.message).toBe(
+      'You do not have permission to perform this operation.',
+    );
   });
 });

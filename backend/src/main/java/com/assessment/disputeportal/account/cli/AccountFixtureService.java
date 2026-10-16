@@ -5,7 +5,7 @@ import com.assessment.disputeportal.account.mapper.AccountNumberMask;
 import com.assessment.disputeportal.account.model.AccountType;
 import com.assessment.disputeportal.auth.model.AccountIdentity;
 import com.assessment.disputeportal.auth.model.AccountRole;
-import com.assessment.disputeportal.auth.repository.AccountLookup;
+import com.assessment.disputeportal.auth.port.CustomerAccountLookup;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -30,7 +30,7 @@ public class AccountFixtureService implements AccountFixturePort {
   private static final Instant MAIN_CREATED_AT = Instant.parse("2025-01-01T00:00:00Z");
   private static final Instant SAVINGS_CREATED_AT = Instant.parse("2025-01-02T00:00:00Z");
 
-  private final AccountLookup customers;
+  private final CustomerAccountLookup customers;
   private final AccountFixtureRepository accounts;
 
   @Transactional

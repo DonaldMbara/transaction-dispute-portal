@@ -10,7 +10,10 @@ describe('App', () => {
   it('hosts the root router outlet', async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([]), { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState) }) }]
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState) }) },
+      ],
     }).compileComponents();
     const fixture = TestBed.createComponent(App);
     TestBed.inject(SessionState).anonymous();

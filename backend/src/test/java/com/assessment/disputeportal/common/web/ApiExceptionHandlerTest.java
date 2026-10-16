@@ -18,7 +18,7 @@ class ApiExceptionHandlerTest {
     assertThat(invalid.getStatusCode().value()).isEqualTo(400);
     assertThat(invalid.getBody().error_code()).isEqualTo(1004);
 
-    var missing = handler.notFound();
+    var missing = handler.notFound(new ResourceNotFoundException());
     assertThat(missing.getStatusCode().value()).isEqualTo(404);
     assertThat(missing.getBody().error_code()).isEqualTo(1003);
     assertThat(missing.getBody().error().detail()).doesNotContain("account-uuid");
@@ -26,7 +26,7 @@ class ApiExceptionHandlerTest {
 
   @Test
   void accountStateConflictUsesItsOwnStableCode() {
-    var response = handler.conflict();
+    var response = handler.conflict(new BusinessConflictException("private conflict detail"));
 
     assertThat(response.getStatusCode().value()).isEqualTo(409);
     assertThat(response.getBody().error_code()).isEqualTo(2008);
@@ -38,16 +38,18 @@ class ApiExceptionHandlerTest {
     var missing = new ResourceNotFoundException("Account", "id", "account-uuid");
     var conflict = new BusinessConflictException("private conflict detail");
 
-    assertThat(handler.malformed().getBody().error().detail()).doesNotContain(invalid.getMessage());
-    assertThat(handler.notFound().getBody().error().detail())
+    assertThat(handler.invalidRequest(invalid).getBody().error().detail())
+        .doesNotContain(invalid.getMessage());
+    assertThat(handler.notFound(missing).getBody().error().detail())
         .doesNotContain(missing.getMessage(), "account-uuid");
-    assertThat(handler.conflict().getBody().error().detail()).doesNotContain(conflict.getMessage());
+    assertThat(handler.conflict(conflict).getBody().error().detail())
+        .doesNotContain(conflict.getMessage());
   }
 
   @Test
   void invalidFrameworkSessionTimeUsesTheHandledGenericServerError() {
     var failure = new InvalidSessionAccessTimeException();
-    var response = handler.invalidSessionAccessTime();
+    var response = handler.invalidSessionAccessTime(failure);
 
     assertThat(response.getStatusCode().value()).isEqualTo(500);
     assertThat(response.getBody().error_code()).isEqualTo(3001);

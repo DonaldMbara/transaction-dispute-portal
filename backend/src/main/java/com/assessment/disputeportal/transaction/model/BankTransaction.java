@@ -1,5 +1,6 @@
 package com.assessment.disputeportal.transaction.model;
 
+import com.assessment.disputeportal.common.exception.DomainInvariantException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
@@ -26,7 +27,7 @@ public record BankTransaction(
     Objects.requireNonNull(status);
     Objects.requireNonNull(occurredAt);
     if (amount.signum() <= 0 || amount.scale() != 2 || !"ZAR".equals(currency)) {
-      throw new IllegalArgumentException("Invalid persisted transaction values.");
+      throw new DomainInvariantException("Invalid persisted transaction values.");
     }
   }
 }

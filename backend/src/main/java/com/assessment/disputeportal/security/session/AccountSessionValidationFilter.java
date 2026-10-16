@@ -1,6 +1,7 @@
 package com.assessment.disputeportal.security.session;
 
 import com.assessment.disputeportal.common.api.ApiEnvelope;
+import com.assessment.disputeportal.common.api.ErrorCode;
 import com.assessment.disputeportal.common.web.ApiErrorWriter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -69,10 +70,11 @@ public final class AccountSessionValidationFilter extends OncePerRequestFilter {
 
   public static void unauthorized(HttpServletResponse response, ApiErrorWriter errors)
       throws IOException {
+    var code = ErrorCode.AUTHENTICATION_REQUIRED;
     errors.write(
         response,
-        401,
+        code.status().value(),
         ApiEnvelope.failure(
-            1001, "unauthenticated", "Authentication required", "Authentication is required."));
+            code.code(), code.type(), "Authentication required", "Authentication is required."));
   }
 }

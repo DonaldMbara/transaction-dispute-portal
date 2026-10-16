@@ -1,5 +1,6 @@
 package com.assessment.disputeportal.dispute.model;
 
+import com.assessment.disputeportal.common.exception.DomainInvariantException;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -35,17 +36,17 @@ public record DisputeEvent(
     Objects.requireNonNull(eventType);
     Objects.requireNonNull(toStatus);
     Objects.requireNonNull(createdAt);
-    if (disputeVersion < 0) throw new IllegalArgumentException("Event version cannot be negative.");
+    if (disputeVersion < 0) throw new DomainInvariantException("Event version cannot be negative.");
     if (eventType == EventType.CREATED
         && (disputeVersion != 0
             || fromStatus != null
             || toStatus != DisputeStatus.OPEN
             || previousAgentId != null
             || newAgentId != null)) {
-      throw new IllegalArgumentException("Invalid dispute creation event.");
+      throw new DomainInvariantException("Invalid dispute creation event.");
     }
     if (eventType != EventType.CREATED && (fromStatus == null || disputeVersion == 0)) {
-      throw new IllegalArgumentException(
+      throw new DomainInvariantException(
           "Transition events require a prior state and positive version.");
     }
   }
@@ -76,7 +77,7 @@ public record DisputeEvent(
     Objects.requireNonNull(before);
     Objects.requireNonNull(after);
     if (!before.id().equals(after.id()) || after.version() != before.version() + 1) {
-      throw new IllegalArgumentException("Event must describe exactly one dispute version.");
+      throw new DomainInvariantException("Event must describe exactly one dispute version.");
     }
     EventType type =
         switch (after.status()) {

@@ -2,7 +2,7 @@ package com.assessment.disputeportal.security.authentication;
 
 import com.assessment.disputeportal.auth.model.AccountIdentity;
 import com.assessment.disputeportal.auth.model.AccountRole;
-import com.assessment.disputeportal.auth.repository.AccountCredentialsRepository;
+import com.assessment.disputeportal.auth.port.AuthenticationCredentialsLookup;
 import com.assessment.disputeportal.auth.validation.PasswordPolicy;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import java.util.List;
@@ -19,12 +19,12 @@ import org.springframework.stereotype.Component;
 @Slf4j(topic = "authentication.audit")
 public final class AccountAuthenticationProvider implements AuthenticationProvider {
 
-  private final AccountCredentialsRepository credentials;
+  private final AuthenticationCredentialsLookup credentials;
   private final PasswordEncoder passwords;
   private final String dummy;
 
   public AccountAuthenticationProvider(
-      AccountCredentialsRepository credentials, PasswordEncoder passwords) {
+      AuthenticationCredentialsLookup credentials, PasswordEncoder passwords) {
     this.credentials = credentials;
     this.passwords = passwords;
     this.dummy = passwords.encode(java.util.UUID.randomUUID().toString());

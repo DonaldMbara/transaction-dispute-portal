@@ -1,5 +1,8 @@
 package com.assessment.disputeportal.dispute.model;
 
+import com.assessment.disputeportal.common.exception.DomainInvariantException;
+import com.assessment.disputeportal.common.exception.InvalidOperationException;
+import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -37,7 +40,7 @@ public record Dispute(
         || description.length() > 2000
         || version < 0
         || updatedAt.isBefore(createdAt)) {
-      throw new IllegalArgumentException("Invalid dispute state.");
+      throw new DomainInvariantException("Invalid dispute state.");
     }
     boolean validLifecycle =
         switch (status) {
@@ -61,7 +64,7 @@ public record Dispute(
                   && customerResolutionMessage != null;
         };
     if (!validLifecycle)
-      throw new IllegalArgumentException("Inconsistent dispute lifecycle fields.");
+      throw new DomainInvariantException("Inconsistent dispute lifecycle fields.");
   }
 
   /** Retains the original creation call shape used by dispute submission. */
@@ -164,21 +167,21 @@ public record Dispute(
   }
 
   private long nextVersion() {
-    if (version == Long.MAX_VALUE) throw new IllegalStateException("Dispute version exhausted.");
+    if (version == Long.MAX_VALUE) throw new DomainInvariantException("Dispute version exhausted.");
     return version + 1;
   }
 
   private static String requiredText(String value, int max, String field) {
-    if (value == null) throw new IllegalArgumentException(field + " is required.");
+    if (value == null) throw new InvalidRequestException(field + " is required.");
     String normalized = value.strip();
     if (normalized.isEmpty() || normalized.length() > max) {
-      throw new IllegalArgumentException(
+      throw new InvalidRequestException(
           field + " must contain between 1 and " + max + " characters.");
     }
     return normalized;
   }
 
   private static void require(boolean condition, String message) {
-    if (!condition) throw new IllegalStateException(message);
+    if (!condition) throw new InvalidOperationException(message);
   }
 }

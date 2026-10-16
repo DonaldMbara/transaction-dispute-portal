@@ -1,6 +1,7 @@
 package com.assessment.disputeportal.auth.repository;
 
 import com.assessment.disputeportal.auth.model.AccountIdentity;
+import com.assessment.disputeportal.auth.port.CustomerAccountLookup;
 import com.assessment.disputeportal.auth.validation.EmailNormalizer;
 import java.util.Objects;
 import java.util.Optional;
@@ -12,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class JpaAccountLookup implements AccountLookup {
+public class JpaAccountLookup implements AccountLookup, CustomerAccountLookup {
 
   private final AppUserRepository repository;
   private final EmailNormalizer emails;

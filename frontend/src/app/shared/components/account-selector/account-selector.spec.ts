@@ -4,8 +4,26 @@ import { AccountSelector } from './account-selector';
 describe('AccountSelector', () => {
   let fixture: ComponentFixture<AccountSelector>;
   const accounts = [
-    { id: 'a', accountType: 'MAIN' as const, displayName: 'Main Account', accountNumber: '0123456789', maskedNumber: '****6789', balance: '120.00', currency: 'ZAR', primary: true },
-    { id: 'b', accountType: 'SAVINGS' as const, displayName: 'Savings Account', accountNumber: '9876543210', maskedNumber: '****3210', balance: '50.00', currency: 'ZAR', primary: false }
+    {
+      id: 'a',
+      accountType: 'MAIN' as const,
+      displayName: 'Main Account',
+      accountNumber: '0123456789',
+      maskedNumber: '****6789',
+      balance: '120.00',
+      currency: 'ZAR',
+      primary: true,
+    },
+    {
+      id: 'b',
+      accountType: 'SAVINGS' as const,
+      displayName: 'Savings Account',
+      accountNumber: '9876543210',
+      maskedNumber: '****3210',
+      balance: '50.00',
+      currency: 'ZAR',
+      primary: false,
+    },
   ];
 
   describe('with showAllAccounts=false (default)', () => {
@@ -28,10 +46,13 @@ describe('AccountSelector', () => {
       expect(trigger.textContent).toContain('0123456789');
       expect(trigger.textContent).toContain('R 120.00');
       expect(getComputedStyle(trigger).minHeight).toBe('72px');
-      expect(trigger.querySelector('.account-info')?.textContent).not.toContain('Available balance');
+      expect(trigger.querySelector('.account-info')?.textContent).not.toContain(
+        'Available balance',
+      );
       expect(trigger.querySelector('.account-balance')?.textContent).toContain('Available balance');
       expect(trigger.querySelector('.account-icon[aria-hidden="true"] svg')).toBeTruthy();
-      trigger.click(); fixture.detectChanges();
+      trigger.click();
+      fixture.detectChanges();
       const options = host.querySelectorAll<HTMLElement>('[role="option"]');
       expect(host.querySelector('[role="listbox"]')).toBeTruthy();
       expect(host.querySelectorAll('[role="option"] app-account-card').length).toBe(2);
@@ -47,7 +68,8 @@ describe('AccountSelector', () => {
     it('no "All your accounts" option present when showAllAccounts is false', () => {
       const host = fixture.nativeElement as HTMLElement;
       const trigger: HTMLButtonElement = host.querySelector('.selector-trigger')!;
-      trigger.click(); fixture.detectChanges();
+      trigger.click();
+      fixture.detectChanges();
       expect(host.querySelector('.all-accounts-option')).toBeNull();
       expect(host.textContent).not.toContain('All your accounts');
     });
@@ -59,7 +81,7 @@ describe('AccountSelector', () => {
       const trigger: HTMLButtonElement = host.querySelector('.selector-trigger')!;
       trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
       fixture.detectChanges();
-      await new Promise(resolve => setTimeout(resolve));
+      await new Promise((resolve) => setTimeout(resolve));
       fixture.detectChanges();
       const listbox = host.querySelector<HTMLElement>('[role="listbox"]')!;
       expect(trigger.getAttribute('aria-expanded')).toBe('true');
@@ -70,14 +92,15 @@ describe('AccountSelector', () => {
       fixture.detectChanges();
       expect(emitted).toHaveBeenCalledOnceWith('b');
       expect(host.querySelector('[role="listbox"]')).toBeNull();
-      await new Promise(resolve => setTimeout(resolve));
+      await new Promise((resolve) => setTimeout(resolve));
       expect(document.activeElement).toBe(trigger);
     });
 
     it('supports Home, End and Escape, closes on outside click, and omits null numbers', () => {
       const host = fixture.nativeElement as HTMLElement;
       const trigger: HTMLButtonElement = host.querySelector('.selector-trigger')!;
-      trigger.click(); fixture.detectChanges();
+      trigger.click();
+      fixture.detectChanges();
       const listbox = host.querySelector<HTMLElement>('[role="listbox"]')!;
       listbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
       expect(document.activeElement?.getAttribute('data-option-index')).toBe('1');
@@ -86,8 +109,10 @@ describe('AccountSelector', () => {
       listbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       fixture.detectChanges();
       expect(host.querySelector('[role="listbox"]')).toBeNull();
-      trigger.click(); fixture.detectChanges();
-      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true })); fixture.detectChanges();
+      trigger.click();
+      fixture.detectChanges();
+      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      fixture.detectChanges();
       expect(host.querySelector('[role="listbox"]')).toBeNull();
       fixture.componentRef.setInput('accounts', [{ ...accounts[0], accountNumber: null }]);
       fixture.detectChanges();
@@ -110,7 +135,8 @@ describe('AccountSelector', () => {
     it('first option is "All your accounts"', () => {
       const host = fixture.nativeElement as HTMLElement;
       const trigger: HTMLButtonElement = host.querySelector('.selector-trigger')!;
-      trigger.click(); fixture.detectChanges();
+      trigger.click();
+      fixture.detectChanges();
       const options = host.querySelectorAll<HTMLElement>('[role="option"]');
       expect(options.length).toBe(3); // all accounts + 2 real accounts
       expect(options[0].textContent).toContain('All your accounts');
@@ -122,9 +148,11 @@ describe('AccountSelector', () => {
       fixture.componentInstance.selectionChange.subscribe(emitted);
       const host = fixture.nativeElement as HTMLElement;
       const trigger: HTMLButtonElement = host.querySelector('.selector-trigger')!;
-      trigger.click(); fixture.detectChanges();
+      trigger.click();
+      fixture.detectChanges();
       const allOption = host.querySelector<HTMLButtonElement>('.all-accounts-option')!;
-      allOption.click(); fixture.detectChanges();
+      allOption.click();
+      fixture.detectChanges();
       expect(emitted).toHaveBeenCalledOnceWith(null);
     });
 
@@ -133,10 +161,12 @@ describe('AccountSelector', () => {
       fixture.componentInstance.selectionChange.subscribe(emitted);
       const host = fixture.nativeElement as HTMLElement;
       const trigger: HTMLButtonElement = host.querySelector('.selector-trigger')!;
-      trigger.click(); fixture.detectChanges();
+      trigger.click();
+      fixture.detectChanges();
       const options = host.querySelectorAll<HTMLButtonElement>('[role="option"]');
       // index 1 is the first real account (Main Account = 'a')
-      options[1].click(); fixture.detectChanges();
+      options[1].click();
+      fixture.detectChanges();
       expect(emitted).toHaveBeenCalledOnceWith('a');
     });
 

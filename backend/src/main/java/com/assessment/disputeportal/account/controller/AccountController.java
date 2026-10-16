@@ -1,12 +1,17 @@
 package com.assessment.disputeportal.account.controller;
 
 import com.assessment.disputeportal.account.mapper.AccountResponseMapper;
+import com.assessment.disputeportal.account.model.dto.AccountResponse;
 import com.assessment.disputeportal.account.service.AccountQueryService;
 import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.common.api.PageResponse;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.security.web.AuthenticatedActivity;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +36,20 @@ public final class AccountController {
 
   @GetMapping
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope<?>> list(
+  @Operation(
+      parameters = {
+        @Parameter(
+            name = "page",
+            in = ParameterIn.QUERY,
+            description = "1-based page number.",
+            schema = @Schema(type = "integer", minimum = "1", defaultValue = "1")),
+        @Parameter(
+            name = "size",
+            in = ParameterIn.QUERY,
+            description = "Page size, at most 100.",
+            schema = @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20"))
+      })
+  public ResponseEntity<ApiEnvelope<PageResponse<AccountResponse>>> list(
       @AuthenticationPrincipal SessionPrincipal principal, HttpServletRequest request) {
     rejectUnknownParameters(request);
     int page = parameter(request, "page", DEFAULT_PAGE, Integer.MAX_VALUE);

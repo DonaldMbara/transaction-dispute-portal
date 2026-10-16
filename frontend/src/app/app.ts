@@ -10,15 +10,18 @@ import { HttpProgressIndicator } from './core/http/http-progress-indicator';
   standalone: true,
   imports: [RouterOutlet, SessionUnavailable, NotificationOutlet, HttpProgressIndicator],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrl: './app.scss',
 })
 export class App {
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   constructor() {
     effect(() => {
-      if (this.auth.state.phase() === 'anonymous' && this.isProtectedRoute()) void this.router.navigateByUrl('/login');
+      if (this.auth.state.phase() === 'anonymous' && this.isProtectedRoute())
+        void this.router.navigateByUrl('/login');
     });
   }
-  isProtectedRoute(): boolean { return /^\/(customer|agent)(?:[/?#]|$)/.test(this.router.url); }
+  isProtectedRoute(): boolean {
+    return /^\/(customer|agent)(?:[/?#]|$)/.test(this.router.url);
+  }
 }

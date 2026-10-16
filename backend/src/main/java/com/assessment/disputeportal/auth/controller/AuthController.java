@@ -28,7 +28,7 @@ public final class AuthController {
   private final LogoutService logoutService;
 
   @PostMapping("/login")
-  ApiEnvelope<?> login(
+  ApiEnvelope<IdentityResponse> login(
       @Valid @RequestBody LoginRequest input,
       HttpServletRequest request,
       HttpServletResponse response) {
@@ -44,14 +44,14 @@ public final class AuthController {
 
   @AuthenticatedActivity
   @GetMapping("/me")
-  ApiEnvelope<?> identity() {
+  ApiEnvelope<IdentityResponse> identity() {
     var principal =
         (SessionPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     return ApiEnvelope.success(toResponse(loginService.currentIdentity(principal)));
   }
 
   @PostMapping("/logout")
-  ApiEnvelope<?> logout(HttpServletRequest request, HttpServletResponse response) {
+  ApiEnvelope<Void> logout(HttpServletRequest request, HttpServletResponse response) {
     logoutService.logout(request, response, response.getHeader("X-Correlation-ID"));
     return ApiEnvelope.success(null);
   }

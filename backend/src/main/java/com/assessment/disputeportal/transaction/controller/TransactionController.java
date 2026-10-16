@@ -6,7 +6,12 @@ import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.security.web.AuthenticatedActivity;
 import com.assessment.disputeportal.transaction.mapper.TransactionResponseMapper;
+import com.assessment.disputeportal.transaction.model.dto.TransactionResponse;
 import com.assessment.disputeportal.transaction.service.TransactionQueryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +36,73 @@ public final class TransactionController {
 
   @GetMapping
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope<?>> list(
+  @Operation(
+      parameters = {
+        @Parameter(
+            name = "page",
+            in = ParameterIn.QUERY,
+            schema = @Schema(type = "integer", minimum = "1", defaultValue = "1")),
+        @Parameter(
+            name = "size",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20")),
+        @Parameter(
+            name = "search",
+            in = ParameterIn.QUERY,
+            description = "Literal merchant or reference search, up to 100 characters.",
+            schema = @Schema(maxLength = 100)),
+        @Parameter(
+            name = "accountId",
+            in = ParameterIn.QUERY,
+            description = "Optional owned account selector.",
+            schema = @Schema(format = "uuid")),
+        @Parameter(
+            name = "direction",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {"ALL", "IN", "OUT"},
+                    defaultValue = "ALL")),
+        @Parameter(
+            name = "status",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {"ALL", "PENDING", "COMPLETED", "FAILED"},
+                    defaultValue = "ALL")),
+        @Parameter(
+            name = "fromDate",
+            in = ParameterIn.QUERY,
+            schema = @Schema(type = "string", format = "date")),
+        @Parameter(
+            name = "toDate",
+            in = ParameterIn.QUERY,
+            schema = @Schema(type = "string", format = "date")),
+        @Parameter(
+            name = "minAmount",
+            in = ParameterIn.QUERY,
+            schema = @Schema(type = "string", pattern = "^[0-9]{1,17}(\\.[0-9]{1,2})?$")),
+        @Parameter(
+            name = "maxAmount",
+            in = ParameterIn.QUERY,
+            schema = @Schema(type = "string", pattern = "^[0-9]{1,17}(\\.[0-9]{1,2})?$")),
+        @Parameter(
+            name = "sortBy",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {"occurredAt", "amount", "merchant", "reference"},
+                    defaultValue = "occurredAt")),
+        @Parameter(
+            name = "sortDirection",
+            in = ParameterIn.QUERY,
+            schema =
+                @Schema(
+                    allowableValues = {"ASC", "DESC"},
+                    defaultValue = "DESC"))
+      })
+  public ResponseEntity<ApiEnvelope<PageResponse<TransactionResponse>>> list(
       @AuthenticationPrincipal SessionPrincipal principal, HttpServletRequest request) {
     var query = parser.parse(queryParameters(request));
     var page = transactions.list(principal.accountId(), query);
@@ -48,7 +119,7 @@ public final class TransactionController {
 
   @GetMapping("/{id}")
   @AuthenticatedActivity
-  public ResponseEntity<ApiEnvelope<?>> get(
+  public ResponseEntity<ApiEnvelope<TransactionResponse>> get(
       @AuthenticationPrincipal SessionPrincipal principal,
       @PathVariable String id,
       HttpServletRequest request) {

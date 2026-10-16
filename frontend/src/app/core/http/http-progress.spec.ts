@@ -10,10 +10,12 @@ describe('HTTP progress indicator', () => {
   let progress: HttpProgress;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [
-      provideHttpClient(withInterceptors([httpProgressInterceptor])),
-      provideHttpClientTesting()
-    ] });
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptors([httpProgressInterceptor])),
+        provideHttpClientTesting(),
+      ],
+    });
     http = TestBed.inject(HttpClient);
     testing = TestBed.inject(HttpTestingController);
     progress = TestBed.inject(HttpProgress);
@@ -56,7 +58,9 @@ describe('HTTP progress indicator', () => {
     const fixture = TestBed.createComponent(HttpProgressIndicator);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.progress-track')).toBeNull();
-    expect(fixture.nativeElement.querySelector('[role="status"]').getAttribute('aria-live')).toBe('polite');
+    expect(fixture.nativeElement.querySelector('[role="status"]').getAttribute('aria-live')).toBe(
+      'polite',
+    );
     progress.visible.set(true);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.progress-track')).toBeTruthy();

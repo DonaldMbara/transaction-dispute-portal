@@ -9,28 +9,28 @@
 // Font asset and SIL OFL license are bundled under frontend/public/fonts.
 :root {
   --font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
-  --color-primary: #174DAF;
-  --color-primary-hover: #123E91;
-  --color-background: #F7F7F7;
-  --color-surface: #FFFFFF;
-  --color-text: #3A3A3A;
-  --color-text-strong: #253B52;
-  --color-text-muted: #4B5B6B;
-  --color-primary-dark: #174DAF;
-  --color-border: #E1E1E1;
-  --color-on-primary: #FFFFFF;
-  --color-primary-soft: #EAF1FF;
-  --color-focus: #174DAF;
-  --color-danger: #B42318;
-  --color-danger-soft: #FEF3F2;
+  --color-primary: #174daf;
+  --color-primary-hover: #123e91;
+  --color-background: #f7f7f7;
+  --color-surface: #ffffff;
+  --color-text: #3a3a3a;
+  --color-text-strong: #253b52;
+  --color-text-muted: #4b5b6b;
+  --color-primary-dark: #174daf;
+  --color-border: #e1e1e1;
+  --color-on-primary: #ffffff;
+  --color-primary-soft: #eaf1ff;
+  --color-focus: #174daf;
+  --color-danger: #b42318;
+  --color-danger-soft: #fef3f2;
   --color-success: #067647;
-  --space-2: .5rem;
-  --space-3: .75rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
   --space-4: 1rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
   --radius-card: 1rem;
-  --radius-control: .45rem;
+  --radius-control: 0.45rem;
   --radius-pill: 1.5rem;
   --elevation-2: 0 12px 30px rgb(24 48 90 / 14%);
 }

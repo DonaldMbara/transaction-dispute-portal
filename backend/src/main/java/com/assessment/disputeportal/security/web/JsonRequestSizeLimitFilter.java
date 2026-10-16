@@ -14,7 +14,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /** Bounds JSON bodies before message conversion while retaining the request for MVC. */
@@ -48,12 +47,13 @@ public final class JsonRequestSizeLimitFilter extends OncePerRequestFilter {
   }
 
   private void tooLarge(jakarta.servlet.http.HttpServletResponse response) throws IOException {
+    var code = com.assessment.disputeportal.common.api.ErrorCode.REQUEST_TOO_LARGE;
     errors.write(
         response,
-        HttpStatus.PAYLOAD_TOO_LARGE.value(),
+        code.status().value(),
         ApiEnvelope.failure(
-            1006,
-            "request-too-large",
+            code.code(),
+            code.type(),
             "Request too large",
             "The JSON request body exceeds the allowed size."));
   }

@@ -1,7 +1,7 @@
 package com.assessment.disputeportal.dispute.service;
 
 import com.assessment.disputeportal.common.api.ApiEnvelope;
-import com.assessment.disputeportal.dispute.exception.DisputeApiException;
+import com.assessment.disputeportal.common.exception.DisputeApiException;
 import com.assessment.disputeportal.dispute.model.Dispute;
 import com.assessment.disputeportal.dispute.model.DisputeEvent;
 import com.assessment.disputeportal.dispute.model.DisputeReason;
