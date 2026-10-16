@@ -3,6 +3,7 @@ package com.assessment.disputeportal.common.web;
 import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.common.exception.BusinessConflictException;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
+import com.assessment.disputeportal.common.exception.InvalidSessionAccessTimeException;
 import com.assessment.disputeportal.common.exception.RateLimitedException;
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;
 import com.assessment.disputeportal.dispute.exception.DisputeApiException;
@@ -119,5 +120,16 @@ public final class ApiExceptionHandler {
                 "rate-limited",
                 "Too many attempts",
                 "Unable to sign in with these credentials. Try again later."));
+  }
+
+  @ExceptionHandler(InvalidSessionAccessTimeException.class)
+  ResponseEntity<ApiEnvelope> invalidSessionAccessTime() {
+    return ResponseEntity.status(500)
+        .body(
+            ApiEnvelope.failure(
+                3001,
+                "internal-error",
+                "Internal error",
+                "The request could not be completed. Please try again."));
   }
 }

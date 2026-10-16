@@ -2,9 +2,11 @@ package com.assessment.disputeportal.security.config;
 
 import com.assessment.disputeportal.common.exception.InvalidOperationException;
 import com.assessment.disputeportal.common.web.ApiErrorWriter;
+import com.assessment.disputeportal.security.session.SessionTimeoutProperties;
 import com.assessment.disputeportal.security.web.AvailabilityFilter;
 import jakarta.servlet.SessionTrackingMode;
 import java.util.Set;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +18,7 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.session.web.http.SessionRepositoryFilter;
 
 @Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(SessionTimeoutProperties.class)
 public class SessionConfiguration {
   @Bean
   CookieSerializer cookieSerializer(Environment environment) {

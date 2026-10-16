@@ -2,7 +2,7 @@ package com.assessment.disputeportal.security.session;
 
 import com.assessment.disputeportal.auth.model.AccountIdentity;
 import com.assessment.disputeportal.auth.model.AccountRole;
-import com.assessment.disputeportal.common.exception.DomainInvariantException;
+import com.assessment.disputeportal.common.exception.InvalidSessionAccessTimeException;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcSessionActivityStore implements SessionActivityStore {
 
   private final JdbcTemplate jdbc;
+  private final SessionTimeoutProperties timeout;
 
   @Override
   public Optional<SessionActivitySnapshot> inspect(String sessionId) {
@@ -47,7 +48,7 @@ public class JdbcSessionActivityStore implements SessionActivityStore {
   @Override
   public boolean activate(String sessionId, AccountIdentity account, long accessTime) {
     if (accessTime < 0) {
-      throw new DomainInvariantException("Invalid framework session access time.");
+      throw new InvalidSessionAccessTimeException();
     }
     var current =
         jdbc.query(
@@ -84,7 +85,7 @@ public class JdbcSessionActivityStore implements SessionActivityStore {
   public boolean renew(
       String sessionId, UUID accountId, long version, AccountRole role, long accessTime) {
     if (accessTime < 0) {
-      throw new DomainInvariantException("Invalid framework session access time.");
+      throw new InvalidSessionAccessTimeException();
     }
     return jdbc.update(
             """
@@ -95,14 +96,15 @@ public class JdbcSessionActivityStore implements SessionActivityStore {
                 WHERE s.primary_id=m.session_primary_id AND s.session_id=?
                   AND m.account_id=? AND m.auth_version=?
                   AND u.id=m.account_id AND u.enabled AND u.role=? AND u.auth_version=m.auth_version
-                  AND m.last_authenticated_activity_at > moment.now - 1800000
+                  AND m.last_authenticated_activity_at > moment.now - ?
                   AND s.expiry_time > moment.now
                 """,
             accessTime,
             sessionId,
             accountId,
             version,
-            role.name())
+            role.name(),
+            timeout.idleTimeout().toMillis())
         == 1;
   }
 }

@@ -3,6 +3,8 @@ package com.assessment.disputeportal.security;
 import static org.assertj.core.api.Assertions.*;
 
 import com.assessment.disputeportal.security.session.AuthenticationCleanup;
+import com.assessment.disputeportal.security.session.SessionTimeoutProperties;
+import java.time.Duration;
 import java.util.concurrent.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +43,8 @@ class AuthenticationCleanupTest extends SessionIntegrationSupport {
       Callable<Void> task =
           () -> {
             barrier.await(5, TimeUnit.SECONDS);
-            new AuthenticationCleanup(jdbc).cleanup();
+            new AuthenticationCleanup(jdbc, new SessionTimeoutProperties(Duration.ofMinutes(30)))
+                .cleanup();
             return null;
           };
       var first = pool.submit(task);

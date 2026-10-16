@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.assessment.disputeportal.common.exception.BusinessConflictException;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
+import com.assessment.disputeportal.common.exception.InvalidSessionAccessTimeException;
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 
@@ -41,5 +42,15 @@ class ApiExceptionHandlerTest {
     assertThat(handler.notFound().getBody().error().detail())
         .doesNotContain(missing.getMessage(), "account-uuid");
     assertThat(handler.conflict().getBody().error().detail()).doesNotContain(conflict.getMessage());
+  }
+
+  @Test
+  void invalidFrameworkSessionTimeUsesTheHandledGenericServerError() {
+    var failure = new InvalidSessionAccessTimeException();
+    var response = handler.invalidSessionAccessTime();
+
+    assertThat(response.getStatusCode().value()).isEqualTo(500);
+    assertThat(response.getBody().error_code()).isEqualTo(3001);
+    assertThat(response.getBody().error().detail()).doesNotContain(failure.getMessage());
   }
 }

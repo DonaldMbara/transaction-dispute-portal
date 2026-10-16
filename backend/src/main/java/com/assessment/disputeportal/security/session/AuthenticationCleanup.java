@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public final class AuthenticationCleanup {
   private final JdbcTemplate jdbc;
+  private final SessionTimeoutProperties timeout;
 
   @Scheduled(cron = "${portal.auth.cleanup-cron:0 * * * * *}")
   public void cleanup() {
@@ -16,7 +17,8 @@ public final class AuthenticationCleanup {
         """
             DELETE FROM spring_session s USING auth_session_activity m
             WHERE s.primary_id=m.session_primary_id
-              AND m.last_authenticated_activity_at <= floor(extract(epoch FROM clock_timestamp())*1000)::bigint - 1800000
-            """);
+              AND m.last_authenticated_activity_at <= floor(extract(epoch FROM clock_timestamp())*1000)::bigint - ?
+            """,
+        timeout.idleTimeout().toMillis());
   }
 }

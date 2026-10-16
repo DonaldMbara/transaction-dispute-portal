@@ -20,7 +20,7 @@ spring:
     template:
       query-timeout: 5s
   session:
-    timeout: 1800s
+    timeout: ${portal.session.idle-timeout:30m}
     jdbc:
       flush-mode: immediate
       save-mode: on-set-attribute
@@ -61,4 +61,5 @@ portal:
     rate-limit:
       trusted-proxy: ${LOGIN_RATE_LIMIT_TRUSTED_PROXY:}
   session:
+    idle-timeout: 30m
     cookie-secure: true
