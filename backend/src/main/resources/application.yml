@@ -2,6 +2,9 @@ server:
   port: 8080
   shutdown: graceful
 spring:
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
   lifecycle:
     timeout-per-shutdown-phase: 20s
   mvc:

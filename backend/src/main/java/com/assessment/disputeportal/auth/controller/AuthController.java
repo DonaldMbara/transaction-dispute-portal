@@ -6,11 +6,11 @@ import com.assessment.disputeportal.auth.model.dto.LoginRequest;
 import com.assessment.disputeportal.auth.service.LoginService;
 import com.assessment.disputeportal.auth.service.LogoutService;
 import com.assessment.disputeportal.common.api.ApiEnvelope;
-import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.security.web.AuthenticatedActivity;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,12 +29,16 @@ public final class AuthController {
 
   @PostMapping("/login")
   ApiEnvelope<?> login(
-      @RequestBody LoginRequest input, HttpServletRequest request, HttpServletResponse response) {
-    if (input == null) throw new InvalidRequestException("Invalid login request.");
+      @Valid @RequestBody LoginRequest input,
+      HttpServletRequest request,
+      HttpServletResponse response) {
     AccountIdentity identity =
         loginService.login(
-            input.email, input.password, response.getHeader("X-Correlation-ID"), request, response);
-    input.password = null;
+            input.email(),
+            input.password(),
+            response.getHeader("X-Correlation-ID"),
+            request,
+            response);
     return ApiEnvelope.success(toResponse(identity));
   }
 

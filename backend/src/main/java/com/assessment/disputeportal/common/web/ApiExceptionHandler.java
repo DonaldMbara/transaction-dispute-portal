@@ -32,7 +32,8 @@ public final class ApiExceptionHandler {
 
   @ExceptionHandler({
     InvalidRequestException.class,
-    org.springframework.http.converter.HttpMessageNotReadableException.class
+    org.springframework.http.converter.HttpMessageNotReadableException.class,
+    org.springframework.web.bind.MethodArgumentNotValidException.class
   })
   ResponseEntity<ApiEnvelope<?>> malformed() {
     return ResponseEntity.badRequest()

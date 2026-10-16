@@ -12,6 +12,7 @@ import com.assessment.disputeportal.dispute.service.DisputeSubmissionService;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.security.web.AuthenticatedActivity;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -104,23 +105,13 @@ public final class CustomerDisputeController {
   public ResponseEntity<Object> submit(
       @AuthenticationPrincipal SessionPrincipal principal,
       @RequestHeader(value = "Idempotency-Key", required = false) String key,
-      @RequestBody SubmitDisputeRequest body) {
-    if (body == null
-        || body.hasUnknownFields()
-        || body.getTransactionId() == null
-        || body.getReason() == null
-        || body.getDescription() == null
-        || key == null
-        || !IDEMPOTENCY_KEY.matcher(key).matches()) {
+      @Valid @RequestBody SubmitDisputeRequest body) {
+    if (key == null || !IDEMPOTENCY_KEY.matcher(key).matches()) {
       throw new InvalidRequestException("Invalid dispute submission.");
     }
     var result =
         submissions.submit(
-            principal.accountId(),
-            body.getTransactionId(),
-            body.getReason(),
-            body.getDescription(),
-            key);
+            principal.accountId(), body.transactionId(), body.reason(), body.description(), key);
     return ResponseEntity.status(HttpStatus.CREATED)
         .location(java.net.URI.create("/api/v1/disputes/" + result.disputeId()))
         .cacheControl(CacheControl.noStore())

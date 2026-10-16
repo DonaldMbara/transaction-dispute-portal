@@ -5,17 +5,18 @@ import com.assessment.disputeportal.common.api.PageResponse;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailResponse;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeListItemResponse;
+import com.assessment.disputeportal.dispute.model.dto.ClaimDisputeRequest;
+import com.assessment.disputeportal.dispute.model.dto.ReleaseDisputeRequest;
+import com.assessment.disputeportal.dispute.model.dto.ResolveDisputeRequest;
 import com.assessment.disputeportal.dispute.model.query.AgentDisputeQuery;
 import com.assessment.disputeportal.dispute.service.AgentDisputeCommandService;
 import com.assessment.disputeportal.dispute.service.AgentDisputeQueryService;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
 import com.assessment.disputeportal.security.web.AuthenticatedActivity;
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -82,11 +83,8 @@ public final class AgentDisputeController {
   public ResponseEntity<ApiEnvelope<?>> claim(
       @AuthenticationPrincipal SessionPrincipal principal,
       @PathVariable String id,
-      @RequestBody(required = false) JsonNode body,
+      @Valid @RequestBody(required = false) ClaimDisputeRequest body,
       HttpServletRequest request) {
-    if (body != null && (!body.isObject() || body.size() != 0)) {
-      throw new InvalidRequestException("Claim command accepts an empty object only.");
-    }
     AgentIfMatch precondition = ifMatch(request);
     AgentDisputeDetailResponse result =
         commands.claim(
@@ -99,10 +97,8 @@ public final class AgentDisputeController {
   public ResponseEntity<ApiEnvelope<?>> release(
       @AuthenticationPrincipal SessionPrincipal principal,
       @PathVariable String id,
-      @RequestBody JsonNode body,
+      @Valid @RequestBody ReleaseDisputeRequest body,
       HttpServletRequest request) {
-    requireFields(body, Set.of("reason"));
-    String reason = text(body, "reason");
     AgentIfMatch precondition = ifMatch(request);
     return response(
         commands.release(
@@ -110,7 +106,7 @@ public final class AgentDisputeController {
             principal.accountId(),
             precondition.disputeId(),
             precondition.version(),
-            reason));
+            body.reason()));
   }
 
   @PostMapping("/{id}/resolve")
@@ -118,12 +114,8 @@ public final class AgentDisputeController {
   public ResponseEntity<ApiEnvelope<?>> resolve(
       @AuthenticationPrincipal SessionPrincipal principal,
       @PathVariable String id,
-      @RequestBody JsonNode body,
+      @Valid @RequestBody ResolveDisputeRequest body,
       HttpServletRequest request) {
-    requireFields(body, Set.of("decision", "internalResolutionNotes", "customerResolutionMessage"));
-    String decision = text(body, "decision");
-    String internal = text(body, "internalResolutionNotes");
-    String customer = text(body, "customerResolutionMessage");
     AgentIfMatch precondition = ifMatch(request);
     return response(
         commands.resolve(
@@ -131,9 +123,9 @@ public final class AgentDisputeController {
             principal.accountId(),
             precondition.disputeId(),
             precondition.version(),
-            decision,
-            internal,
-            customer));
+            body.decision(),
+            body.internalResolutionNotes(),
+            body.customerResolutionMessage()));
   }
 
   private ResponseEntity<ApiEnvelope<?>> response(AgentDisputeDetailResponse detail) {
@@ -156,21 +148,5 @@ public final class AgentDisputeController {
     var values = request.getHeaders(HttpHeaders.IF_MATCH);
     while (values.hasMoreElements()) headers.add(values.nextElement());
     return AgentIfMatch.parse(headers);
-  }
-
-  private static void requireFields(JsonNode body, Set<String> expected) {
-    if (body == null || !body.isObject())
-      throw new InvalidRequestException("A JSON object is required.");
-    Set<String> actual = new HashSet<>();
-    body.fieldNames().forEachRemaining(actual::add);
-    if (!actual.equals(expected))
-      throw new InvalidRequestException("Request fields do not match the command contract.");
-  }
-
-  private static String text(JsonNode body, String field) {
-    JsonNode value = body.get(field);
-    if (value == null || !value.isTextual())
-      throw new InvalidRequestException("Required text field is missing.");
-    return value.textValue();
   }
 }
