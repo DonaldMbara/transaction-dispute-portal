@@ -61,3 +61,6 @@ temp/
 # .kiro/steering/   - version controlled
 # .kiro/specs/      - version controlled
 # docs/             - version controlled
+/.agents/
+/.codex/
+/docs/profile/
