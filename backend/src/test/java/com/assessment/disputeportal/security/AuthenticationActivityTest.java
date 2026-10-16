@@ -7,7 +7,7 @@ import com.assessment.disputeportal.security.activity.AuthenticatedActivity;
 import com.assessment.disputeportal.security.activity.AuthenticationActivityInterceptor;
 import com.assessment.disputeportal.security.session.AccountSessionValidator;
 import com.assessment.disputeportal.security.session.ValidatedSession;
-import com.assessment.disputeportal.common.ApiErrorWriter;
+import com.assessment.disputeportal.common.web.ApiErrorWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;

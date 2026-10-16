@@ -7,7 +7,7 @@ import java.util.UUID;
 import com.assessment.disputeportal.account.mapper.AccountResponseMapper;
 import com.assessment.disputeportal.account.model.dto.AccountPageResponse;
 import com.assessment.disputeportal.account.service.AccountQueryService;
-import com.assessment.disputeportal.common.ApiEnvelope;
+import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.security.activity.AuthenticatedActivity;
 import com.assessment.disputeportal.security.session.SessionPrincipal;

@@ -2,7 +2,7 @@ package com.assessment.disputeportal.security.activity;
 
 import lombok.RequiredArgsConstructor;
 
-import com.assessment.disputeportal.common.ApiErrorWriter;
+import com.assessment.disputeportal.common.web.ApiErrorWriter;
 import com.assessment.disputeportal.security.session.AccountSessionValidationFilter;
 import com.assessment.disputeportal.security.session.AccountSessionValidator;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;

@@ -1,7 +1,8 @@
-package com.assessment.disputeportal.common;
+package com.assessment.disputeportal.common.web;
 
 import org.junit.jupiter.api.Test;
 
+import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.common.exception.BusinessConflictException;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;

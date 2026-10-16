@@ -13,7 +13,7 @@ import com.assessment.disputeportal.auth.model.dto.LoginRequest;
 import com.assessment.disputeportal.auth.service.LoginService;
 import com.assessment.disputeportal.auth.model.AccountIdentity;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
-import com.assessment.disputeportal.common.ApiEnvelope;
+import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.security.activity.AuthenticatedActivity;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 

@@ -2,8 +2,8 @@ package com.assessment.disputeportal.security.session;
 
 import lombok.RequiredArgsConstructor;
 
-import com.assessment.disputeportal.common.ApiEnvelope;
-import com.assessment.disputeportal.common.ApiErrorWriter;
+import com.assessment.disputeportal.common.api.ApiEnvelope;
+import com.assessment.disputeportal.common.web.ApiErrorWriter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

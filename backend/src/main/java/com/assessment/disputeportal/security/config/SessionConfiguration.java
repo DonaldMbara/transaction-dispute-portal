@@ -1,6 +1,6 @@
 package com.assessment.disputeportal.security.config;
 
-import com.assessment.disputeportal.common.ApiErrorWriter;
+import com.assessment.disputeportal.common.web.ApiErrorWriter;
 import com.assessment.disputeportal.common.exception.InvalidOperationException;
 import com.assessment.disputeportal.security.web.AvailabilityFilter;
 import jakarta.servlet.SessionTrackingMode;

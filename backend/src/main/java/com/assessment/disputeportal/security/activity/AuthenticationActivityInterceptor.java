@@ -7,9 +7,9 @@ import com.assessment.disputeportal.security.session.AccountSessionValidationFil
 import com.assessment.disputeportal.security.session.AccountSessionValidator;
 import com.assessment.disputeportal.security.session.ValidatedSession;
 import com.assessment.disputeportal.security.config.SecurityConfiguration;
-import com.assessment.disputeportal.common.ApiEnvelope;
-import com.assessment.disputeportal.common.ApiErrorWriter;
-import com.assessment.disputeportal.common.StoreFailureClassifier;
+import com.assessment.disputeportal.common.api.ApiEnvelope;
+import com.assessment.disputeportal.common.web.ApiErrorWriter;
+import com.assessment.disputeportal.common.web.StoreFailureClassifier;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;

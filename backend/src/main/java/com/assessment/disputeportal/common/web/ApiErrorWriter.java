@@ -1,5 +1,6 @@
-package com.assessment.disputeportal.common;
+package com.assessment.disputeportal.common.web;
 
+import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

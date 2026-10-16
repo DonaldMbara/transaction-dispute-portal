@@ -1,6 +1,6 @@
 package com.assessment.disputeportal.dispute.controller;
 
-import com.assessment.disputeportal.common.ApiEnvelope;
+import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeDetailDto;
 import com.assessment.disputeportal.dispute.model.dto.AgentDisputeListItemDto;

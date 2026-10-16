@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.common;
+package com.assessment.disputeportal.common.web;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionException;

@@ -1,4 +1,4 @@
-package com.assessment.disputeportal.common;
+package com.assessment.disputeportal.common.web;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionException;
@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.common.exception.BusinessConflictException;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;

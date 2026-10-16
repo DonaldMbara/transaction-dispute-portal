@@ -9,7 +9,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.SessionRepositoryFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import com.assessment.disputeportal.common.ApiErrorWriter;
+import com.assessment.disputeportal.common.web.ApiErrorWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import static org.assertj.core.api.Assertions.*;
 

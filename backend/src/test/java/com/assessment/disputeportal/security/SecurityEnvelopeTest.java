@@ -5,7 +5,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import com.assessment.disputeportal.security.web.AvailabilityFilter;
-import com.assessment.disputeportal.common.ApiErrorWriter;
+import com.assessment.disputeportal.common.web.ApiErrorWriter;
 import java.util.Map;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;

@@ -8,7 +8,7 @@ import java.util.HexFormat;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.assessment.disputeportal.common.ApiEnvelope;
+import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.dispute.exception.DisputeApiException;
 import com.assessment.disputeportal.dispute.model.Dispute;
 import com.assessment.disputeportal.dispute.model.DisputeEvent;

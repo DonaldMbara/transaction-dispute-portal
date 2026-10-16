@@ -1,8 +1,8 @@
 package com.assessment.disputeportal.security.config;
 
-import com.assessment.disputeportal.common.ApiEnvelope;
-import com.assessment.disputeportal.common.ApiErrorWriter;
-import com.assessment.disputeportal.common.StoreFailureClassifier;
+import com.assessment.disputeportal.common.api.ApiEnvelope;
+import com.assessment.disputeportal.common.web.ApiErrorWriter;
+import com.assessment.disputeportal.common.web.StoreFailureClassifier;
 import com.assessment.disputeportal.security.authentication.AccountAuthenticationProvider;
 import com.assessment.disputeportal.security.session.AccountSessionValidationFilter;
 import org.springframework.context.annotation.Bean;

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.assessment.disputeportal.auth.service.LogoutService;
-import com.assessment.disputeportal.common.ApiEnvelope;
+import com.assessment.disputeportal.common.api.ApiEnvelope;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
