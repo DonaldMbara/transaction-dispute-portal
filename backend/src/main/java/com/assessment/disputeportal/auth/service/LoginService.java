@@ -4,10 +4,13 @@ import com.assessment.disputeportal.auth.model.AccountIdentity;
 import com.assessment.disputeportal.auth.repository.AccountLookup;
 import com.assessment.disputeportal.auth.validation.EmailNormalizer;
 import com.assessment.disputeportal.auth.validation.PasswordPolicy;
+import com.assessment.disputeportal.common.exception.RateLimitedException;
 import com.assessment.disputeportal.security.session.SessionActivityStore;
 import com.assessment.disputeportal.security.session.SessionPrincipal;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import org.slf4j.LoggerFactory;
@@ -34,6 +37,9 @@ public final class LoginService {
   private final SessionActivityStore sessionActivity;
   private final EmailNormalizer emailNormalizer;
   private final AccountLookup accounts;
+  private final LoginAttemptLimiter loginAttempts;
+  private final LoginClientAddressResolver clientAddressResolver;
+  private final MeterRegistry meters;
 
   public LoginService(
       AuthenticationManager authManager,
@@ -41,7 +47,10 @@ public final class LoginService {
       HttpSessionSecurityContextRepository contextRepository,
       SessionActivityStore sessionActivity,
       EmailNormalizer emailNormalizer,
-      AccountLookup accounts) {
+      AccountLookup accounts,
+      LoginAttemptLimiter loginAttempts,
+      LoginClientAddressResolver clientAddressResolver,
+      MeterRegistry meters) {
     this.authManager = authManager;
     this.sessionStrategy =
         new CompositeSessionAuthenticationStrategy(
@@ -52,6 +61,9 @@ public final class LoginService {
     this.sessionActivity = sessionActivity;
     this.emailNormalizer = emailNormalizer;
     this.accounts = accounts;
+    this.loginAttempts = loginAttempts;
+    this.clientAddressResolver = clientAddressResolver;
+    this.meters = meters;
   }
 
   public AccountIdentity login(
@@ -63,6 +75,10 @@ public final class LoginService {
 
     String email = emailNormalizer.normalize(rawEmail);
     String password = PasswordPolicy.validateForVerification(rawPassword);
+    String clientAddress = clientAddressResolver.resolve(request);
+    loginAttempts
+        .retryAfter(clientAddress, email)
+        .ifPresent(retryAfter -> throwRateLimited(retryAfter, correlationId));
 
     var credentials = UsernamePasswordAuthenticationToken.unauthenticated(email, password);
     credentials.setDetails(correlationId);
@@ -70,6 +86,11 @@ public final class LoginService {
     org.springframework.security.core.Authentication verified;
     try {
       verified = authManager.authenticate(credentials);
+    } catch (BadCredentialsException failure) {
+      loginAttempts
+          .recordFailure(clientAddress, email)
+          .ifPresent(retryAfter -> throwRateLimited(retryAfter, correlationId));
+      throw failure;
     } finally {
       credentials.eraseCredentials();
     }
@@ -90,6 +111,7 @@ public final class LoginService {
       if (!sessionActivity.activate(session.getId(), account, session.getLastAccessedTime())) {
         throw new BadCredentialsException("Unable to sign in with these credentials.");
       }
+      loginAttempts.recordSuccess(clientAddress, email);
 
       AUDIT.info(
           "timestamp={} operation=login outcome=success account={} correlation={}",
@@ -113,6 +135,17 @@ public final class LoginService {
       }
       throw failure;
     }
+  }
+
+  private void throwRateLimited(Duration retryAfter, String correlationId) {
+    long seconds = Math.max(1, (retryAfter.toMillis() + 999) / 1000);
+    meters.counter("portal.auth.login.rate_limited").increment();
+    AUDIT.info(
+        "timestamp={} operation=login outcome=rate-limited retryAfter={} correlation={}",
+        Instant.now(),
+        seconds,
+        correlationId);
+    throw new RateLimitedException(Duration.ofSeconds(seconds));
   }
 
   public AccountIdentity currentIdentity(SessionPrincipal principal) {

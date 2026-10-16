@@ -64,6 +64,12 @@ Login, CSRF bootstrap, identity, and logout are also under `/api/v1/auth`. Autho
 - Dispute state changes and their audit events commit in the same transaction. Submission uses a durable idempotency key; agent commands use a versioned strong ETag to prevent stale writes.
 - Records represent immutable requests, responses, projections, and domain values. The `Dispute` aggregate owns legal state transitions and validation.
 - Authentication uses opaque HttpOnly PostgreSQL-backed sessions, CSRF protection for unsafe requests, server-side account/role/version checks, and a 30-minute idle timeout. Cookies are Secure by default; the explicit `local` profile disables Secure for local HTTP development only. There are no bearer tokens or browser-storage auth tokens.
+
+### Login rate limiting
+
+Login failures use a bounded Caffeine cache in each backend process. The limiter tracks client IP, normalized email, and the IP/email pair separately, then applies an increasing temporary delay; successful login clears the pair counter. Throttle responses use the same generic authentication wording for known and unknown emails, return `429 / 1005` with `Retry-After`, and emit an `authentication.audit` event and a Micrometer counter. Passwords and full email addresses are never written to throttle logs.
+
+Compose runs one backend instance, so this limiter is per instance. With N backend instances, an attacker can get roughly N times the allowance. Production should enforce limits at the WAF or gateway, or replace this interface with shared storage such as Redis. The Compose backend trusts `X-Real-IP` only when the direct peer is the fixed nginx address on its private Docker network; it ignores forwarded client addresses from other peers. Deployments with another proxy must set `LOGIN_RATE_LIMIT_TRUSTED_PROXY` to that proxy's exact address.
 - Operator account provisioning and fixture creation are explicit non-web CLI commands. They do not run at application startup and are not exposed as portal endpoints. See the [account provisioning](docs/operations/account-provisioning.md), [account fixture](docs/operations/customer-account-fixtures.md), and [transaction fixture](docs/operations/customer-transaction-fixtures.md) runbooks.
 
 The displayed `accounts.balance` is a synthetic fixture value. It is not calculated from transactions and does not represent a real or settled bank balance. Transaction and dispute data are synthetic and read-only apart from the documented dispute workflow.

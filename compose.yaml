@@ -7,6 +7,8 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - portal
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -22,6 +24,9 @@ services:
       DB_USERNAME: ${DB_USERNAME:?Set DB_USERNAME in .env}
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       SPRING_PROFILES_ACTIVE: local
+      LOGIN_RATE_LIMIT_TRUSTED_PROXY: 172.30.255.10
+    networks:
+      - portal
     depends_on:
       postgres:
         condition: service_healthy
@@ -39,6 +44,9 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    networks:
+      portal:
+        ipv4_address: 172.30.255.10
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/"]
       interval: 10s
@@ -56,5 +64,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - portal
 volumes:
   postgres_data:
+networks:
+  portal:
+    ipam:
+      config:
+        - subnet: 172.30.255.0/24

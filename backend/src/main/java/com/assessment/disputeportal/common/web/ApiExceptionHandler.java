@@ -3,6 +3,7 @@ package com.assessment.disputeportal.common.web;
 import com.assessment.disputeportal.common.api.ApiEnvelope;
 import com.assessment.disputeportal.common.exception.BusinessConflictException;
 import com.assessment.disputeportal.common.exception.InvalidRequestException;
+import com.assessment.disputeportal.common.exception.RateLimitedException;
 import com.assessment.disputeportal.common.exception.ResourceNotFoundException;
 import com.assessment.disputeportal.dispute.exception.DisputeApiException;
 import org.springframework.dao.DataAccessException;
@@ -104,5 +105,19 @@ public final class ApiExceptionHandler {
     return ResponseEntity.status(503)
         .header("Cache-Control", "no-store")
         .body(ApiEnvelope.unavailable());
+  }
+
+  @ExceptionHandler(RateLimitedException.class)
+  ResponseEntity<ApiEnvelope> rateLimited(RateLimitedException failure) {
+    long retryAfter = Math.max(1, (failure.retryAfter().toMillis() + 999) / 1000);
+    return ResponseEntity.status(429)
+        .header("Retry-After", Long.toString(retryAfter))
+        .cacheControl(org.springframework.http.CacheControl.noStore())
+        .body(
+            ApiEnvelope.failure(
+                1005,
+                "rate-limited",
+                "Too many attempts",
+                "Unable to sign in with these credentials. Try again later."));
   }
 }

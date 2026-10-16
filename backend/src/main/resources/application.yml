@@ -58,5 +58,7 @@ logging:
 portal:
   auth:
     cleanup-cron: ${AUTH_ACTIVITY_CLEANUP_CRON:0 * * * * *}
+    rate-limit:
+      trusted-proxy: ${LOGIN_RATE_LIMIT_TRUSTED_PROXY:}
   session:
     cookie-secure: true
