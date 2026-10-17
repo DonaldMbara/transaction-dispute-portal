@@ -225,8 +225,6 @@ docker compose down --volumes && docker compose up --build -d --wait && ./script
 
 ## Design Specifications & Reference Documents
 
-- [Candidate Interview Preparation Guide](INTERVIEW_PREP.md) — Comprehensive technical review guide, architecture breakdown, trade-off analyses, and interview Q&A.
-- [Deep-Dive Interview Topic Guides](docs/interview/README.md) — Module-by-module breakdown of Auth, Accounts, Transactions, Customer Disputes, and Agent Triage.
 - [AI-Driven Specifications (.kiro/)](.kiro/specs/) — Spec-driven engineering artifacts, requirements, system design, and verification tasks.
 - [API Contract Specification](docs/design/api-contract.md) — Endpoint specifications, JSON envelopes, pagination, and error codes.
 - [Session Architecture Decision](docs/design/session-architecture-decision.md) — In-depth rationale for Spring Session JDBC, HttpOnly cookies, and CSRF token handling.
