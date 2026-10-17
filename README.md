@@ -1,5 +1,7 @@
 # Transaction Dispute Portal
 
+[![Foundation CI](https://github.com/DonaldMbara/transaction-dispute-portal/actions/workflows/ci.yml/badge.svg)](https://github.com/DonaldMbara/transaction-dispute-portal/actions/workflows/ci.yml)
+
 A Java 21, Spring Boot 3.5, and Angular 20 application for synthetic transaction dispute management. The portal provides an authenticated self-service experience for banking customers to review accounts and transactions, submit disputes with idempotency guarantees, and track lifecycle status changes. It also provides an operational workspace for dispute agents to triage, claim, release, investigate, and resolve disputes with optimistic concurrency locking.
 
 This system is built as a production-minded modular monolith using synthetic banking data (it does not connect to real financial rails, move money, or issue actual refunds).
@@ -37,14 +39,19 @@ transaction-dispute-portal/
 │   ├── src/app/
 │   │   ├── core/                        # Session & CSRF auth services, guards, interceptors
 │   │   ├── features/                    # Feature slices: auth, customer, agent, welcome
+│   │   │   └── **/*.spec.ts             # Colocated Karma unit tests
 │   │   └── shared/                      # UI primitives, formatters (ZAR currency), layout
-│   └── src/tests/                       # Karma unit tests & Playwright E2E suites
+│   └── e2e/                             # Playwright browser journey test suites
 ├── docs/                                # Architectural & Domain Specifications
 │   ├── business-rules.md                # Dispute lifecycle & domain invariants
+│   ├── interview/                       # Deep-dive interview reference guides
 │   └── design/                          # API contract, DB schema, session ADR, PlantUML
+├── .kiro/                               # AI-Driven Specifications & Steering Artifacts
+│   ├── specs/                           # Requirements, design documents, & task lists
+│   └── steering/                        # Architectural constraints & tech stack guidelines
 ├── scripts/                             # Operational automation
 │   └── demo-seed.sh                     # Interactive demo data provisioner
-├── compose.yaml                         # Production-grade multi-service Compose definition
+├── compose.yaml                         # Production-minded multi-service Compose definition
 └── README.md                            # Primary project documentation
 ```
 
@@ -55,32 +62,34 @@ transaction-dispute-portal/
 ### Prerequisites
 - Docker Engine and Docker Compose (v2.20+ with `up --wait` support).
 - Ports `8081` (frontend / nginx proxy) and `5432` (PostgreSQL) available on `127.0.0.1`.
+  - *Port Collision Note:* If a local PostgreSQL instance already occupies port `5432` on your host machine, set `POSTGRES_PORT=5433` in `.env` before starting.
 
-### 1. Configure & Launch the Stack
+### 1. Fresh-Clone Setup & Launch
 ```sh
+git clone https://github.com/DonaldMbara/transaction-dispute-portal.git && cd transaction-dispute-portal
 cp .env.example .env
-# Set your local database credentials in .env (e.g. DB_USERNAME=portal_dev, DB_PASSWORD=dev_secret_password)
-docker compose config --quiet
 docker compose up --build -d --wait
 ```
 
 The stack launches:
-- **PostgreSQL 17** (published on `127.0.0.1:5432`)
+- **PostgreSQL 17** (published on `127.0.0.1:5432` or custom `${POSTGRES_PORT}`)
 - **Spring Boot 3.5 Backend** (running on port `8080` internally as a non-root user)
 - **Nginx & Angular 20 Frontend** (published on `http://localhost:8081`, reverse-proxying `/api/` to backend)
 
 ### 2. Seed Demo Accounts & Synthetic Fixtures
-Run the interactive demo script in a terminal:
+Run the interactive demo script in your terminal:
 ```sh
 ./scripts/demo-seed.sh
 ```
-This script provisions:
-- Customer account: `demo.customer@example.test`
-- Agent account: `demo.agent@example.test`
-- Synthetic banking accounts, categorized transactions, and seeded disputes across `OPEN`, `UNDER_REVIEW`, `ACCEPTED`, and `REJECTED` states.
 
-Open [http://localhost:8081](http://localhost:8081) to access the portal.
-OpenAPI v3 JSON Specification [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html).
+#### Demo Credentials & Password Guidance:
+- **Customer Email:** `demo.customer@example.test` (press Enter to accept default)
+- **Agent Email:** `demo.agent@example.test` (press Enter to accept default)
+- **Password Policy:** Minimum 8 characters, UTF-8 strings up to 128 characters (e.g. `Password123!`).
+- **Prompt Flow:** The CLI prompts you to enter and confirm the password for each account via masked console prompts, generates synthetic accounts and transaction history, and seeds disputes across `OPEN`, `UNDER_REVIEW`, `ACCEPTED`, and `REJECTED` states.
+
+Open [http://localhost:8081](http://localhost:8081) to log in as either role.
+OpenAPI / Swagger UI: [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html).
 
 ---
 
@@ -88,8 +97,38 @@ OpenAPI v3 JSON Specification [http://localhost:8081/swagger-ui/index.html](http
 
 | Role | Routes & Operations | Security & Data Visibility |
 |---|---|---|
-| **CUSTOMER** | • `/customer/accounts`: View owned bank accounts and balances.<br>• `/customer/transactions`: Search & filter transactions by date, amount, account, direction.<br>• `/customer/disputes/new`: Submit dispute for completed outgoing (`OUT`) transactions.<br>• `/customer/disputes`: Track status (`OPEN`, `UNDER_REVIEW`, `ACCEPTED`, `REJECTED`) and timeline. | Identity derived from server session. Unowned records return 404. Masked account numbers (`****6789`). Internal agent notes and agent identities are strictly withheld. |
-| **AGENT** | • `/agent/disputes`: Triage dispute queue across tabs (`Unassigned`, `Mine`, `All`).<br>• `claim` / `release`: Manage case assignments.<br>• `resolve`: Accept or reject dispute with mandatory internal investigation notes and customer-facing message. | Requires AGENT role and active case assignment for resolution. Strong ETag optimistic locking prevents race conditions. |
+| **CUSTOMER** | • `/customer/accounts`: View owned bank accounts and balances.<br>• `/customer/transactions`: Search & filter transactions by date, amount, account, direction.<br>• `/customer/disputes/new`: Submit dispute for completed outgoing (`OUT`) transactions.<br>• `/customer/disputes`: Track status (`OPEN`, `UNDER_REVIEW`, `ACCEPTED`, `REJECTED`) and timeline. | Identity derived from server session. Unowned records return 404. Full account number visible on personal dashboard; masked (`****6789`) elsewhere. Internal agent notes and agent identities are strictly withheld. |
+| **AGENT** | • `/agent/disputes`: Triage dispute queue across tabs (`Unassigned`, `Mine`, `All`).<br>• `claim` / `release`: Manage case assignments.<br>• `resolve`: Accept or reject dispute with mandatory internal investigation notes and customer-facing message. | Requires AGENT role and active case assignment for resolution. Strong ETag optimistic locking prevents race conditions. Customer account numbers are strictly masked (`****6789`). |
+
+---
+
+## Architectural Decisions & Engineering Trade-offs
+
+### 1. Modular Monolith vs. Distributed Microservices
+- **Decision:** Encapsulate domain contexts (`auth`, `account`, `transaction`, `dispute`) as decoupled modules within a single Spring Boot application rather than independent microservices.
+- **Trade-off:** Eliminates distributed transaction complexity (e.g., 2PC or Saga patterns), network latency, and service mesh operational overhead. Module interactions occur via clean port interfaces (e.g., `DisputeTransactionPort`), allowing future extraction into standalone microservices if organizational boundaries require it.
+
+### 2. Spring Session JDBC (PostgreSQL) vs. Redis
+- **Decision:** Persist HTTP sessions and CSRF tokens in PostgreSQL via `spring-session-jdbc`.
+- **Trade-off:** Eliminates dual-write consistency hazards between an external Redis cache and PostgreSQL. Enables atomic transactions where user session state, idempotency records, and business audits commit together. Instant global session revocation across all devices is achieved in $O(1)$ time by incrementing `app_users.auth_version`.
+
+### 3. Optimistic Concurrency Control (`ETag` / `If-Match`) for Case Management
+- **Decision:** Agent triage state transitions (`claim`, `release`, `resolve`) require HTTP `If-Match` headers matching the dispute's current `version`.
+- **Trade-off:** Avoids long-lived database row locks and deadlocks during agent investigation. If two agents attempt to claim or resolve the same dispute concurrently, the second request fails gracefully with `412 Precondition Failed` without corrupting state.
+
+### 4. Durable Idempotency with Atomic Payload Persistence
+- **Decision:** Mutating dispute submissions require an `Idempotency-Key` header stored in `idempotency_records` with a SHA-256 request payload hash.
+- **Trade-off:** If a client retries due to network timeout, the backend detects the duplicate key and replays the exact stored `201 Created` JSON envelope without re-executing business logic or creating duplicate disputes. Mismatched payloads return `409 Conflict`.
+
+### 5. Domain Assumptions & Data Isolation
+- **Synthetic Rails:** Transaction and dispute records operate on synthetic banking data; financial settlement rails and ACH transfers are out of scope.
+- **Eligibility Invariants:** Transactions are eligible for dispute if and only if: `direction == OUT`, `status == COMPLETED`, transaction date $\le$ 90 days, and no existing dispute exists for that transaction.
+- **Zero-Trust Principal Derivation:** Customer IDs are never accepted from query parameters or request bodies on customer routes; they are derived exclusively from the authenticated session principal. Unowned resource queries return `404 Not Found` to prevent identifier enumeration.
+
+### 6. Scaling Boundaries & Future Roadmap
+- **Transactional Outbox Pattern:** For asynchronous event publishing (e.g. notifying external CRM/email systems on dispute resolution) via Kafka/RabbitMQ without dual-write risks.
+- **Read Replicas & Connection Pooling:** Routing read-heavy operations (`GET /transactions`, `GET /agent/disputes`) to PostgreSQL read replicas using Spring's `AbstractRoutingDataSource`.
+- **Distributed Observability:** Adding Micrometer / OpenTelemetry tracing across HTTP requests, database transactions, and background workers.
 
 ---
 
@@ -141,7 +180,7 @@ Run the full browser journey (login, account view, transaction selection, disput
 cd frontend
 export E2E_BASE_URL="http://localhost:8081"
 export E2E_CUSTOMER_EMAIL="demo.customer@example.test"
-export E2E_CUSTOMER_PASSWORD="YourPasswordHere"
+export E2E_CUSTOMER_PASSWORD="YourDemoPassword"
 npx playwright install chromium
 npm run test:e2e
 ```
@@ -187,6 +226,8 @@ docker compose down --volumes && docker compose up --build -d --wait && ./script
 ## Design Specifications & Reference Documents
 
 - [Candidate Interview Preparation Guide](INTERVIEW_PREP.md) — Comprehensive technical review guide, architecture breakdown, trade-off analyses, and interview Q&A.
+- [Deep-Dive Interview Topic Guides](docs/interview/README.md) — Module-by-module breakdown of Auth, Accounts, Transactions, Customer Disputes, and Agent Triage.
+- [AI-Driven Specifications (.kiro/)](.kiro/specs/) — Spec-driven engineering artifacts, requirements, system design, and verification tasks.
 - [API Contract Specification](docs/design/api-contract.md) — Endpoint specifications, JSON envelopes, pagination, and error codes.
 - [Session Architecture Decision](docs/design/session-architecture-decision.md) — In-depth rationale for Spring Session JDBC, HttpOnly cookies, and CSRF token handling.
 - [Business Rules Document](docs/business-rules.md) — Domain invariants, dispute lifecycle transitions, and eligibility criteria.
