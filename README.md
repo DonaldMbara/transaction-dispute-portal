@@ -44,7 +44,6 @@ transaction-dispute-portal/
 │   └── e2e/                             # Playwright browser journey test suites
 ├── docs/                                # Architectural & Domain Specifications
 │   ├── business-rules.md                # Dispute lifecycle & domain invariants
-│   ├── interview/                       # Deep-dive interview reference guides
 │   └── design/                          # API contract, DB schema, session ADR, PlantUML
 ├── .kiro/                               # AI-Driven Specifications & Steering Artifacts
 │   ├── specs/                           # Requirements, design documents, & task lists
