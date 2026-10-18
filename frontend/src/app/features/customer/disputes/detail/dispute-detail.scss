@@ -1,12 +1,14 @@
 :host {
   display: block;
 }
+
 .detail-page {
   max-width: 1120px;
   margin: 0 auto;
   padding: 2rem 0 3rem;
   color: #3a3a3a;
 }
+
 .back-link {
   display: inline-block;
   margin-bottom: 1.6rem;
@@ -14,29 +16,35 @@
   font-weight: 650;
   text-decoration: none;
 }
+
 .detail-heading {
   margin-bottom: 1.4rem;
 }
+
 .reference {
   margin: 0 0 0.35rem;
   color: var(--color-primary);
   font-size: 0.75rem;
   font-weight: 750;
 }
+
 .detail-heading h1 {
   margin: 0;
   font-size: 2rem;
 }
+
 .detail-heading > p:last-child {
   margin: 0.5rem 0 0;
   color: #555;
 }
+
 .detail-grid {
   display: grid;
   grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.55fr);
   align-items: start;
   gap: 1.25rem;
 }
+
 .transaction-card,
 .timeline-card,
 .outcome {
@@ -45,20 +53,24 @@
   border-radius: 16px;
   background: #fff;
 }
+
 .card-eyebrow {
   margin: 0 0 0.9rem;
   font-size: 0.72rem;
   font-weight: 750;
 }
+
 .transaction-card h2 {
   margin: 0;
   font-size: 1.25rem;
 }
+
 .amount {
   margin: 0.8rem 0;
   font-size: 1.85rem;
   font-weight: 750;
 }
+
 .status-chip,
 .outcome-chip {
   display: inline-flex;
@@ -70,39 +82,48 @@
   font-size: 0.75rem;
   font-weight: 700;
 }
+
 .status-chip--accepted {
   background: #e8fbf2;
   color: #006747;
 }
+
 .status-chip--rejected {
   background: #fff1f0;
   color: #8c2119;
 }
+
 .transaction-card dl {
   margin: 1.2rem 0 0;
 }
+
 .transaction-card dl div {
   margin-top: 0.85rem;
 }
+
 .transaction-card dt {
   margin-bottom: 0.25rem;
   color: #444;
   font-size: 0.72rem;
 }
+
 .transaction-card dd {
   margin: 0;
   font-size: 0.85rem;
   font-weight: 650;
   line-height: 1.5;
 }
+
 .transaction-card .description {
   font-weight: 400;
   white-space: pre-wrap;
 }
+
 .timeline-card h2 {
   margin: 0 0 1.2rem;
   font-size: 1.25rem;
 }
+
 .timeline {
   position: relative;
   display: grid;
@@ -111,6 +132,7 @@
   padding: 0;
   list-style: none;
 }
+
 .timeline::before {
   position: absolute;
   top: 1.55rem;
@@ -120,6 +142,7 @@
   background: #d5e2f8;
   content: '';
 }
+
 .timeline li {
   position: relative;
   display: grid;
@@ -127,6 +150,7 @@
   gap: 0.8rem;
   padding-bottom: 1.35rem;
 }
+
 .timeline-icon {
   z-index: 1;
   display: grid;
@@ -139,20 +163,24 @@
   color: var(--color-primary);
   font-weight: 750;
 }
+
 .timeline h3 {
   margin: 0.1rem 0 0.25rem;
   font-size: 0.9rem;
 }
+
 .timeline time {
   color: #454545;
   font-size: 0.72rem;
 }
+
 .timeline li p {
   margin: 0.45rem 0 0;
   color: #454545;
   font-size: 0.82rem;
   line-height: 1.5;
 }
+
 .timeline-note {
   display: flex;
   gap: 0.6rem;
@@ -164,47 +192,57 @@
   font-size: 0.78rem;
   line-height: 1.5;
 }
+
 .outcome {
   position: relative;
   margin: 0 0 1.25rem;
   padding: 1.2rem 1.3rem;
 }
+
 .outcome--accepted {
   border-color: #b7e8cf;
   background: #ecfdf3;
   color: #075c3b;
 }
+
 .outcome--rejected {
   border-color: #f1c5c1;
   background: #fff5f5;
   color: #76241c;
 }
+
 .outcome h2 {
   margin: 0.6rem 0 0.35rem;
   font-size: 1.2rem;
 }
+
 .outcome p {
   margin: 0.3rem 0;
   font-size: 0.85rem;
   line-height: 1.5;
 }
+
 .outcome time {
   display: block;
   margin-top: 0.6rem;
   font-size: 0.78rem;
 }
+
 .outcome .no-refund {
   margin-top: 0.75rem;
   font-size: 0.75rem;
 }
+
 .outcome--accepted .outcome-chip {
   background: #d7f7e6;
   color: #075c3b;
 }
+
 .outcome--rejected .outcome-chip {
   background: #ffe3e0;
   color: #76241c;
 }
+
 .loading,
 .state-card {
   max-width: 1120px;
@@ -214,17 +252,21 @@
   border-radius: 14px;
   background: #fff;
 }
+
 .state-card h1 {
   margin-top: 0;
 }
+
 .state-card p {
   color: #444;
 }
+
 .state-card a {
   display: inline-flex;
   padding: 0.7rem 1rem;
   text-decoration: none;
 }
+
 @media (max-width: 760px) {
   .detail-page {
     padding: 1.5rem 0 2rem;

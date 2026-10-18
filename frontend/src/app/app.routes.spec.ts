@@ -1,13 +1,13 @@
-import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
-import { RouterTestingHarness } from '@angular/router/testing';
-import { routes } from './app.routes';
-import { AuthService } from './core/auth/auth-service';
-import { SessionState } from './core/auth/session-state';
-import { AccountApi } from './features/customer/accounts/account-api';
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { of } from 'rxjs';
+import {TestBed} from '@angular/core/testing';
+import {provideRouter, Router} from '@angular/router';
+import {RouterTestingHarness} from '@angular/router/testing';
+import {routes} from './app.routes';
+import {AuthService} from './core/auth/services/auth-service';
+import {SessionState} from './core/auth/session-state';
+import {AccountApi} from './features/customer/accounts/serviecs/account-api';
+import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {of} from 'rxjs';
 
 describe('Foundation routing', () => {
   beforeEach(() =>
@@ -25,7 +25,7 @@ describe('Foundation routing', () => {
         },
         {
           provide: AccountApi,
-          useValue: { list: () => of({ items: [], page: 0, size: 0, total: 0 }) },
+          useValue: {list: () => of({items: [], page: 0, size: 0, total: 0})},
         },
       ],
     }),

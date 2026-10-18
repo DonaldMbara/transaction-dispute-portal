@@ -1,18 +1,18 @@
-<section class="dispute-page" aria-labelledby="dispute-heading">
+<section aria-labelledby="dispute-heading" class="dispute-page">
   <a
-    class="back-link"
     [routerLink]="
       transaction() ? ['/customer/transactions', transaction()!.id] : ['/customer/transactions']
     "
-    >← Back to transactions</a
+    class="back-link"
+  >← Back to transactions</a
   >
   <header class="page-heading">
     <h1 id="dispute-heading">Raise a dispute</h1>
     <p>Tell us what’s wrong with this transaction.</p>
   </header>
   @if (loadState() === 'loading') {
-    <div class="panel loading-panel" aria-busy="true">
-      <app-loading-spinner label="Loading transaction details" />
+    <div aria-busy="true" class="panel loading-panel">
+      <app-loading-spinner label="Loading transaction details"/>
     </div>
   } @else if (loadState() === 'missing') {
     <section class="panel state-panel" role="alert">
@@ -40,18 +40,18 @@
         [routerLink]="
           transaction() ? ['/customer/transactions', transaction()!.id] : ['/customer/transactions']
         "
-        >Back to transaction</a
+      >Back to transaction</a
       >
     </section>
   } @else if (transaction(); as item) {
     <div class="dispute-layout">
-      <article class="panel transaction-card" aria-labelledby="transaction-card-heading">
+      <article aria-labelledby="transaction-card-heading" class="panel transaction-card">
         <p class="card-eyebrow" id="transaction-card-heading">Transaction details</p>
         <h2>{{ item.merchant }}</h2>
         <p class="amount">{{ item.direction === 'OUT' ? '−' : '+' }}{{ formatZar(item.amount) }}</p>
-        <span class="status" [attr.data-status]="item.status">{{
-          item.status === 'COMPLETED' ? 'Completed' : item.status
-        }}</span>
+        <span [attr.data-status]="item.status" class="status">{{
+            item.status === 'COMPLETED' ? 'Completed' : item.status
+          }}</span>
         <dl>
           <div>
             <dt>Account</dt>
@@ -68,8 +68,8 @@
         </dl>
       </article>
       @if (submission(); as result) {
-        <section class="panel success-panel" role="status" aria-live="polite">
-          <span class="success-mark" aria-hidden="true">✓</span>
+        <section aria-live="polite" class="panel success-panel" role="status">
+          <span aria-hidden="true" class="success-mark">✓</span>
           <p class="card-eyebrow">Dispute received</p>
           <h2>Your case is open</h2>
           <p>We’ve received your dispute and will review it.</p>
@@ -84,11 +84,11 @@
             </div>
           </dl>
           <a [routerLink]="['/customer/transactions', result.transactionId]"
-            >Return to transaction</a
+          >Return to transaction</a
           >
         </section>
       } @else {
-        <form class="panel dispute-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <form (ngSubmit)="submit()" [formGroup]="form" class="panel dispute-form" novalidate>
           <h2>Dispute details</h2>
           <p class="required-note">All fields are required.</p>
           @if (attempted() && form.invalid) {
@@ -98,9 +98,9 @@
           }
           <label for="reason">Reason for dispute</label>
           <select
-            id="reason"
-            formControlName="reason"
             [attr.aria-invalid]="attempted() && form.controls.reason.invalid"
+            formControlName="reason"
+            id="reason"
           >
             <option value="">Select a reason</option>
             @for (reason of reasons; track reason.value) {
@@ -112,17 +112,17 @@
           }
           <label for="description">What happened?</label>
           <textarea
-            id="description"
-            formControlName="description"
-            rows="5"
-            maxlength="2000"
-            aria-describedby="description-help description-count"
             [attr.aria-invalid]="attempted() && form.controls.description.invalid"
+            aria-describedby="description-help description-count"
+            formControlName="description"
+            id="description"
+            maxlength="2000"
             placeholder="Include the details we need to review your dispute."
+            rows="5"
           ></textarea>
           <div class="field-meta">
             <span id="description-help"
-              >Include the details we need to review your dispute. Don’t share your PIN or
+            >Include the details we need to review your dispute. Don’t share your PIN or
               password.</span
             ><span id="description-count">{{ descriptionCount() }}/2000</span>
           </div>
@@ -134,18 +134,19 @@
             <p class="error-message" role="alert">{{ error() }}</p>
           }
           @if (busy()) {
-            <app-loading-spinner size="small" label="Submitting dispute" />
+            <app-loading-spinner label="Submitting dispute" size="small"/>
           }
           <div class="actions">
-            <button appButton="primary" type="submit" [disabled]="busy()">
+            <button [disabled]="busy()" appButton="primary" type="submit">
               {{ busy() ? 'Submitting…' : 'Submit dispute' }}
               <span aria-hidden="true">→</span></button
-            ><button appButton="secondary" type="button" (click)="cancel()" [disabled]="busy()">
+            >
+            <button (click)="cancel()" [disabled]="busy()" appButton="secondary" type="button">
               Cancel
             </button>
           </div>
           @if (error() && !busy()) {
-            <button appButton="secondary" type="button" (click)="retry()">Retry submission</button>
+            <button (click)="retry()" appButton="secondary" type="button">Retry submission</button>
           }
         </form>
       }

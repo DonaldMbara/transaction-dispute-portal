@@ -112,4 +112,6 @@ jobs:
           if-no-files-found: warn
       - name: Stop E2E application
         if: always()
+        env:
+          DB_USERNAME: portal_e2e
         run: docker compose -f ../compose.yaml down --volumes

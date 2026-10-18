@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { AccountSummary } from '../../models/account-summary';
-import { formatZar } from '../../utils/zar-formatter';
-import { ACCOUNT_ICON_PATHS } from './account-card.constant';
-import { AccountCardTrailing } from './account-card.interface';
+import {ChangeDetectionStrategy, Component, input} from '@angular/core';
+import {AccountSummary} from '../../models/account-summary';
+import {formatZar} from '../../utils/zar-formatter';
+import {ACCOUNT_ICON_PATHS} from '../../constants/account-card.constant';
+import {AccountCardTrailing} from '../../interfaces/account-card.interface';
 
 @Component({
   selector: 'app-account-card',

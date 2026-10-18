@@ -1,4 +1,4 @@
-<section class="accounts-page" aria-labelledby="accounts-title">
+<section aria-labelledby="accounts-title" class="accounts-page">
   <div class="page-heading">
     <div>
       <h1 id="accounts-title">Accounts</h1>
@@ -7,12 +7,14 @@
   </div>
 
   @if (state() === 'loading') {
-    <div aria-busy="true"><app-loading-spinner label="Loading accounts" /></div>
+    <div aria-busy="true">
+      <app-loading-spinner label="Loading accounts"/>
+    </div>
   } @else if (state() === 'error') {
     <section class="state-card" role="alert">
       <h2>Something went wrong</h2>
       <p>Please try again.</p>
-      <button appButton="secondary" type="button" (click)="load()">Try again</button>
+      <button (click)="load()" appButton="secondary" type="button">Try again</button>
     </section>
   } @else if (accounts().length === 0) {
     <section class="state-card" role="status">
@@ -21,19 +23,16 @@
     </section>
   } @else {
     <div
-      class="dashboard-columns"
       [attr.aria-busy]="state() === 'busy'"
       [class.refreshing]="state() === 'busy'"
+      class="dashboard-columns"
     >
       @if (state() === 'busy') {
-        <app-loading-spinner class="refresh-indicator" label="Refreshing accounts" size="small" />
+        <app-loading-spinner class="refresh-indicator" label="Refreshing accounts" size="small"/>
       }
-      <div class="account-list" aria-label="Your accounts">
+      <div aria-label="Your accounts" class="account-list">
         @for (account of accounts(); track account.id) {
           <a
-            class="account-row"
-            [routerLink]="['/customer/transactions']"
-            [queryParams]="{ accountId: account.id }"
             (keydown)="openTransactions($event, account.id)"
             [attr.aria-label]="
               account.displayName +
@@ -41,28 +40,39 @@
               ', available balance ' +
               formatBalance(account.balance)
             "
+            [queryParams]="{ accountId: account.id }"
+            [routerLink]="['/customer/transactions']"
+            class="account-row"
           >
-            <app-account-card [account]="account" />
+            <app-account-card [account]="account"/>
           </a>
         }
       </div>
+
       @if (quickLinks().length > 0) {
-        <nav class="quick-links" aria-label="Quick links">
-          @for (link of quickLinks(); track link.label) {
-            <h2>{{ link.label }}</h2>
-            <p>
-              {{
-                link.label === 'View transactions'
-                  ? 'Browse payments and find a transaction.'
-                  : 'Track the progress and outcome of your cases.'
-              }}
-            </p>
-            <a [routerLink]="link.routerLink" [queryParams]="link.queryParams"
-              ><span>{{ link.label }}</span
-              ><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg
-            ></a>
-          }
-        </nav>
+        <aside class="account-dispute-list">
+          <nav aria-label="Quick links" class="quick-links">
+            @for (link of quickLinks(); track link.label) {
+              <h2>{{ link.label }}</h2>
+              <p>
+                {{
+                  link.label === 'View transactions'
+                    ? 'Browse payments and find a transaction.'
+                    : 'Track the progress and outcome of your cases.'
+                }}
+              </p>
+              <a
+                [queryParams]="link.queryParams"
+                [routerLink]="link.routerLink"
+              >
+                <span>{{ link.label }}</span>
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M5 12h14M13 6l6 6-6 6"/>
+                </svg>
+              </a>
+            }
+          </nav>
+        </aside>
       }
     </div>
   }

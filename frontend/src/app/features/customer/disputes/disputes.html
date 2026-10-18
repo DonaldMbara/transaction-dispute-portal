@@ -1,0 +1,120 @@
+<section aria-labelledby="disputes-title" class="disputes-page">
+  <p class="eyebrow">DISPUTES</p>
+  <div class="page-heading">
+    <div>
+      <h1 id="disputes-title">Your disputes</h1>
+      <p>A clear view of where things stand, from receipt to resolution.</p>
+    </div>
+  </div>
+
+  <section aria-label="Filter disputes" class="filters customer-filter-panel">
+    <label class="search-field customer-filter-field"
+    ><span>Search cases</span
+    ><span class="customer-search-field"
+    ><input
+      [formControl]="search"
+      class="customer-filter-control"
+      placeholder="Case ID or merchant"
+      type="search"/><svg
+      aria-hidden="true"
+      class="customer-search-field__icon"
+      viewBox="0 0 24 24"
+    >
+          <circle cx="11" cy="11" r="7"/>
+          <path d="m20 20-4-4"/></svg></span
+    ></label>
+    <label class="customer-filter-field"
+    ><span>Status</span
+    ><select
+      (change)="interactions.onStatusChange()"
+      [formControl]="statusDropdown"
+      class="customer-filter-control"
+    >
+      <option value="ALL">All statuses</option>
+      @for (status of statuses; track status.value) {
+        <option [value]="status.value">{{ status.label }}</option>
+      }
+    </select></label
+    >
+    <label class="customer-filter-field"
+    ><span>Created date</span
+    ><select
+      (change)="interactions.onDatePresetChange()"
+      [formControl]="datePreset"
+      class="customer-filter-control"
+    >
+      <option value="any">Any date</option>
+      <option value="last7">Last 7 days</option>
+      <option value="last30">Last 30 days</option>
+      <option value="custom">Custom range</option>
+    </select></label
+    >
+    @if (datePreset.value === 'custom') {
+      <label class="customer-filter-field"
+      ><span>From</span
+      ><input
+        (change)="interactions.updateDates()"
+        [formControl]="fromDate"
+        class="customer-filter-control"
+        type="date"
+      /></label>
+      <label class="customer-filter-field"
+      ><span>To</span
+      ><input
+        (change)="interactions.updateDates()"
+        [formControl]="toDate"
+        class="customer-filter-control"
+        type="date"
+      /></label>
+    }
+    <div class="filter-footer">
+      @if (accounts().length) {
+        <app-account-selector
+          (selectionChange)="selectAccount($event)"
+          [accounts]="accounts()"
+          [selectedAccountId]="allAccounts() ? null : selectedAccountId()"
+          [showAllAccounts]="true"
+        />
+      }
+      <button
+        (click)="interactions.clearFilters()"
+        appButton="tertiary"
+        class="clear-filters customer-filter-reset customer-text-action"
+        type="button"
+      >
+        Reset filters
+      </button>
+    </div>
+  </section>
+
+  <div aria-label="Dispute status groups" class="tabs" role="tablist">
+    @for (option of tabs; track option.value) {
+      <button
+        (click)="interactions.setTab(option.value)"
+        (keydown)="interactions.onTabKeydown($event, option.value)"
+        [attr.aria-selected]="tab() === option.value"
+        [attr.data-dispute-tab]="option.value"
+        [class.active]="tab() === option.value"
+        role="tab"
+        type="button"
+      >
+        {{ presentation.tabLabel(option.value, option.label) }}
+      </button>
+    }
+  </div>
+
+  <app-dispute-list-results
+    (pageChange)="interactions.changePage($event)"
+    (retry)="load()"
+    (viewAllAccounts)="selectAccount(null)"
+    [currentUrl]="currentUrl"
+    [error]="error()"
+    [items]="items()"
+    [loading]="loading()"
+    [page]="page()"
+    [presentation]="resultsPresentation"
+    [statusIconPaths]="statusIconPaths"
+    [totalPages]="totalPages()"
+    [total]="total()"
+  />
+</section>

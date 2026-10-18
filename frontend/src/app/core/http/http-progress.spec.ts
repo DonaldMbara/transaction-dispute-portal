@@ -1,8 +1,8 @@
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { HttpProgress, httpProgressInterceptor } from './http-progress';
-import { HttpProgressIndicator } from './http-progress-indicator';
+import {fakeAsync, TestBed, tick} from '@angular/core/testing';
+import {HttpClient, provideHttpClient, withInterceptors} from '@angular/common/http';
+import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
+import {HttpProgress, httpProgressInterceptor} from './http-progress';
+import {HttpProgressIndicator} from './http-progress-indicator';
 
 describe('HTTP progress indicator', () => {
   let http: HttpClient;
@@ -28,7 +28,7 @@ describe('HTTP progress indicator', () => {
     const request = testing.expectOne('/api/v1/fast');
     tick(149);
     expect(progress.visible()).toBeFalse();
-    request.flush({ status: true });
+    request.flush({status: true});
     tick(500);
     expect(progress.visible()).toBeFalse();
     testing.expectNone('/api/v1/fast');
@@ -39,7 +39,7 @@ describe('HTTP progress indicator', () => {
     const request = testing.expectOne('/api/v1/slow');
     tick(150);
     expect(progress.visible()).toBeTrue();
-    request.flush({ status: true });
+    request.flush({status: true});
     tick(299);
     expect(progress.visible()).toBeTrue();
     tick(1);
@@ -47,8 +47,8 @@ describe('HTTP progress indicator', () => {
   }));
 
   it('does not retry a failed API request automatically', fakeAsync(() => {
-    http.get('/api/v1/failure').subscribe({ error: () => undefined });
-    testing.expectOne('/api/v1/failure').flush({}, { status: 503, statusText: 'Unavailable' });
+    http.get('/api/v1/failure').subscribe({error: () => undefined});
+    testing.expectOne('/api/v1/failure').flush({}, {status: 503, statusText: 'Unavailable'});
     tick(500);
     expect(progress.visible()).toBeFalse();
     testing.expectNone('/api/v1/failure');

@@ -1,0 +1,137 @@
+<div class="results-heading customer-results-summary">
+  <h2>{{ total() }} {{ total() === 1 ? 'dispute' : 'disputes' }}</h2>
+</div>
+
+@if (loading()) {
+  <div aria-busy="true" class="loading-panel">
+    <app-loading-spinner label="Loading disputes"/>
+  </div>
+} @else if (error() === 'account') {
+  <section class="state-card" role="alert">
+    <h2>Account not available</h2>
+    <p>Choose one of your accounts to view its disputes.</p>
+    <button (click)="viewAllAccounts.emit()" appButton="secondary" type="button">
+      View all accounts
+    </button>
+  </section>
+} @else if (error()) {
+  <section class="state-card" role="alert">
+    <h2>We couldn't load your disputes</h2>
+    <p>Please try again.</p>
+    <button (click)="retry.emit()" appButton="secondary" type="button">Try again</button>
+  </section>
+} @else if (!items().length) {
+  <section class="empty-state" role="status">
+    <h2>No disputes found</h2>
+    <p>Need to dispute another payment? Start from Transactions.</p>
+    <a appButton="secondary" routerLink="/customer/transactions">View transactions</a>
+  </section>
+} @else {
+  <div class="table-wrap">
+    <table class="customer-data-table customer-data-table--tinted-header">
+      <thead>
+      <tr>
+        <th scope="col">Case / merchant</th>
+        <th scope="col">Amount</th>
+        <th scope="col">Status</th>
+        <th scope="col">Created</th>
+        <th scope="col">Details</th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (item of items(); track item.id) {
+          <tr>
+            <td class="case-cell">
+              <strong>{{ item.transaction.merchant }}</strong>
+              <span>{{ presentation().formatReference(item.id) }}
+                · {{ presentation().formatReason(item.reason) }}</span>
+            </td>
+            <td class="amount-cell">{{ presentation().formatAmount(item.transaction.amount) }}</td>
+            <td>
+              <span
+                [class]="'status-chip status-chip--' + item.status.toLowerCase()"
+                class="status-chip"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  @for (path of statusIconPaths()[item.status]; track $index) {
+                    <path [attr.d]="path"/>
+                  }
+                </svg>
+                {{ presentation().displayStatus(item.status) }}
+              </span>
+            </td>
+            <td class="date-cell">{{ item.createdAt | date: 'dd MMM yyyy' : 'Africa/Johannesburg' }}</td>
+            <td>
+              <a
+                [queryParams]="{ returnTo: currentUrl() }"
+                [routerLink]="['/customer/disputes', item.id]"
+                appButton="secondary"
+                class="view-case"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="m9 18 6-6-6-6"/>
+                </svg>
+                View case
+              </a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="mobile-cards">
+    @for (item of items(); track item.id) {
+      <article class="dispute-card">
+        <div class="card-top">
+          <strong>{{ item.transaction.merchant }}</strong>
+          <strong>{{ presentation().formatAmount(item.transaction.amount) }}</strong>
+        </div>
+        <p>{{ presentation().formatReference(item.id) }} · {{ presentation().formatReason(item.reason) }}</p>
+        <div class="card-meta">
+          <span
+            [class]="'status-chip status-chip--' + item.status.toLowerCase()"
+            class="status-chip"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              @for (path of statusIconPaths()[item.status]; track $index) {
+                <path [attr.d]="path"/>
+              }
+            </svg>
+            {{ presentation().displayStatus(item.status) }}
+          </span>
+          <time>{{ item.createdAt | date: 'dd MMM yyyy' : 'Africa/Johannesburg' }}</time>
+        </div>
+        <a
+          [queryParams]="{ returnTo: currentUrl() }"
+          [routerLink]="['/customer/disputes', item.id]"
+          appButton="secondary"
+          class="view-case"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+          View case
+        </a>
+      </article>
+    }
+  </div>
+  @if (totalPages() > 1) {
+    <nav aria-label="Dispute pages" class="pagination">
+      <button (click)="pageChange.emit(page() - 1)" [disabled]="page() <= 1" appButton="secondary" type="button">
+        Previous
+      </button>
+      <span>Page {{ page() }} of {{ totalPages() }}</span>
+      <button
+        (click)="pageChange.emit(page() + 1)"
+        [disabled]="page() >= totalPages()"
+        appButton="secondary"
+        type="button"
+      >Next
+      </button>
+    </nav>
+  }
+}
+<p class="help-note">
+  <span aria-hidden="true">ⓘ</span>
+  Need to dispute another payment? Start from <a routerLink="/customer/transactions">Transactions</a>.
+</p>

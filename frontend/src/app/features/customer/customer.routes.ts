@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import {Routes} from '@angular/router';
 
 export const CUSTOMER_ROUTES: Routes = [
   {
@@ -9,7 +9,7 @@ export const CUSTOMER_ROUTES: Routes = [
   {
     path: 'transactions',
     pathMatch: 'full',
-    loadComponent: () => import('./transactions/list/transactions').then((m) => m.Transactions),
+    loadComponent: () => import('./transactions/transactions').then((m) => m.Transactions),
   },
   {
     path: 'transactions/:id',
@@ -23,7 +23,7 @@ export const CUSTOMER_ROUTES: Routes = [
   {
     path: 'disputes',
     pathMatch: 'full',
-    loadComponent: () => import('./disputes/list/disputes').then((m) => m.Disputes),
+    loadComponent: () => import('./disputes/disputes').then((m) => m.Disputes),
   },
   {
     path: 'disputes/:id',

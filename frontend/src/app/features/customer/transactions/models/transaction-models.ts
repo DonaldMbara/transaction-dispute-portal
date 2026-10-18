@@ -1,6 +1,6 @@
-import type { TransactionDirection } from '../../../../shared/models/domain-enums';
+import type {TransactionDirection} from '../../../../shared/models/domain-enums';
 
-export type { TransactionDirection };
+export type {TransactionDirection};
 export type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED';
 export type DirectionFilter = 'ALL' | TransactionDirection;
 export type StatusFilter = 'ALL' | TransactionStatus;
@@ -11,11 +11,13 @@ export interface TransactionAccount {
   id: string;
   maskedNumber: string;
 }
+
 export interface DisputeEligibility {
   id: string | null;
   eligible: boolean;
   ineligibilityReason: string | null;
 }
+
 export interface TransactionItem {
   id: string;
   reference: string;
@@ -28,12 +30,14 @@ export interface TransactionItem {
   account: TransactionAccount;
   dispute: DisputeEligibility;
 }
+
 export interface TransactionPage {
   total: number;
   page: number;
   size: number;
   items: TransactionItem[];
 }
+
 export interface TransactionQueryState {
   page: number;
   size: number;

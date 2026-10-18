@@ -1,24 +1,16 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  DestroyRef,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TransactionApi } from '../api/transaction-api';
-import { formatZar } from '../../../../shared/utils/zar-formatter';
-import { LoadingSpinner } from '../../../../shared/components/loading-spinner/loading-spinner';
-import { Button } from '../../../../shared/components/button/button';
-import { ALLOWED_TRANSACTION_RETURN_PARAMETERS } from './transaction-detail.constant';
-import { TransactionDetailState } from './transaction-detail.interface';
+import {ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal,} from '@angular/core';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
+import {HttpErrorResponse} from '@angular/common/http';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {TransactionApi} from '../services/transaction-api';
+import {formatZar} from '../../../../shared/utils/zar-formatter';
+import {LoadingSpinner} from '../../../../shared/components/loading-spinner/loading-spinner';
+import {Button} from '../../../../shared/components/button/button';
+import {ALLOWED_TRANSACTION_RETURN_PARAMETERS} from '../constants/transaction-detail.constant';
+import {TransactionDetailState} from '../interfaces/transaction-detail.interface';
 
 @Component({
-  selector: 'app-transaction-detail',
+  selector: 'app-transaction-case-detail',
   standalone: true,
   imports: [RouterLink, LoadingSpinner, Button],
   templateUrl: './transaction-detail.html',
@@ -26,11 +18,7 @@ import { TransactionDetailState } from './transaction-detail.interface';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TransactionDetail implements OnInit {
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly api = inject(TransactionApi);
-  private readonly destroyRef = inject(DestroyRef);
-  readonly state = signal<TransactionDetailState>({ status: 'loading' });
+  readonly state = signal<TransactionDetailState>({status: 'loading'});
   readonly status = computed(() => this.state().status);
   readonly transaction = computed(() => {
     const state = this.state();
@@ -38,16 +26,20 @@ export class TransactionDetail implements OnInit {
   });
   readonly returnTo = signal('/customer/transactions');
   readonly formatZar = formatZar;
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly api = inject(TransactionApi);
+  private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
     this.returnTo.set(
       this.validReturnTo(this.route.snapshot.queryParamMap.get('returnTo')) ??
-        '/customer/transactions',
+      '/customer/transactions',
     );
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const id = params.get('id');
       if (id) this.load(id);
-      else this.state.set({ status: 'not-found' });
+      else this.state.set({status: 'not-found'});
     });
   }
 
@@ -72,19 +64,19 @@ export class TransactionDetail implements OnInit {
   }
 
   private load(id: string): void {
-    this.state.set({ status: 'loading' });
+    this.state.set({status: 'loading'});
     this.api
       .get(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (transaction) => {
-          this.state.set({ status: 'ready', value: transaction });
+          this.state.set({status: 'ready', value: transaction});
         },
         error: (failure: unknown) =>
           this.state.set(
             failure instanceof HttpErrorResponse && failure.status === 404
-              ? { status: 'not-found' }
-              : { status: 'error' },
+              ? {status: 'not-found'}
+              : {status: 'error'},
           ),
       });
   }

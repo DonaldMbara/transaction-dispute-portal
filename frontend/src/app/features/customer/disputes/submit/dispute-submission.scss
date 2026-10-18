@@ -1,14 +1,16 @@
-@use './dispute-submission-responsive';
+@use '../../../../shared/styles/dispute-submission-responsive';
 
 :host {
   display: block;
 }
+
 .dispute-page {
   width: min(100%, 1230px);
   margin: 0 auto;
   padding: 40px 0 64px;
   color: var(--color-text);
 }
+
 .back-link {
   display: inline-flex;
   min-height: 36px;
@@ -19,25 +21,30 @@
   font-weight: 700;
   text-decoration: none;
 }
+
 .page-heading {
   margin-bottom: 24px;
 }
+
 .page-heading h1 {
   margin: 0 0 8px;
   font-size: 36px;
   font-weight: 800;
   line-height: 1.25;
 }
+
 .page-heading p {
   margin: 0;
   font-size: 16px;
 }
+
 .dispute-layout {
   display: grid;
   grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
   align-items: start;
   gap: 24px;
 }
+
 .panel {
   min-width: 0;
   padding: 24px;
@@ -45,10 +52,12 @@
   border-radius: 16px;
   background: var(--color-surface);
 }
+
 .transaction-card {
   display: grid;
   gap: 16px;
 }
+
 .card-eyebrow {
   margin: 0;
   color: var(--color-text);
@@ -56,17 +65,20 @@
   font-weight: 800;
   text-transform: uppercase;
 }
+
 .transaction-card h2 {
   margin: 0;
   font-size: 24px;
   font-weight: 800;
 }
+
 .amount {
   margin: 0;
   font-size: 32px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
+
 .status {
   display: inline-flex;
   width: fit-content;
@@ -78,6 +90,7 @@
   font-size: 12px;
   font-weight: 800;
 }
+
 .status::before {
   content: '✓';
   display: inline-grid;
@@ -89,22 +102,26 @@
   border-radius: 50%;
   font-size: 9px;
 }
+
 .transaction-card dl,
 .success-panel dl {
   display: grid;
   gap: 16px;
   margin: 8px 0 0;
 }
+
 .transaction-card dl > div,
 .success-panel dl > div {
   display: grid;
   gap: 5px;
 }
+
 .transaction-card dt,
 .success-panel dt {
   color: var(--color-text-muted, #626a73);
   font-size: 12px;
 }
+
 .transaction-card dd,
 .success-panel dd {
   margin: 0;
@@ -112,25 +129,30 @@
   font-weight: 700;
   overflow-wrap: anywhere;
 }
+
 .dispute-form {
   display: grid;
   gap: 12px;
 }
+
 .dispute-form h2 {
   margin: 4px 0 0;
   font-size: 22px;
   font-weight: 800;
 }
+
 .required-note {
   margin: -8px 0 10px;
   color: var(--color-text-muted, #626a73);
   font-size: 13px;
 }
+
 .dispute-form label {
   margin-top: 3px;
   font-size: 13px;
   font-weight: 700;
 }
+
 .dispute-form select,
 .dispute-form textarea {
   width: 100%;
@@ -143,15 +165,18 @@
   font: inherit;
   font-size: 14px;
 }
+
 .dispute-form textarea {
   min-height: 132px;
   resize: vertical;
   line-height: 1.5;
 }
+
 .dispute-form :focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;
 }
+
 .field-meta {
   display: flex;
   justify-content: space-between;
@@ -160,14 +185,17 @@
   font-size: 12px;
   line-height: 1.45;
 }
+
 .field-error,
 .error-message {
   color: var(--color-danger, #b42318);
   font-size: 13px;
 }
+
 .error-message {
   margin: 0;
 }
+
 .notice {
   margin: 4px 0 2px;
   padding: 16px;
@@ -177,6 +205,7 @@
   font-size: 13px;
   line-height: 1.5;
 }
+
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -184,37 +213,46 @@
   gap: 10px;
   margin-top: 4px;
 }
+
 .actions button {
   min-height: 48px;
 }
+
 .actions button:first-child {
   min-width: 180px;
 }
+
 .actions button span {
   margin-left: 12px;
   font-size: 18px;
 }
+
 .state-panel {
   display: grid;
   gap: 12px;
 }
+
 .state-panel h2,
 .state-panel p {
   margin: 0;
 }
+
 .state-panel a,
 .success-panel a {
   color: var(--color-primary);
   font-weight: 700;
 }
+
 .success-panel {
   display: grid;
   gap: 14px;
 }
+
 .success-panel h2,
 .success-panel p {
   margin: 0;
 }
+
 .success-mark {
   display: grid;
   width: 40px;

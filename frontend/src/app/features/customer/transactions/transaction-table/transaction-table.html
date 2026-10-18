@@ -1,0 +1,185 @@
+<div aria-live="polite" class="result-summary customer-results-summary">
+  <span>{{ page().total }} transactions</span>
+  <span>{{ presentation().sortSummary() }}</span>
+</div>
+<table class="transaction-table customer-data-table">
+  <thead>
+  <tr>
+    <th [attr.aria-sort]="presentation().ariaSort('merchant')" scope="col">
+      <button
+        (click)="sortChange.emit('merchant')"
+        aria-label="Sort by Transaction"
+        class="customer-sort-button"
+        type="button"
+      >
+        Transaction
+        <svg
+          [class.visible]="presentation().isSorted('merchant')"
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+        >
+          <path [attr.d]="presentation().sortIcon('merchant')"/>
+        </svg>
+      </button>
+    </th>
+    <th [attr.aria-sort]="presentation().ariaSort('occurredAt')" scope="col">
+      <button
+        (click)="sortChange.emit('occurredAt')"
+        aria-label="Sort by Date"
+        class="customer-sort-button"
+        type="button"
+      >
+        Date
+        <svg
+          [class.visible]="presentation().isSorted('occurredAt')"
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+        >
+          <path [attr.d]="presentation().sortIcon('occurredAt')"/>
+        </svg>
+      </button>
+    </th>
+    <th [attr.aria-sort]="presentation().ariaSort('amount')" scope="col">
+      <button
+        (click)="sortChange.emit('amount')"
+        aria-label="Sort by Amount"
+        class="customer-sort-button"
+        type="button"
+      >
+        Amount
+        <svg
+          [class.visible]="presentation().isSorted('amount')"
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+        >
+          <path [attr.d]="presentation().sortIcon('amount')"/>
+        </svg>
+      </button>
+    </th>
+    <th scope="col">Status</th>
+    <th scope="col"><span class="visually-hidden">Expand transaction</span></th>
+  </tr>
+  </thead>
+  <tbody>
+    @for (item of page().items; track item.id; let index = $index) {
+      @if (presentation().isNewMonth(item, index)) {
+        <tr class="month-row">
+          <th colspan="5" scope="row">{{ presentation().monthLabel(item.occurredAt) }}</th>
+        </tr>
+      }
+      <tr
+        (click)="onRowClick($event, item.id)"
+        [class.expanded]="isExpanded(item.id)"
+        class="transaction-row"
+      >
+        <td>
+          <a
+            [queryParams]="{ returnTo: returnTo() }"
+            [routerLink]="['/customer/transactions', item.id]"
+          >
+            <strong>{{ item.merchant }}</strong>
+          </a>
+          <span class="reference">{{ item.reference }}</span>
+        </td>
+        <td>{{ presentation().formatDate(item.occurredAt) }}</td>
+        <td
+          [class.failed]="item.status === 'FAILED'"
+          [class.incoming]="item.status === 'COMPLETED' && item.direction === 'IN'"
+          [class.outgoing]="item.status === 'COMPLETED' && item.direction === 'OUT'"
+          [class.pending]="item.status === 'PENDING'"
+          class="amount"
+        >
+          <span aria-hidden="true">{{ presentation().formatAmount(item) }}</span>
+          <span class="visually-hidden">{{ presentation().amountAriaLabel(item) }}</span>
+        </td>
+        <td>
+          <span [attr.data-status]="item.status" class="status">
+            {{ presentation().statusLabel(item.status) }}
+          </span>
+          @if (item.status === 'FAILED') {
+            <span class="failed-note">
+              {{ item.direction === 'OUT' ? 'Not debited' : 'Not credited' }}
+            </span>
+          }
+        </td>
+        <td class="expand-cell">
+          <button
+            (click)="$event.stopPropagation(); toggleExpanded(item.id)"
+            [attr.aria-expanded]="isExpanded(item.id)"
+            [attr.aria-label]="
+              (isExpanded(item.id) ? 'Collapse ' : 'Expand ') + item.merchant + ' transaction'
+            "
+            class="expand-button"
+            type="button"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+        </td>
+      </tr>
+      <tr
+        [attr.aria-hidden]="!isExpanded(item.id)"
+        [attr.inert]="isExpanded(item.id) ? null : ''"
+        [class.open]="isExpanded(item.id)"
+        class="transaction-expansion"
+      >
+        <td colspan="5">
+          <div class="expansion-content">
+            @if (item.dispute.eligible && !item.dispute.id) {
+              <button
+                [queryParams]="{ transactionId: item.id }"
+                [routerLink]="['/customer/disputes/new']"
+                appButton="secondary"
+                type="button"
+              >
+                Raise dispute <span aria-hidden="true">→</span>
+              </button>
+            } @else if (item.dispute.id) {
+              <p class="expansion-note">
+                A dispute has already been submitted for this transaction.
+              </p>
+            } @else if (item.direction !== 'OUT') {
+              <p class="expansion-note">
+                Only payments leaving your account can be disputed.
+              </p>
+            } @else {
+              <p class="expansion-note">Only completed transactions can be disputed.</p>
+            }
+          </div>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
+<nav aria-label="Transaction pages" class="pagination">
+  <label class="customer-filter-field">
+    Rows per page
+    <select
+      (change)="pageSizeChange.emit($any($event.target).value)"
+      [value]="size()"
+      class="customer-filter-control"
+    >
+      <option value="20">20</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+  </label>
+  <button
+    (click)="previousPage.emit()"
+    [disabled]="pageNumber() <= 1"
+    appButton="secondary"
+    type="button"
+  >
+    Previous
+  </button>
+  <span>Page {{ pageNumber() }}</span>
+  <button
+    (click)="nextPage.emit()"
+    [disabled]="pageNumber() * page().size >= page().total"
+    appButton="secondary"
+    type="button"
+  >
+    Next
+  </button>
+</nav>

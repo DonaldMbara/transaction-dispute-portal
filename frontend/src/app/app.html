@@ -1,11 +1,11 @@
-<app-http-progress />
+<app-http-progress/>
 @if (auth.state.phase() === 'unresolved') {
   <main aria-busy="true"><p role="status">Checking your session…</p></main>
 } @else if (auth.state.phase() === 'unavailable') {
-  <app-session-unavailable />
+  <app-session-unavailable/>
 } @else if (auth.state.phase() === 'anonymous' && isProtectedRoute()) {
   <main><p role="status">Your session has ended. Returning to sign in…</p></main>
 } @else {
-  <router-outlet />
+  <router-outlet/>
 }
-<app-notification-outlet />
+<app-notification-outlet/>

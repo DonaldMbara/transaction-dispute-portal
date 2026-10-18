@@ -1,5 +1,5 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { NotificationOutlet, NotificationService } from './notification';
+import {fakeAsync, TestBed, tick} from '@angular/core/testing';
+import {NotificationOutlet, NotificationService} from './notification';
 
 describe('NotificationService', () => {
   it('expires a notification after five seconds', fakeAsync(() => {
@@ -24,7 +24,7 @@ describe('NotificationService', () => {
   }));
 
   it('supports an assertive error notification tone', () => {
-    TestBed.configureTestingModule({ imports: [NotificationOutlet] });
+    TestBed.configureTestingModule({imports: [NotificationOutlet]});
     const fixture = TestBed.createComponent(NotificationOutlet);
     const notifications = TestBed.inject(NotificationService);
     notifications.show('Service unavailable.', 'error');

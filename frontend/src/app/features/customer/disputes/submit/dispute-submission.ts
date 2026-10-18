@@ -1,30 +1,16 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TransactionApi } from '../../transactions/api/transaction-api';
-import { TransactionItem } from '../../transactions/models/transaction-models';
-import { formatZar } from '../../../../shared/utils/zar-formatter';
-import { LoadingSpinner } from '../../../../shared/components/loading-spinner/loading-spinner';
-import { Button } from '../../../../shared/components/button/button';
-import { DisputeApi } from '../api/dispute-api';
-import {
-  DISPUTE_REASONS,
-  DISPUTE_TRANSACTION_ID_PATTERN,
-} from './dispute-submission.constant';
-import {
-  DisputeReason,
-  DisputeSubmission as Submission,
-  SubmitDisputeRequest,
-} from '../models/dispute-models';
+import {ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal,} from '@angular/core';
+import {HttpErrorResponse} from '@angular/common/http';
+import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {TransactionApi} from '../../transactions/services/transaction-api';
+import {TransactionItem} from '../../transactions/models/transaction-models';
+import {formatZar} from '../../../../shared/utils/zar-formatter';
+import {LoadingSpinner} from '../../../../shared/components/loading-spinner/loading-spinner';
+import {Button} from '../../../../shared/components/button/button';
+import {DisputeApi} from '../services/dispute-api';
+import {DISPUTE_REASONS, DISPUTE_TRANSACTION_ID_PATTERN,} from '../constants/dispute-submission.constant';
+import {DisputeReason, DisputeSubmission as Submission, SubmitDisputeRequest,} from '../models/dispute-models';
 
 @Component({
   selector: 'app-dispute-submission',
@@ -35,12 +21,6 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DisputeSubmission {
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly fb = inject(FormBuilder);
-  private readonly transactions = inject(TransactionApi);
-  private readonly disputes = inject(DisputeApi);
   readonly transaction = signal<TransactionItem | null>(null);
   readonly loadState = signal<'loading' | 'ready' | 'missing' | 'ineligible' | 'error'>('loading');
   readonly busy = signal(false);
@@ -48,7 +28,11 @@ export class DisputeSubmission {
   readonly error = signal('');
   readonly submission = signal<Submission | null>(null);
   readonly reasons = DISPUTE_REASONS;
-  readonly descriptionCount = computed(() => this.form.controls.description.value.trim().length);
+  formatZar = formatZar;
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly fb = inject(FormBuilder);
   readonly form = this.fb.nonNullable.group({
     reason: this.fb.nonNullable.control<DisputeReason | ''>('', Validators.required),
     description: this.fb.nonNullable.control('', [
@@ -57,6 +41,9 @@ export class DisputeSubmission {
       Validators.maxLength(2000),
     ]),
   });
+  readonly descriptionCount = computed(() => this.form.controls.description.value.trim().length);
+  private readonly transactions = inject(TransactionApi);
+  private readonly disputes = inject(DisputeApi);
   private transactionId = '';
   private idempotencyKey = this.newKey();
   private keyedPayload = '';
@@ -121,10 +108,11 @@ export class DisputeSubmission {
         },
       });
   }
+
   retry(): void {
     this.submit();
   }
-  formatZar = formatZar;
+
   formatDate(value: string): string {
     return new Intl.DateTimeFormat('en-ZA', {
       day: '2-digit',
@@ -135,20 +123,24 @@ export class DisputeSubmission {
       timeZone: 'Africa/Johannesburg',
     }).format(new Date(value));
   }
+
   cancel(): void {
     void this.router.navigate(['/customer/transactions', this.transactionId]);
   }
+
   private rotateKeyForChangedPayload(): void {
     const reason = this.form.controls.reason.value;
     const description = this.form.controls.description.value.trim();
     if (!reason || !description) return;
-    const payload = JSON.stringify({ transactionId: this.transactionId, reason, description });
+    const payload = JSON.stringify({transactionId: this.transactionId, reason, description});
     if (this.keyedPayload && this.keyedPayload !== payload) this.idempotencyKey = this.newKey();
     this.keyedPayload = payload;
   }
+
   private newKey(): string {
     return crypto.randomUUID();
   }
+
   private errorMessage(error: unknown): string {
     if (!(error instanceof HttpErrorResponse))
       return 'We could not confirm your dispute. Retry the same details safely.';

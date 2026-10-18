@@ -1,55 +1,55 @@
 <header
-  class="application-header"
-  [class.customer-shell]="isCustomerRoute()"
   [class.agent-shell]="isAgentRoute()"
+  [class.customer-shell]="isCustomerRoute()"
+  class="application-header"
 >
   <div class="header-content">
     <div class="header-start">
       <a class="brand" routerLink="/">
-        <span class="brand-mark" aria-hidden="true"
-          ><svg viewBox="0 0 24 24">
-            <path d="M12 3 19 6v5c0 4.7-2.9 8-7 10-4.1-2-7-5.3-7-10V6l7-3Z" />
-            <path d="m9 12 2 2 4-4" /></svg
+        <span aria-hidden="true" class="brand-mark"
+        ><svg viewBox="0 0 24 24">
+            <path d="M12 3 19 6v5c0 4.7-2.9 8-7 10-4.1-2-7-5.3-7-10V6l7-3Z"/>
+            <path d="m9 12 2 2 4-4"/></svg
         ></span>
         <span class="brand-copy"
-          ><span>Transaction Dispute Portal</span>
+        ><span>Transaction Dispute Portal</span>
           @if (auth.state.identity()?.role === 'AGENT') {
             <small>Agent workspace</small>
           }
         </span>
       </a>
       @if (auth.state.phase() === 'authenticated') {
-        <nav class="portal-navigation" aria-label="Portal navigation">
+        <nav aria-label="Portal navigation" class="portal-navigation">
           @if (auth.state.identity()?.role === 'CUSTOMER') {
             <a
-              routerLink="/customer"
-              routerLinkActive="is-active"
               [routerLinkActiveOptions]="{ exact: true }"
               ariaCurrentWhenActive="page"
-              >Accounts</a
+              routerLink="/customer"
+              routerLinkActive="is-active"
+            >Accounts</a
             >
             <a
+              [routerLinkActiveOptions]="{ exact: false }"
+              ariaCurrentWhenActive="page"
               routerLink="/customer/transactions"
               routerLinkActive="is-active"
-              [routerLinkActiveOptions]="{ exact: false }"
-              ariaCurrentWhenActive="page"
-              >Transactions</a
+            >Transactions</a
             >
             <a
-              routerLink="/customer/disputes"
-              routerLinkActive="is-active"
               [routerLinkActiveOptions]="{ exact: false }"
               ariaCurrentWhenActive="page"
-              >Disputes</a
+              routerLink="/customer/disputes"
+              routerLinkActive="is-active"
+            >Disputes</a
             >
           }
           @if (auth.state.identity()?.role === 'AGENT') {
             <a
-              routerLink="/agent/disputes"
-              routerLinkActive="is-active"
               [routerLinkActiveOptions]="{ exact: false }"
               ariaCurrentWhenActive="page"
-              >Case queue</a
+              routerLink="/agent/disputes"
+              routerLinkActive="is-active"
+            >Case queue</a
             >
           }
         </nav>
@@ -57,30 +57,30 @@
     </div>
     @if (auth.state.phase() === 'authenticated') {
       <button
-        class="sign-out customer-text-action"
-        appButton="secondary"
-        type="button"
-        [disabled]="pending()"
         (click)="signOut()"
+        [disabled]="pending()"
+        appButton="secondary"
+        class="sign-out customer-text-action"
+        type="button"
       >
         {{ pending() ? 'Signing out…' : 'Sign out' }}
       </button>
     }
   </div>
 </header>
-<main [class.customer-main]="isCustomerRoute()" [attr.aria-busy]="pending()">
+<main [attr.aria-busy]="pending()" [class.customer-main]="isCustomerRoute()">
   @if (message()) {
     <p class="message--error" role="alert">{{ message() }}</p>
   }
   @if (auth.state.phase() === 'authenticated') {
-    <router-outlet />
+    <router-outlet/>
   } @else if (auth.state.phase() === 'logout-unconfirmed') {
     <p>Protected content is hidden until sign-out is confirmed.</p>
-    <button appButton="secondary" type="button" [disabled]="pending()" (click)="signOut(true)">
+    <button (click)="signOut(true)" [disabled]="pending()" appButton="secondary" type="button">
       Try again
     </button>
   }
 </main>
-<footer class="application-footer" [class.customer-footer]="isCustomerRoute()">
+<footer [class.customer-footer]="isCustomerRoute()" class="application-footer">
   Assessment portal · Synthetic data only
 </footer>

@@ -1,13 +1,14 @@
-import { Component } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
-import { RouterTestingHarness } from '@angular/router/testing';
-import { of } from 'rxjs';
-import { TransactionApi } from '../api/transaction-api';
-import { TransactionDetail } from './transaction-detail';
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {provideRouter, Router} from '@angular/router';
+import {RouterTestingHarness} from '@angular/router/testing';
+import {of} from 'rxjs';
+import {TransactionApi} from '../services/transaction-api';
+import {TransactionDetail} from './transaction-detail';
 
-@Component({ standalone: true, template: '<p>Transaction list test route</p>' })
-class TransactionListRoute {}
+@Component({standalone: true, template: '<p>Transaction dispute-list test route</p>'})
+class TransactionListRoute {
+}
 
 describe('TransactionDetail', () => {
   const transaction = {
@@ -19,8 +20,8 @@ describe('TransactionDetail', () => {
     direction: 'OUT' as const,
     status: 'COMPLETED' as const,
     occurredAt: '2025-03-10T08:15:00Z',
-    account: { id: 'account-main', maskedNumber: '****6789' },
-    dispute: { id: null, eligible: true, ineligibilityReason: null },
+    account: {id: 'account-main', maskedNumber: '****6789'},
+    dispute: {id: null, eligible: true, ineligibilityReason: null},
   };
   let api: jasmine.SpyObj<TransactionApi>;
   beforeEach(async () => {
@@ -30,10 +31,10 @@ describe('TransactionDetail', () => {
       imports: [TransactionDetail, TransactionListRoute],
       providers: [
         provideRouter([
-          { path: 'customer/transactions/:id', component: TransactionDetail },
-          { path: 'customer/transactions', component: TransactionListRoute },
+          {path: 'customer/transactions/:id', component: TransactionDetail},
+          {path: 'customer/transactions', component: TransactionListRoute},
         ]),
-        { provide: TransactionApi, useValue: api },
+        {provide: TransactionApi, useValue: api},
       ],
     }).compileComponents();
   });
@@ -81,7 +82,7 @@ describe('TransactionDetail', () => {
     const failed = {
       ...transaction,
       status: 'FAILED' as const,
-      dispute: { id: null, eligible: false, ineligibilityReason: 'NOT_COMPLETED' as const },
+      dispute: {id: null, eligible: false, ineligibilityReason: 'NOT_COMPLETED' as const},
     };
     api.get.and.returnValue(of(failed));
     const harness = await RouterTestingHarness.create(`/customer/transactions/${failed.id}`);
@@ -106,7 +107,7 @@ describe('TransactionDetail', () => {
     const pending = {
       ...transaction,
       status: 'PENDING' as const,
-      dispute: { id: null, eligible: false, ineligibilityReason: 'NOT_COMPLETED' as const },
+      dispute: {id: null, eligible: false, ineligibilityReason: 'NOT_COMPLETED' as const},
     };
     api.get.and.returnValue(of(pending));
     const harness = await RouterTestingHarness.create(`/customer/transactions/${pending.id}`);

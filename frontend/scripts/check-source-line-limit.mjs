@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const frontendRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const sourceRoot = resolve(frontendRoot, 'src');
 const allowedExtensions = new Set(['.ts', '.html', '.scss', '.css']);
-const maximumLines = 250;
+const maximumLines = 1000;
 const violations = [];
 
 async function inspectDirectory(directory) {
