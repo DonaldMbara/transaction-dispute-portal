@@ -1,19 +1,12 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
-import { DatePipe } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DisputeApi } from '../api/dispute-api';
-import { DisputeDetail as Dispute, TimelineEntry } from '../models/dispute-models';
-import { LoadingSpinner } from '../../../../shared/components/loading-spinner/loading-spinner';
-import { Button } from '../../../../shared/components/button/button';
+import {ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal,} from '@angular/core';
+import {DatePipe} from '@angular/common';
+import {HttpErrorResponse} from '@angular/common/http';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {DisputeApi} from '../services/dispute-api';
+import {DisputeDetail as Dispute, TimelineEntry} from '../models/dispute-models';
+import {LoadingSpinner} from '../../../../shared/components/loading-spinner/loading-spinner';
+import {Button} from '../../../../shared/components/button/button';
 import {
   formatDisputeAmount,
   formatDisputeReason,
@@ -22,7 +15,7 @@ import {
 } from '../models/dispute-presentation';
 
 @Component({
-  selector: 'app-customer-dispute-detail',
+  selector: 'app-customer-dispute-case-detail',
   standalone: true,
   imports: [DatePipe, RouterLink, LoadingSpinner, Button],
   templateUrl: './dispute-detail.html',
@@ -30,10 +23,6 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DisputeDetail {
-  private readonly api = inject(DisputeApi);
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
   readonly dispute = signal<Dispute | null>(null);
   readonly state = signal<'loading' | 'ready' | 'not-found' | 'error'>('loading');
   readonly displayRef = computed(() => {
@@ -42,10 +31,16 @@ export class DisputeDetail {
   });
   readonly formatAmount = formatDisputeAmount;
   readonly statusLabel = formatDisputeStatus;
+  reasonLabel = formatDisputeReason;
+  private readonly api = inject(DisputeApi);
+  private readonly route = inject(ActivatedRoute);
   readonly backLink = computed(() => {
     const requested = this.route.snapshot.queryParamMap.get('returnTo');
     return this.safeReturnTo(requested);
   });
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const id = params.get('id') ?? '';
@@ -75,6 +70,7 @@ export class DisputeDetail {
         });
     });
   }
+
   timelineLabel(entry: TimelineEntry, index: number, all: readonly TimelineEntry[]): string {
     if (entry.type === 'IN_REVIEW')
       return all.slice(0, index).some((item) => item.type === 'IN_REVIEW')
@@ -89,7 +85,28 @@ export class DisputeDetail {
         ? 'Dispute rejected'
         : 'Dispute resolved';
   }
-  reasonLabel = formatDisputeReason;
+
+  retry(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.state.set('loading');
+      this.api
+        .get(id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (result) => {
+            this.dispute.set(result.data);
+            this.state.set(result.status && result.data ? 'ready' : 'error');
+          },
+          error: () => this.state.set('error'),
+        });
+    }
+  }
+
+  openTransactions(): void {
+    void this.router.navigateByUrl('/customer/transactions');
+  }
+
   private safeReturnTo(requested: string | null): string {
     if (!requested || !requested.startsWith('/customer/disputes')) return '/customer/disputes';
     const [path, query = ''] = requested.split('?', 2);
@@ -113,24 +130,5 @@ export class DisputeDetail {
     if (allowed.has('accountId') && allowed.has('accounts')) return '/customer/disputes';
     const serialized = allowed.toString();
     return serialized ? `/customer/disputes?${serialized}` : '/customer/disputes';
-  }
-  retry(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.state.set('loading');
-      this.api
-        .get(id)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (result) => {
-            this.dispute.set(result.data);
-            this.state.set(result.status && result.data ? 'ready' : 'error');
-          },
-          error: () => this.state.set('error'),
-        });
-    }
-  }
-  openTransactions(): void {
-    void this.router.navigateByUrl('/customer/transactions');
   }
 }

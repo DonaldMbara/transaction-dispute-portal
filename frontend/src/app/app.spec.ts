@@ -1,9 +1,9 @@
-import { TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { provideRouter, RouterOutlet } from '@angular/router';
-import { App } from './app';
-import { AuthService } from './core/auth/auth-service';
-import { SessionState } from './core/auth/session-state';
+import {TestBed} from '@angular/core/testing';
+import {By} from '@angular/platform-browser';
+import {provideRouter, RouterOutlet} from '@angular/router';
+import {App} from './app';
+import {AuthService} from './core/auth/services/auth-service';
+import {SessionState} from './core/auth/session-state';
 
 // Route behavior is covered separately by app.routes.spec.ts.
 describe('App', () => {
@@ -12,7 +12,7 @@ describe('App', () => {
       imports: [App],
       providers: [
         provideRouter([]),
-        { provide: AuthService, useFactory: () => ({ state: TestBed.inject(SessionState) }) },
+        {provide: AuthService, useFactory: () => ({state: TestBed.inject(SessionState)})},
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(App);

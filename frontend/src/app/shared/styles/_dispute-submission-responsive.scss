@@ -1,0 +1,55 @@
+@media (max-width: 1279px) {
+  .dispute-page {
+    padding-right: 32px;
+    padding-left: 32px;
+  }
+}
+
+@media (max-width: 720px) {
+  .dispute-page {
+    padding: 24px 20px 48px;
+  }
+  .back-link {
+    margin-bottom: 20px;
+  }
+  .page-heading {
+    margin-bottom: 20px;
+  }
+  .page-heading h1 {
+    font-size: 28px;
+  }
+  .page-heading p {
+    font-size: 14px;
+  }
+  .dispute-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .panel {
+    padding: 20px;
+    border-radius: 16px;
+  }
+  .transaction-card h2 {
+    font-size: 23px;
+  }
+  .amount {
+    font-size: 30px;
+  }
+  .dispute-form h2 {
+    font-size: 22px;
+  }
+  .dispute-form textarea {
+    min-height: 132px;
+  }
+  .field-meta {
+    align-items: flex-start;
+  }
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .actions button,
+  .actions button:first-child {
+    width: 100%;
+  }
+}

@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
-import { AuthService } from '../../../core/auth/auth-service';
-import { landing } from '../../../core/auth/auth-guards';
-import { Button } from '../../../shared/components/button/button';
-import { AsyncActionStatus } from '../../../shared/models/async-state';
+import {ChangeDetectionStrategy, Component, computed, inject, signal} from '@angular/core';
+import {Router} from '@angular/router';
+import {AuthService} from '../../../core/auth/services/auth-service';
+import {landing} from '../../../core/auth/guards/auth-guards';
+import {Button} from '../../../shared/components/button/button';
+import {AsyncActionStatus} from '../../../shared/models/async-state';
+
 @Component({
   selector: 'app-session-unavailable',
   standalone: true,
@@ -14,9 +15,10 @@ import { AsyncActionStatus } from '../../../shared/models/async-state';
 })
 export class SessionUnavailable {
   readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
   readonly actionState = signal<AsyncActionStatus>('idle');
   readonly pending = computed(() => this.actionState() === 'busy');
+  private readonly router = inject(Router);
+
   async retry(): Promise<void> {
     if (this.pending()) return;
     this.actionState.set('busy');

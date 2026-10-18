@@ -1,9 +1,9 @@
-import { inject, Injectable, signal } from '@angular/core';
-import { HttpInterceptorFn } from '@angular/common/http';
-import { finalize } from 'rxjs';
-import { isOwnApi } from '../auth/auth-interceptors';
+import {inject, Injectable, signal} from '@angular/core';
+import {HttpInterceptorFn} from '@angular/common/http';
+import {finalize} from 'rxjs';
+import {isOwnApi} from '../auth/interceptors/auth-interceptors';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class HttpProgress {
   readonly visible = signal(false);
   private inFlight = 0;

@@ -1,7 +1,7 @@
-import type { DisputeReason, DisputeStatus } from '../../../../shared/models/domain-enums';
-import { formatZar } from '../../../../shared/utils/zar-formatter';
+import type {DisputeReason, DisputeStatus} from '../../../../shared/models/domain-enums';
+import {formatZar} from '../../../../shared/utils/zar-formatter';
 
-/** Shared customer-facing labels and formatting for dispute list/detail views. */
+/** Shared customer-facing labels and formatting for dispute dispute-list/case-detail views. */
 const REASON_LABELS: Readonly<Record<DisputeReason, string>> = {
   UNRECOGNIZED_TRANSACTION: 'Unrecognised transaction',
   DUPLICATE_CHARGE: 'Duplicate charge',

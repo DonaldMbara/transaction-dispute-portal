@@ -1,7 +1,7 @@
-<span class="account-card" [class.account-card--highlighted]="highlighted()">
-  <span class="account-icon" aria-hidden="true">
-    <svg viewBox="0 0 24 24" focusable="false">
-      <path [attr.d]="iconPath(account().accountType)" />
+<span [class.account-card--highlighted]="highlighted()" class="account-card">
+  <span aria-hidden="true" class="account-icon">
+    <svg focusable="false" viewBox="0 0 24 24">
+      <path [attr.d]="iconPath(account().accountType)"/>
     </svg>
   </span>
   <span class="account-info">
@@ -21,17 +21,17 @@
   </span>
   @if (trailing() === 'chevron') {
     <svg
-      class="chevron"
       [class.chevron--expanded]="expanded()"
-      viewBox="0 0 24 24"
       aria-hidden="true"
+      class="chevron"
       focusable="false"
+      viewBox="0 0 24 24"
     >
-      <path d="m9 18 6-6-6-6" />
+      <path d="m9 18 6-6-6-6"/>
     </svg>
   } @else if (trailing() === 'selected') {
-    <span class="selected-mark" aria-hidden="true">✓</span>
+    <span aria-hidden="true" class="selected-mark">✓</span>
   } @else {
-    <span class="trailing-space" aria-hidden="true"></span>
+    <span aria-hidden="true" class="trailing-space"></span>
   }
 </span>

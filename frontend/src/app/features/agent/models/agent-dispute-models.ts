@@ -7,10 +7,12 @@ export type AgentReason =
   | 'GOODS_OR_SERVICES_NOT_RECEIVED'
   | 'OTHER';
 export type AgentSortField = 'createdAt' | 'updatedAt' | 'status';
+
 export interface AgentIdentitySummary {
   id: string;
   email: string;
 }
+
 export interface AgentDisputeListItem {
   id: string;
   reference: string;
@@ -26,6 +28,7 @@ export interface AgentDisputeListItem {
   assignedAgent: AgentIdentitySummary | null;
   version: number;
 }
+
 export interface AgentDisputeEvent {
   id: string;
   disputeVersion: number;
@@ -39,6 +42,7 @@ export interface AgentDisputeEvent {
   customerMessage: string | null;
   createdAt: string;
 }
+
 export interface AgentDisputeDetail extends AgentDisputeListItem {
   transactionId: string;
   occurredAt: string;
@@ -52,12 +56,14 @@ export interface AgentDisputeDetail extends AgentDisputeListItem {
   customerResolutionMessage: string | null;
   events: AgentDisputeEvent[];
 }
+
 export interface AgentDisputePage {
   total: number;
   page: number;
   size: number;
   items: AgentDisputeListItem[];
 }
+
 export interface AgentDisputeQuery {
   queue: AgentQueue;
   page: number;
@@ -70,13 +76,16 @@ export interface AgentDisputeQuery {
   sortBy: AgentSortField;
   sortDirection: 'ASC' | 'DESC';
 }
+
 export interface AgentCaseView {
   detail: AgentDisputeDetail;
   etag: string;
 }
+
 export interface AgentReleaseRequest {
   reason: string;
 }
+
 export interface AgentResolveRequest {
   decision: 'ACCEPT' | 'REJECT';
   internalResolutionNotes: string;

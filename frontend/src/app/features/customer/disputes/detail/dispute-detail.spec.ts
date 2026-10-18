@@ -1,12 +1,11 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
-import { of } from 'rxjs';
-import { DisputeApi } from '../api/dispute-api';
-import { DisputeDetail } from './dispute-detail';
-import { DisputeDetail as Dispute } from '../models/dispute-models';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {ActivatedRoute, convertToParamMap, provideRouter} from '@angular/router';
+import {of} from 'rxjs';
+import {DisputeApi} from '../services/dispute-api';
+import {DisputeDetail} from './dispute-detail';
+import {DisputeDetail as Dispute} from '../models/dispute-models';
 
-describe('Customer dispute detail', () => {
+describe('Customer dispute case-detail', () => {
   let fixture: ComponentFixture<DisputeDetail>;
   let api: jasmine.SpyObj<DisputeApi>;
   const item: Dispute = {
@@ -17,21 +16,21 @@ describe('Customer dispute detail', () => {
     updatedAt: '2026-10-09T14:00:00Z',
     resolvedAt: '2026-10-09T14:00:00Z',
     description: 'Charged twice.',
-    decision: { outcome: 'ACCEPTED', message: 'A duplicate charge was confirmed.' },
+    decision: {outcome: 'ACCEPTED', message: 'A duplicate charge was confirmed.'},
     timeline: [
       {
         type: 'SUBMITTED',
         message: 'We received your dispute.',
         occurredAt: '2026-10-06T07:15:00Z',
       },
-      { type: 'IN_REVIEW', message: 'Review underway.', occurredAt: '2026-10-07T08:00:00Z' },
+      {type: 'IN_REVIEW', message: 'Review underway.', occurredAt: '2026-10-07T08:00:00Z'},
       {
         type: 'RETURNED_TO_QUEUE',
         message: 'Waiting for review.',
         occurredAt: '2026-10-07T12:30:00Z',
       },
-      { type: 'IN_REVIEW', message: 'Review restarted.', occurredAt: '2026-10-08T08:00:00Z' },
-      { type: 'RESOLVED', message: 'Accepted.', occurredAt: '2026-10-09T14:00:00Z' },
+      {type: 'IN_REVIEW', message: 'Review restarted.', occurredAt: '2026-10-08T08:00:00Z'},
+      {type: 'RESOLVED', message: 'Accepted.', occurredAt: '2026-10-09T14:00:00Z'},
     ],
     transaction: {
       id: 'tx-1',
@@ -41,24 +40,24 @@ describe('Customer dispute detail', () => {
       currency: 'ZAR',
       direction: 'OUT',
       occurredAt: '2026-10-05T12:00:00Z',
-      account: { id: 'account-1', displayName: 'Main Account', maskedNumber: '****1467' },
+      account: {id: 'account-1', displayName: 'Main Account', maskedNumber: '****1467'},
     },
   };
   beforeEach(async () => {
     api = jasmine.createSpyObj<DisputeApi>('DisputeApi', ['get', 'list', 'submit']);
-    api.get.and.returnValue(of({ status: true, data: item, error_code: 0 }));
+    api.get.and.returnValue(of({status: true, data: item, error_code: 0}));
     await TestBed.configureTestingModule({
       imports: [DisputeDetail],
       providers: [
         provideRouter([]),
-        { provide: DisputeApi, useValue: api },
+        {provide: DisputeApi, useValue: api},
         {
           provide: ActivatedRoute,
           useValue: {
-            paramMap: of(convertToParamMap({ id: item.id })),
+            paramMap: of(convertToParamMap({id: item.id})),
             snapshot: {
               queryParamMap: convertToParamMap({}),
-              paramMap: convertToParamMap({ id: item.id }),
+              paramMap: convertToParamMap({id: item.id}),
             },
           },
         },

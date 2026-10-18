@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { HttpProgress } from './http-progress';
+import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
+import {HttpProgress} from './http-progress';
 
 @Component({
   selector: 'app-http-progress',

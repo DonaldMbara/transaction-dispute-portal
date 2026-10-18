@@ -1,13 +1,14 @@
-import type { DisputeReason, DisputeStatus } from '../../../../shared/models/domain-enums';
+import type {DisputeReason, DisputeStatus} from '../../../../shared/models/domain-enums';
 
-export type { DisputeReason, DisputeStatus };
+export type {DisputeReason, DisputeStatus};
 
-// Existing types used by dispute submission — preserved
+// Existing interfaces used by dispute submission — preserved
 export interface SubmitDisputeRequest {
   transactionId: string;
   reason: DisputeReason;
   description: string;
 }
+
 export interface DisputeSubmission {
   id: string;
   transactionId: string;
@@ -17,7 +18,7 @@ export interface DisputeSubmission {
   createdAt: string;
 }
 
-// New types for dispute history
+// New interfaces for dispute history
 export interface DisputeAccountSummary {
   id: string;
   displayName: string;

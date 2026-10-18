@@ -1,14 +1,15 @@
-import { Component } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { provideRouter, Router, RouterOutlet } from '@angular/router';
-import { DashboardLayout } from './dashboard-layout';
-import { AuthService } from '../../core/auth/auth-service';
-import { SessionState } from '../../core/auth/session-state';
-import { AuthFailure } from '../../core/auth/auth-models';
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {By} from '@angular/platform-browser';
+import {provideRouter, Router, RouterOutlet} from '@angular/router';
+import {DashboardLayout} from './dashboard-layout';
+import {AuthService} from '../../core/auth/services/auth-service';
+import {SessionState} from '../../core/auth/session-state';
+import {AuthFailure} from '../../core/auth/models/auth-models';
 
-@Component({ standalone: true, template: '' })
-class StubCustomerPage {}
+@Component({standalone: true, template: ''})
+class StubCustomerPage {
+}
 
 describe('DashboardLayout', () => {
   let state: SessionState, logout: jasmine.Spy;
@@ -21,22 +22,22 @@ describe('DashboardLayout', () => {
           {
             path: 'customer',
             children: [
-              { path: 'transactions', component: StubCustomerPage },
-              { path: 'transactions/:id', component: StubCustomerPage },
-              { path: 'disputes', component: StubCustomerPage },
-              { path: 'disputes/:id', component: StubCustomerPage },
+              {path: 'transactions', component: StubCustomerPage},
+              {path: 'transactions/:id', component: StubCustomerPage},
+              {path: 'disputes', component: StubCustomerPage},
+              {path: 'disputes/:id', component: StubCustomerPage},
             ],
           },
-          { path: 'agent', children: [] },
+          {path: 'agent', children: []},
         ]),
         {
           provide: AuthService,
-          useFactory: () => ({ state: TestBed.inject(SessionState), logout }),
+          useFactory: () => ({state: TestBed.inject(SessionState), logout}),
         },
       ],
     });
     state = TestBed.inject(SessionState);
-    state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'CUSTOMER' });
+    state.authenticated({id: 'fixture', email: 'fixture@example.test', role: 'CUSTOMER'});
   });
   it('hosts its child outlet and renders the customer navigation item beside the brand', async () => {
     const fixture = TestBed.createComponent(DashboardLayout);
@@ -84,7 +85,7 @@ describe('DashboardLayout', () => {
     expect(getComputedStyle(fixture.nativeElement.querySelector('.brand')).color).toBe(
       'rgb(58, 58, 58)',
     );
-    state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'AGENT' });
+    state.authenticated({id: 'fixture', email: 'fixture@example.test', role: 'AGENT'});
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Agent workspace');
     expect(fixture.nativeElement.textContent).not.toContain('Accounts');
@@ -121,7 +122,7 @@ describe('DashboardLayout', () => {
     expect(logout.calls.count()).toBe(1);
     expect(navigate).not.toHaveBeenCalled();
     state.anonymous();
-    finish({ confirmed: true, csrfReady: false });
+    finish({confirmed: true, csrfReady: false});
     await pending;
     expect(navigate).toHaveBeenCalledWith('/login');
     fixture.detectChanges();
@@ -143,7 +144,7 @@ describe('DashboardLayout', () => {
     expect(navigate).not.toHaveBeenCalled();
     logout.and.callFake(async () => {
       state.anonymous();
-      return { confirmed: true, csrfReady: true };
+      return {confirmed: true, csrfReady: true};
     });
     await fixture.componentInstance.signOut(true);
     expect(logout.calls.mostRecent().args).toEqual([true]);

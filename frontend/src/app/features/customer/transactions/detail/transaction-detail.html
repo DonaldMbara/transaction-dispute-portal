@@ -1,9 +1,9 @@
-<section class="detail-page" aria-labelledby="transaction-detail-heading">
-  <button class="back-link" type="button" (click)="goBack()">← Back to transactions</button>
+<section aria-labelledby="transaction-detail-heading" class="detail-page">
+  <button (click)="goBack()" class="back-link" type="button">← Back to transactions</button>
   <h1 id="transaction-detail-heading">Transaction details</h1>
   @if (status() === 'loading' || status() === 'busy') {
-    <div class="detail-card" aria-busy="true">
-      <app-loading-spinner label="Loading transaction" />
+    <div aria-busy="true" class="detail-card">
+      <app-loading-spinner label="Loading transaction"/>
     </div>
   } @else if (status() === 'not-found') {
     <section class="detail-card" role="status">
@@ -15,25 +15,26 @@
     <section class="detail-card" role="alert">
       <h2>Transaction is unavailable</h2>
       <p>Please try again.</p>
-      <button appButton="secondary" type="button" (click)="retry()">Try again</button>
+      <button (click)="retry()" appButton="secondary" type="button">Try again</button>
     </section>
   } @else if (transaction(); as item) {
     <article class="detail-card">
       <p class="merchant">{{ item.merchant }}</p>
       <p
-        class="amount"
         [class.amount-failed]="item.status === 'FAILED'"
         [class.amount-pending]="item.status === 'PENDING'"
+        class="amount"
       >
         @if (item.status === 'FAILED') {
           <span aria-hidden="true">{{ formatZar(item.amount) }}</span>
           <span class="visually-hidden">{{ formatZar(item.amount) }}, failed, no money moved</span>
         } @else {
           <span aria-hidden="true"
-            >{{ item.direction === 'OUT' ? '−' : '+' }}{{ formatZar(item.amount) }}</span
+          >{{ item.direction === 'OUT' ? '−' : '+' }}{{ formatZar(item.amount) }}</span
           >
           <span class="visually-hidden"
-            >{{ item.direction === 'OUT' ? 'minus ' : 'plus ' }}{{ formatZar(item.amount)
+          >{{ item.direction === 'OUT' ? 'minus ' : 'plus ' }}{{
+              formatZar(item.amount)
             }}{{ item.status === 'PENDING' ? ', pending' : '' }}</span
           >
         }
@@ -81,10 +82,10 @@
       </dl>
       @if (item.dispute.eligible && !item.dispute.id) {
         <button
+          [queryParams]="{ transactionId: item.id }"
+          [routerLink]="['/customer/disputes/new']"
           appButton="primary"
           type="button"
-          [routerLink]="['/customer/disputes/new']"
-          [queryParams]="{ transactionId: item.id }"
         >
           Dispute this transaction
         </button>

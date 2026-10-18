@@ -1,9 +1,9 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
-import { of, Subject, throwError } from 'rxjs';
-import { AccountApi } from './account-api';
-import { AccountDashboard } from './account-dashboard';
-import { AccountPage } from './account-models';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {provideRouter, Router} from '@angular/router';
+import {of, Subject, throwError} from 'rxjs';
+import {AccountApi} from './serviecs/account-api';
+import {AccountDashboard} from './account-dashboard';
+import {AccountPage} from './models/account-models';
 
 describe('AccountDashboard', () => {
   let fixture: ComponentFixture<AccountDashboard>;
@@ -31,8 +31,8 @@ describe('AccountDashboard', () => {
     await TestBed.configureTestingModule({
       imports: [AccountDashboard],
       providers: [
-        provideRouter([{ path: 'customer', children: [] }]),
-        { provide: AccountApi, useValue: api },
+        provideRouter([{path: 'customer', children: []}]),
+        {provide: AccountApi, useValue: api},
       ],
     }).compileComponents();
     fixture = TestBed.createComponent(AccountDashboard);
@@ -143,11 +143,11 @@ describe('AccountDashboard', () => {
     const router = TestBed.inject(Router);
     const navigate = spyOn(router, 'navigate').and.resolveTo(true);
     const row = (fixture.nativeElement as HTMLElement).querySelector('a.account-row')!;
-    const event = new KeyboardEvent('keydown', { code: 'Space', cancelable: true });
+    const event = new KeyboardEvent('keydown', {code: 'Space', cancelable: true});
     row.dispatchEvent(event);
     expect(event.defaultPrevented).toBeTrue();
     expect(navigate).toHaveBeenCalledWith(['/customer/transactions'], {
-      queryParams: { accountId: 'account-1' },
+      queryParams: {accountId: 'account-1'},
     });
     expect((fixture.nativeElement as HTMLElement).querySelectorAll('a.account-row').length).toBe(1);
   });
@@ -155,7 +155,7 @@ describe('AccountDashboard', () => {
   it('adds a quick-links panel for the implemented primary-account route', () => {
     const columns = (fixture.nativeElement as HTMLElement).querySelector('.dashboard-columns')!;
     expect(columns.children.length).toBe(2);
-    expect(columns.querySelector('.account-list')).toBeTruthy();
+    expect(columns.querySelector('.account-dispute-list')).toBeTruthy();
     const quickLink = columns.querySelector('nav[aria-label="Quick links"] a') as HTMLAnchorElement;
     expect(quickLink.textContent).toContain('View transactions');
     expect(quickLink.getAttribute('href')).toBe('/customer/transactions?accountId=account-1');
@@ -190,7 +190,7 @@ describe('AccountDashboard', () => {
   });
 
   it('omits the account number when the backend returns null', () => {
-    api.list.and.returnValue(of(page([{ ...main, accountNumber: null }])));
+    api.list.and.returnValue(of(page([{...main, accountNumber: null}])));
     fixture.componentInstance.load();
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('0123456789');

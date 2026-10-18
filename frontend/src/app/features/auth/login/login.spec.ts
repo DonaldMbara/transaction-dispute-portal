@@ -1,10 +1,11 @@
-import { TestBed } from '@angular/core/testing';
-import { FormControl } from '@angular/forms';
-import { provideRouter, Router } from '@angular/router';
-import { Login, passwordAdmission } from './login';
-import { AuthService } from '../../../core/auth/auth-service';
-import { SessionState, CsrfState } from '../../../core/auth/session-state';
-import { AuthFailure } from '../../../core/auth/auth-models';
+import {TestBed} from '@angular/core/testing';
+import {FormControl} from '@angular/forms';
+import {provideRouter, Router} from '@angular/router';
+import {Login, passwordAdmission} from './login';
+import {AuthService} from '../../../core/auth/services/auth-service';
+import {CsrfState, SessionState} from '../../../core/auth/session-state';
+import {AuthFailure} from '../../../core/auth/models/auth-models';
+
 describe('Login', () => {
   let login: jasmine.Spy, bootstrap: jasmine.Spy, state: SessionState;
   beforeEach(() => {
@@ -16,7 +17,7 @@ describe('Login', () => {
         provideRouter([]),
         {
           provide: AuthService,
-          useFactory: () => ({ login, bootstrap, state: TestBed.inject(SessionState) }),
+          useFactory: () => ({login, bootstrap, state: TestBed.inject(SessionState)}),
         },
       ],
     });
@@ -34,9 +35,9 @@ describe('Login', () => {
   };
   it('uses login admission bounds rather than the password-creation minimum', () => {
     for (const value of ['a', ' '.repeat(8), '😀'.repeat(128), 'é'.repeat(128)])
-      expect(passwordAdmission(new FormControl(value, { nonNullable: true }))).toBeNull();
+      expect(passwordAdmission(new FormControl(value, {nonNullable: true}))).toBeNull();
     for (const value of ['', 'a'.repeat(129), '😀'.repeat(129), '\ud800', '\udc00'])
-      expect(passwordAdmission(new FormControl(value, { nonNullable: true }))).not.toBeNull();
+      expect(passwordAdmission(new FormControl(value, {nonNullable: true}))).not.toBeNull();
   });
   it('provides labelled keyboard-submit controls and accessible pending/errors', async () => {
     const fixture = setup();
@@ -52,7 +53,7 @@ describe('Login', () => {
     login.and.rejectWith(new AuthFailure(401));
     element
       .querySelector('form')!
-      .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      .dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));
     await fixture.whenStable();
     fixture.detectChanges();
     expect(element.textContent).toContain(
@@ -70,7 +71,7 @@ describe('Login', () => {
     const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(true);
     for (const role of ['CUSTOMER', 'AGENT'] as const) {
       const fixture = setup();
-      state.authenticated({ id: 'fixture', email: 'fixture@example.test', role });
+      state.authenticated({id: 'fixture', email: 'fixture@example.test', role});
       let finish!: (value: { confirmed: true; csrfReady: boolean }) => void;
       login.and.returnValue(
         new Promise((resolve) => {
@@ -84,7 +85,7 @@ describe('Login', () => {
         ' exact password 123 ',
       ]);
       expect(fixture.componentInstance.pending()).toBeTrue();
-      finish({ confirmed: true, csrfReady: true });
+      finish({confirmed: true, csrfReady: true});
       await submission;
       expect(navigate.calls.mostRecent().args[0]).toBe(
         role === 'CUSTOMER' ? '/customer' : '/agent',
@@ -97,8 +98,8 @@ describe('Login', () => {
   it('preserves confirmed login after failed token refresh and explicitly retries without credentials', async () => {
     const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(true);
     const fixture = setup();
-    state.authenticated({ id: 'fixture', email: 'fixture@example.test', role: 'CUSTOMER' });
-    login.and.resolveTo({ confirmed: true, csrfReady: false });
+    state.authenticated({id: 'fixture', email: 'fixture@example.test', role: 'CUSTOMER'});
+    login.and.resolveTo({confirmed: true, csrfReady: false});
     await fixture.componentInstance.submit();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('You are signed in');

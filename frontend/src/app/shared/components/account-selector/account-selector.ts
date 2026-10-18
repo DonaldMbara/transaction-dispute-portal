@@ -8,8 +8,8 @@ import {
   output,
   ViewChild,
 } from '@angular/core';
-import { AccountSummary } from '../../models/account-summary';
-import { AccountCard } from '../account-card/account-card';
+import {AccountSummary} from '../../models/account-summary';
+import {AccountCard} from '../account-card/account-card';
 
 @Component({
   selector: 'app-account-selector',
@@ -20,7 +20,6 @@ import { AccountCard } from '../account-card/account-card';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountSelector {
-  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly accounts = input.required<readonly AccountSummary[]>();
   readonly selectedAccountId = input.required<string | null>();
   /** When true, prepends an "All your accounts" option that emits null on selection. */
@@ -29,7 +28,7 @@ export class AccountSelector {
   readonly selectionChange = output<string | null>();
   isOpen = false;
   activeIndex = 0;
-
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   @ViewChild('trigger') private trigger?: ElementRef<HTMLButtonElement>;
   @ViewChild('listbox') private listbox?: ElementRef<HTMLElement>;
 

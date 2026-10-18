@@ -1,5 +1,5 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AccountSelector } from './account-selector';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {AccountSelector} from './account-selector';
 
 describe('AccountSelector', () => {
   let fixture: ComponentFixture<AccountSelector>;
@@ -28,7 +28,7 @@ describe('AccountSelector', () => {
 
   describe('with showAllAccounts=false (default)', () => {
     beforeEach(async () => {
-      await TestBed.configureTestingModule({ imports: [AccountSelector] }).compileComponents();
+      await TestBed.configureTestingModule({imports: [AccountSelector]}).compileComponents();
       fixture = TestBed.createComponent(AccountSelector);
       fixture.componentRef.setInput('accounts', accounts);
       fixture.componentRef.setInput('selectedAccountId', 'a');
@@ -79,16 +79,16 @@ describe('AccountSelector', () => {
       fixture.componentInstance.selectionChange.subscribe(emitted);
       const host = fixture.nativeElement as HTMLElement;
       const trigger: HTMLButtonElement = host.querySelector('.selector-trigger')!;
-      trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      trigger.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
       fixture.detectChanges();
       await new Promise((resolve) => setTimeout(resolve));
       fixture.detectChanges();
       const listbox = host.querySelector<HTMLElement>('[role="listbox"]')!;
       expect(trigger.getAttribute('aria-expanded')).toBe('true');
-      listbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+      listbox.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true}));
       fixture.detectChanges();
       expect(document.activeElement?.getAttribute('data-option-index')).toBe('1');
-      listbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      listbox.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
       fixture.detectChanges();
       expect(emitted).toHaveBeenCalledOnceWith('b');
       expect(host.querySelector('[role="listbox"]')).toBeNull();
@@ -102,19 +102,19 @@ describe('AccountSelector', () => {
       trigger.click();
       fixture.detectChanges();
       const listbox = host.querySelector<HTMLElement>('[role="listbox"]')!;
-      listbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+      listbox.dispatchEvent(new KeyboardEvent('keydown', {key: 'End', bubbles: true}));
       expect(document.activeElement?.getAttribute('data-option-index')).toBe('1');
-      listbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+      listbox.dispatchEvent(new KeyboardEvent('keydown', {key: 'Home', bubbles: true}));
       expect(document.activeElement?.getAttribute('data-option-index')).toBe('0');
-      listbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      listbox.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
       fixture.detectChanges();
       expect(host.querySelector('[role="listbox"]')).toBeNull();
       trigger.click();
       fixture.detectChanges();
-      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      document.body.dispatchEvent(new MouseEvent('click', {bubbles: true}));
       fixture.detectChanges();
       expect(host.querySelector('[role="listbox"]')).toBeNull();
-      fixture.componentRef.setInput('accounts', [{ ...accounts[0], accountNumber: null }]);
+      fixture.componentRef.setInput('accounts', [{...accounts[0], accountNumber: null}]);
       fixture.detectChanges();
       expect(host.textContent).not.toContain('0123456789');
       expect(host.querySelector('.selector-trigger')).toBeTruthy();
@@ -124,7 +124,7 @@ describe('AccountSelector', () => {
 
   describe('with showAllAccounts=true', () => {
     beforeEach(async () => {
-      await TestBed.configureTestingModule({ imports: [AccountSelector] }).compileComponents();
+      await TestBed.configureTestingModule({imports: [AccountSelector]}).compileComponents();
       fixture = TestBed.createComponent(AccountSelector);
       fixture.componentRef.setInput('accounts', accounts);
       fixture.componentRef.setInput('selectedAccountId', 'a');

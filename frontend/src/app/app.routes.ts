@@ -1,5 +1,5 @@
-import { Routes } from '@angular/router';
-import { entryRedirect, roleMatch, roleChildren } from './core/auth/auth-guards';
+import {Routes} from '@angular/router';
+import {entryRedirect, roleChildren, roleMatch} from './core/auth/guards/auth-guards';
 
 export const routes: Routes = [
   {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {ChangeDetectionStrategy, Component} from '@angular/core';
 
 @Component({
   selector: 'app-welcome',
@@ -7,4 +7,5 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   styleUrl: './welcome.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Welcome {}
+export class Welcome {
+}

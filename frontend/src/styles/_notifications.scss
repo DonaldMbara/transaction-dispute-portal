@@ -19,12 +19,15 @@
 .notification--success {
   border-left-color: var(--color-success);
 }
+
 .notification--error {
   border-left-color: var(--color-danger);
 }
+
 .notification p {
   margin: 0;
 }
+
 .notification__dismiss {
   border: 0;
   background: transparent;
@@ -32,6 +35,7 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
 .notification__dismiss:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;

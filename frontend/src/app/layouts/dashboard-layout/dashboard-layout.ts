@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { AuthService } from '../../core/auth/auth-service';
-import { safeMessage } from '../../core/auth/auth-models';
-import { NotificationService } from '../../shared/components/notification/notification';
-import { Button } from '../../shared/components/button/button';
-import { AsyncActionStatus } from '../../shared/models/async-state';
+import {ChangeDetectionStrategy, Component, computed, inject, signal} from '@angular/core';
+import {Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
+import {AuthService} from '../../core/auth/services/auth-service';
+import {safeMessage} from '../../core/auth/models/auth-models';
+import {NotificationService} from '../../shared/components/notification/notification';
+import {Button} from '../../shared/components/button/button';
+import {AsyncActionStatus} from '../../shared/models/async-state';
+
 @Component({
   selector: 'app-dashboard-layout',
   standalone: true,
@@ -15,18 +16,21 @@ import { AsyncActionStatus } from '../../shared/models/async-state';
 })
 export class DashboardLayout {
   readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
-  private readonly notifications = inject(NotificationService);
   readonly actionState = signal<AsyncActionStatus>('idle');
   readonly pending = computed(() => this.actionState() === 'busy');
   readonly message = signal('');
+  private readonly router = inject(Router);
+  private readonly notifications = inject(NotificationService);
+
   isCustomerRoute(): boolean {
     const path = this.router.url.split('?')[0].replace(/\/+$/u, '');
     return path === '/customer' || path.startsWith('/customer/');
   }
+
   isAgentRoute(): boolean {
     return this.router.url.split('?')[0].startsWith('/agent');
   }
+
   async signOut(retry = false): Promise<void> {
     if (this.pending()) return;
     this.actionState.set('busy');

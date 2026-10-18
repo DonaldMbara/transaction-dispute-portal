@@ -1,6 +1,6 @@
 @if (state() === 'loading') {
-  <div class="loading" aria-busy="true">
-    <app-loading-spinner label="Loading dispute details" />
+  <div aria-busy="true" class="loading">
+    <app-loading-spinner label="Loading dispute details"/>
   </div>
 } @else if (state() === 'not-found') {
   <section class="state-card" role="alert">
@@ -12,21 +12,21 @@
   <section class="state-card" role="alert">
     <h1>We couldn't load this dispute</h1>
     <p>Please try again.</p>
-    <button appButton="secondary" type="button" (click)="retry()">Try again</button>
+    <button (click)="retry()" appButton="secondary" type="button">Try again</button>
   </section>
 } @else if (dispute(); as item) {
-  <section class="detail-page" aria-labelledby="detail-title">
-    <a class="back-link" [routerLink]="backLink()">← Back to disputes</a>
+  <section aria-labelledby="detail-title" class="detail-page">
+    <a [routerLink]="backLink()" class="back-link">← Back to disputes</a>
     @if (item.status === 'ACCEPTED' || item.status === 'REJECTED') {
       <section
-        class="outcome"
-        role="status"
         [class.outcome--accepted]="item.status === 'ACCEPTED'"
         [class.outcome--rejected]="item.status === 'REJECTED'"
+        class="outcome"
+        role="status"
       >
         <span class="outcome-chip">{{
-          item.status === 'ACCEPTED' ? '✓ Accepted' : '⊗ Rejected'
-        }}</span>
+            item.status === 'ACCEPTED' ? '✓ Accepted' : '⊗ Rejected'
+          }}</span>
         <h2>
           {{
             item.status === 'ACCEPTED'
@@ -54,16 +54,16 @@
       <p>Review the transaction and updates to your case.</p>
     </header>
     <div class="detail-grid">
-      <section class="transaction-card" aria-label="Disputed transaction">
+      <section aria-label="Disputed transaction" class="transaction-card">
         <p class="card-eyebrow">DISPUTED TRANSACTION</p>
         <h2>{{ item.transaction.merchant }}</h2>
         <p class="amount">
           {{ formatAmount(item.transaction.amount, item.transaction.direction) }}
         </p>
         <span
-          class="status-chip"
           [class]="'status-chip status-chip--' + item.status.toLowerCase()"
-          >{{ statusLabel(item.status) }}</span
+          class="status-chip"
+        >{{ statusLabel(item.status) }}</span
         >
         <dl>
           <div>
@@ -93,27 +93,28 @@
           </div>
         </dl>
       </section>
-      <section class="timeline-card" aria-labelledby="timeline-title">
+      <section aria-labelledby="timeline-title" class="timeline-card">
         <h2 id="timeline-title">Case timeline</h2>
         <ol class="timeline">
           @for (entry of item.timeline; track entry.occurredAt + entry.type; let index = $index) {
             <li>
-              <span class="timeline-icon" aria-hidden="true">{{
-                entry.type === 'SUBMITTED'
-                  ? '▣'
-                  : entry.type === 'IN_REVIEW'
-                    ? '◷'
-                    : entry.type === 'RETURNED_TO_QUEUE'
-                      ? '↻'
-                      : item.status === 'ACCEPTED'
-                        ? '✓'
-                        : '⊗'
-              }}</span>
+              <span aria-hidden="true" class="timeline-icon">{{
+                  entry.type === 'SUBMITTED'
+                    ? '▣'
+                    : entry.type === 'IN_REVIEW'
+                      ? '◷'
+                      : entry.type === 'RETURNED_TO_QUEUE'
+                        ? '↻'
+                        : item.status === 'ACCEPTED'
+                          ? '✓'
+                          : '⊗'
+                }}</span>
               <div>
                 <h3>{{ timelineLabel(entry, index, item.timeline) }}</h3>
                 <time>{{
-                  entry.occurredAt | date: 'dd MMM yyyy, HH:mm' : 'Africa/Johannesburg'
-                }}</time>
+                    entry.occurredAt | date: 'dd MMM yyyy, HH:mm' : 'Africa/Johannesburg'
+                  }}
+                </time>
                 <p>{{ entry.message }}</p>
               </div>
             </li>

@@ -1,21 +1,23 @@
-import { ChangeDetectionStrategy, Component, inject, Injectable, signal } from '@angular/core';
-import { Notification, NotificationTone } from './notification.interface';
+import {ChangeDetectionStrategy, Component, inject, Injectable, signal} from '@angular/core';
+import {Notification, NotificationTone} from '../../interfaces/notification.interface';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class NotificationService {
   private readonly currentValue = signal<Notification | null>(null);
-  private dismissTimer: ReturnType<typeof setTimeout> | null = null;
   readonly current = this.currentValue.asReadonly();
+  private dismissTimer: ReturnType<typeof setTimeout> | null = null;
 
   show(message: string, tone: NotificationTone = 'info'): void {
     this.clearTimer();
-    this.currentValue.set({ message, tone });
+    this.currentValue.set({message, tone});
     this.dismissTimer = setTimeout(() => this.dismiss(), 5_000);
   }
+
   dismiss(): void {
     this.clearTimer();
     this.currentValue.set(null);
   }
+
   private clearTimer(): void {
     if (this.dismissTimer !== null) clearTimeout(this.dismissTimer);
     this.dismissTimer = null;

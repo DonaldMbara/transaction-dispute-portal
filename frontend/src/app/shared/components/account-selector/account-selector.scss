@@ -2,10 +2,12 @@
   display: block;
   width: 100%;
 }
+
 .selector {
   position: relative;
   width: 100%;
 }
+
 .selector-trigger,
 .account-option {
   display: block;
@@ -19,9 +21,11 @@
   font: inherit;
   cursor: pointer;
 }
+
 .selector-trigger {
   min-height: 72px;
 }
+
 .account-options {
   position: absolute;
   z-index: 5;
@@ -36,20 +40,24 @@
   background: var(--color-surface);
   box-shadow: 0 0.5rem 1.4rem rgb(20 40 60 / 16%);
 }
+
 .account-option {
   border-radius: 0.65rem;
 }
+
 .selector-trigger:focus-visible,
 .account-option:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
+
 .all-accounts-card {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1rem;
 }
+
 .all-accounts-icon {
   flex-shrink: 0;
   width: 2rem;
@@ -58,6 +66,7 @@
   align-items: center;
   justify-content: center;
 }
+
 .all-accounts-icon svg {
   width: 1.25rem;
   height: 1.25rem;
@@ -65,13 +74,16 @@
   fill: none;
   stroke-width: 1.5;
 }
+
 .all-accounts-info {
   flex: 1;
 }
+
 .all-accounts-option {
   border-bottom: 1px solid var(--color-border);
   margin-bottom: 0.2rem;
 }
+
 .chevron {
   width: 1rem;
   height: 1rem;
@@ -81,37 +93,46 @@
   stroke-width: 2;
   transition: transform 0.2s;
 }
+
 .chevron--expanded {
   transform: rotate(90deg);
 }
+
 .selected-mark {
   color: var(--color-primary);
   font-size: 1rem;
 }
+
 :host-context(.disputes-page) .selector-trigger {
   width: auto;
   min-height: 0;
   color: var(--color-primary);
 }
+
 :host-context(.disputes-page) .selector-trigger--account {
   width: 100%;
 }
+
 :host-context(.disputes-page) .all-accounts-card {
   gap: 0.5rem;
   padding: 0;
   font-size: 0.82rem;
 }
+
 :host-context(.disputes-page) .all-accounts-icon {
   width: 1rem;
   height: 1rem;
 }
+
 :host-context(.disputes-page) .all-accounts-icon svg {
   width: 1rem;
   height: 1rem;
 }
+
 :host-context(.disputes-page) .selector-trigger > .all-accounts-card > .chevron {
   display: none;
 }
+
 @media (max-width: 600px) {
   .account-options {
     max-height: min(60vh, 24rem);
