@@ -48,27 +48,31 @@
           </a>
         }
       </div>
+
       @if (quickLinks().length > 0) {
-        <nav aria-label="Quick links" class="quick-links">
-          @for (link of quickLinks(); track link.label) {
-            <h2>{{ link.label }}</h2>
-            <p>
-              {{
-                link.label === 'View transactions'
-                  ? 'Browse payments and find a transaction.'
-                  : 'Track the progress and outcome of your cases.'
-              }}
-            </p>
-            <a [queryParams]="link.queryParams" [routerLink]="link.routerLink"
-            ><span>{{ link.label }}</span
-            >
-              <svg aria-hidden="true" viewBox="0 0 24 24">
-                <path d="M5 12h14M13 6l6 6-6 6"/>
-              </svg
+        <aside class="account-dispute-list">
+          <nav aria-label="Quick links" class="quick-links">
+            @for (link of quickLinks(); track link.label) {
+              <h2>{{ link.label }}</h2>
+              <p>
+                {{
+                  link.label === 'View transactions'
+                    ? 'Browse payments and find a transaction.'
+                    : 'Track the progress and outcome of your cases.'
+                }}
+              </p>
+              <a
+                [queryParams]="link.queryParams"
+                [routerLink]="link.routerLink"
               >
-            </a>
-          }
-        </nav>
+                <span>{{ link.label }}</span>
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M5 12h14M13 6l6 6-6 6"/>
+                </svg>
+              </a>
+            }
+          </nav>
+        </aside>
       }
     </div>
   }
