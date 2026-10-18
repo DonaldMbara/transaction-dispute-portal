@@ -9,7 +9,7 @@ export function isOwnApi(url: string): boolean {
     const target = new URL(url, window.location.origin);
     return (
       target.origin === window.location.origin &&
-      (target.pathname === '/services/v1' || target.pathname.startsWith('/services/v1/'))
+      (target.pathname === '/api/v1' || target.pathname.startsWith('/api/v1/'))
     );
   } catch {
     return false;

@@ -31,7 +31,7 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
   if (!isOwnApi(request.url)) return next(request);
   const notifications = inject(NotificationService);
   const path = new URL(request.url, window.location.origin).pathname;
-  const isAuthenticationRequest = path.startsWith('/services/v1/auth/');
+  const isAuthenticationRequest = path.startsWith('/api/v1/auth/');
   return next(request).pipe(
     catchError((failure: unknown) => {
       if (!isAuthenticationRequest) {

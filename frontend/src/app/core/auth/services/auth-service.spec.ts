@@ -54,16 +54,16 @@ describe('Authentication service and HTTP boundary', () => {
     control.expectNone('/api/v1/write');
     csrf.set('masked-fixture');
     for (const url of [
-      '/services/v1/write',
-      window.location.origin + '/services/v1/write',
-      '/services/v10/write',
+      '/api/v1/write',
+      window.location.origin + '/api/v1/write',
+      '/api/v10/write',
       '/other',
       'https://unrelated.example/api/v1/write',
     ]) {
       http.post(url, {}).subscribe();
       const request = control.expectOne(url);
       expect(request.request.headers.has('X-CSRF-TOKEN')).toBe(
-        url.includes('/services/v1/write') && !url.startsWith('https://unrelated'),
+        url.includes('/api/v1/write') && !url.startsWith('https://unrelated'),
       );
       expect(request.request.headers.has('Authorization')).toBeFalse();
       request.flush(ok(null));

@@ -18,7 +18,7 @@ describe('DisputeApi', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('dispute-list() calls GET /services/v1/disputes with correct params', () => {
+  it('dispute-list() calls GET /api/v1/disputes with correct params', () => {
     const mockPage: DisputePage = {total: 1, page: 1, size: 20, items: []};
 
     api.list({page: 1, size: 20, status: 'ACTIVE', accountId: 'acc-123'}).subscribe((result) => {
@@ -49,7 +49,7 @@ describe('DisputeApi', () => {
     req.flush({status: true, data: {total: 0, page: 1, size: 20, items: []}, error_code: 0});
   });
 
-  it('get(id) calls GET /services/v1/disputes/:id', () => {
+  it('get(id) calls GET /api/v1/disputes/:id', () => {
     const mockDetail: DisputeDetail = {
       id: 'dispute-uuid',
       transaction: {
