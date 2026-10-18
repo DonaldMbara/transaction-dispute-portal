@@ -21,7 +21,11 @@ module.exports = (config) => {
     coverageReporter: {
       dir: path.join(__dirname, 'coverage/dispute-portal'),
       subdir: '.',
-      reporters: [{ type: 'html' }, { type: 'lcovonly' }, { type: 'text-case-summary' }],
+      reporters: [
+        {type: 'html'},
+        {type: 'lcovonly'},
+        {type: 'text-summary'},
+      ],
       check: {
         global: {
           statements: 50,
